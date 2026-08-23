@@ -72,8 +72,16 @@ user bool rs_hardpoint_instant_switch = true;
 // (RS_HardPoints.zs updateProps) rather than tinting an existing one live.
 // 0 = bracket reticle, 1 = the original wireframe sphere.
 user int rs_hardpoint_marker_shape = 0;
-// 0 = default (untinted), 1 = blue, 2 = red, 3 = gold, 4 = purple.
+// Cold (idle) marker color. 0 = default (untinted), 1 = blue, 2 = red,
+// 3 = gold, 4 = purple, 5 = orange, 6 = green, 7 = cyan, 8 = pink.
 user int rs_hardpoint_marker_color = 0;
+// Hot (hand-in-range) marker color, same palette, independent cvar --
+// picking the same color for both used to be the only option there was,
+// and two states that look identical defeat the point of a color cue.
+// Defaults to 0/untinted, same as rs_hardpoint_marker_color, so a fresh
+// install looks exactly as it did before this existed; the two only
+// diverge once you actually pick different values in the menu.
+user int rs_hardpoint_marker_color_hot = 0;
 
 // How many of the 8 declared holsters are live: 2 = hip, 4 = +shoulder,
 // 6 = +pectoral, 8 = +second hip pair (RS_HardPoints.zs, GetHolster/

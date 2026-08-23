@@ -49,7 +49,7 @@ still working bugs out with my weaponsets with _2 twins of guns (not released)
 
 ### Requires
 
-- RS_Main (for the weapon models the holsters borrow)
+- Any weapon-content pack providing standard `Weapon` classes -- borrows whatever is loaded, never references RS_Main or any other specific pack by name
 - The UZDXREMA engine build (for the native holster fields this mod is built on)
 
 Still actively getting tuned — but the core is solid: reach, grip, it's there.

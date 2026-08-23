@@ -4,21 +4,25 @@ version "4.14"
 // same engine (UZDXREMA/DoomXR), no genericization needed.
 //
 // REAL DEPENDENCIES, this pk3 is not standalone-playable without them:
-//   - RS_Main must be loaded too: RS_HardPointProp borrows weapon models via
-//     A_ChangeModel(w.GetClassName()), which resolves against that weapon's
-//     OWN MODELDEF block -- those live in RS_Main's MODELDEF (360+ entries)
-//     and cannot be duplicated here without them being the same file twice.
+//   - SOME weapon-content pack must be loaded: RS_HardPointProp borrows a
+//     stored weapon's model via A_ChangeModel(w.GetClassName()), which
+//     resolves against THAT WEAPON'S OWN MODELDEF block, wherever it lives.
+//     Not RS_Main specifically -- confirmed against RS_Lance's LNC_Lance (a
+//     plain Weapon in its own separate pk3) working identically. Store/draw/
+//     claim all work with no weapon pack loaded at all; only the visible
+//     model needs one, and it does not care which pack supplies it.
 //   - The engine (UZDXREMA/DoomXR) fields this drives are native, not stock
 //     GZDoom: HmdPos/HmdYaw/HmdPitch/HmdRoll, HolsterClaimMain/Off,
-//     GripContextMain/Off, VRTurnYaw, StabilizeReach, and the natives
-//     level.VRHaptic / level.GetModelOrientationHint / level.GetModelOffsetHint.
-//     None of this runs on stock GZDoom or on QuestZDoom proper.
-//   - RS_HardPointManager.doSwap calls PlayerPawn.MoveWeaponToHand and reads
-//     ReadyWeapon/OffhandWeapon -- the dual-wield VR conventions RS_Main's
-//     weapons use. A mod without that offhand system would have working
-//     anchors/claims/grip but nothing sensible for "draw" to do.
+//     GripContextMain/Off, VRTurnYaw, StabilizeReach, ReadyWeapon/
+//     OffhandWeapon and MoveWeaponToHand's dual-wield hand routing, and the
+//     natives level.VRHaptic / level.GetModelOrientationHint /
+//     level.GetModelOffsetHint / level.GetModelBoundsHint /
+//     level.GetModelWorldOffset. None of this runs on stock GZDoom or on
+//     QuestZDoom proper -- and none of it is any specific weapon pack's,
+//     it is all engine-level.
 //
 // RS_HardPointManager must ALSO be in MAPINFO.txt's AddEventHandlers (it is).
 
 #include "zscript/systems/player/RS_HardPointProp.zs"
 #include "zscript/systems/player/RS_HardPoints.zs"
+#include "zscript/weapons/RS_HardPointFlashlight.zs"

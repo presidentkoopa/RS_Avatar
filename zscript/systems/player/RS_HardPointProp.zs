@@ -95,9 +95,16 @@ class RS_HardPointMarker : Actor
 	// to the one MODELDEF block that actually exists, regardless of which of
 	// these actually gets spawned. Translation is the only thing that
 	// differs; model binding does not care which of these it is.
-	static class<Actor> holsterMarkerColorClass()
+	//
+	// Cold (idle) and hot (hand-in-range) are two INDEPENDENT choices, each
+	// its own cvar -- picking the same color for both used to be the only
+	// option there was, and a marker that looks identical whether or not a
+	// hand is actually in range defeats the one thing the color is for.
+	// hot selects which cvar gets read; the class list itself is shared.
+	static class<Actor> holsterMarkerColorClass(bool hot)
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_marker_color", players[consoleplayer]);
+		string cvarName = hot ? "rs_hardpoint_marker_color_hot" : "rs_hardpoint_marker_color";
+		let cv = CVar.GetCVar(cvarName, players[consoleplayer]);
 		int c = (cv != null) ? cv.GetInt() : 0;
 		switch (c)
 		{
@@ -105,6 +112,10 @@ class RS_HardPointMarker : Actor
 			case 2: return "RS_HardPointMarker_Red";
 			case 3: return "RS_HardPointMarker_Gold";
 			case 4: return "RS_HardPointMarker_Purple";
+			case 5: return "RS_HardPointMarker_Orange";
+			case 6: return "RS_HardPointMarker_Green";
+			case 7: return "RS_HardPointMarker_Cyan";
+			case 8: return "RS_HardPointMarker_Pink";
 			default: return "RS_HardPointMarker";
 		}
 	}
@@ -142,6 +153,23 @@ class RS_HardPointMarker : Actor
 	void SetProximity(double t)
 	{
 		proximity01 = (t < 0.0) ? 0.0 : (t > 1.0) ? 1.0 : t;
+	}
+
+	// Read/write the fade state directly, for RS_HardPointManager to carry
+	// across a color-class respawn (updateProps) when hot/cold toggles pick
+	// different subclasses. Without this, every hand-enter/leave would
+	// destroy and respawn the marker, and a fresh instance always starts at
+	// fadeAlpha 0 -- the transition meant to read as instant (SetHot's skin
+	// swap, the entry haptic) would fade in from invisible instead, every
+	// single time.
+	double GetFadeAlpha() const { return fadeAlpha; }
+	bool GetFadeVisible() const { return fadeVisible; }
+
+	void SetFadeState(double alpha, bool visible)
+	{
+		fadeAlpha = alpha;
+		fadeVisible = visible;
+		bINVISIBLE = (alpha <= 0.0);
 	}
 
 	// Fade instead of a hard bINVISIBLE cut. FADE_STEP is a CLASS-level
@@ -221,6 +249,22 @@ class RS_HardPointMarker_Gold : RS_HardPointMarker
 class RS_HardPointMarker_Purple : RS_HardPointMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[1.40,0.35,1.85]"; }
+}
+class RS_HardPointMarker_Orange : RS_HardPointMarker
+{
+	Default { Translation "0:255=%[0.30,0.59,0.11]:[2.00,0.85,0.15]"; }
+}
+class RS_HardPointMarker_Green : RS_HardPointMarker
+{
+	Default { Translation "0:255=%[0.30,0.59,0.11]:[0.30,2.00,0.35]"; }
+}
+class RS_HardPointMarker_Cyan : RS_HardPointMarker
+{
+	Default { Translation "0:255=%[0.30,0.59,0.11]:[0.25,1.75,2.00]"; }
+}
+class RS_HardPointMarker_Pink : RS_HardPointMarker
+{
+	Default { Translation "0:255=%[0.30,0.59,0.11]:[2.00,0.30,1.10]"; }
 }
 
 class RS_HardPointProp : Actor

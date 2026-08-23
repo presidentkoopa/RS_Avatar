@@ -1,0 +1,58 @@
+// RS_HardPointFlashlight's draw/holster click. Files and voicing copied from
+// GlowInTheDark's DarkDoomZ flashlight click set (E:\GlowInTheDark\sounds,
+// credited there to mshahen, CC BY 3.0) -- same 12-on/12-off split, own
+// logical names so this pk3 does not need GlowInTheDark loaded to have a
+// sound at all.
+$random rs_hardpoint_flashlight_on {
+	rs_hardpoint_flashlight/on01
+	rs_hardpoint_flashlight/on02
+	rs_hardpoint_flashlight/on03
+	rs_hardpoint_flashlight/on04
+	rs_hardpoint_flashlight/on05
+	rs_hardpoint_flashlight/on06
+	rs_hardpoint_flashlight/on07
+	rs_hardpoint_flashlight/on08
+	rs_hardpoint_flashlight/on09
+	rs_hardpoint_flashlight/on10
+	rs_hardpoint_flashlight/on11
+	rs_hardpoint_flashlight/on12	}
+
+$random rs_hardpoint_flashlight_off {
+	rs_hardpoint_flashlight/off01
+	rs_hardpoint_flashlight/off02
+	rs_hardpoint_flashlight/off03
+	rs_hardpoint_flashlight/off04
+	rs_hardpoint_flashlight/off05
+	rs_hardpoint_flashlight/off06
+	rs_hardpoint_flashlight/off07
+	rs_hardpoint_flashlight/off08
+	rs_hardpoint_flashlight/off09
+	rs_hardpoint_flashlight/off10
+	rs_hardpoint_flashlight/off11
+	rs_hardpoint_flashlight/off12	}
+
+rs_hardpoint_flashlight/on01	DDZCLK13
+rs_hardpoint_flashlight/on02	DDZCLK14
+rs_hardpoint_flashlight/on03	DDZCLK15
+rs_hardpoint_flashlight/on04	DDZCLK16
+rs_hardpoint_flashlight/on05	DDZCLK17
+rs_hardpoint_flashlight/on06	DDZCLK18
+rs_hardpoint_flashlight/on07	DDZCLK19
+rs_hardpoint_flashlight/on08	DDZCLK20
+rs_hardpoint_flashlight/on09	DDZCLK21
+rs_hardpoint_flashlight/on10	DDZCLK22
+rs_hardpoint_flashlight/on11	DDZCLK23
+rs_hardpoint_flashlight/on12	DDZCLK24
+
+rs_hardpoint_flashlight/off01	DDZCLK01
+rs_hardpoint_flashlight/off02	DDZCLK02
+rs_hardpoint_flashlight/off03	DDZCLK03
+rs_hardpoint_flashlight/off04	DDZCLK04
+rs_hardpoint_flashlight/off05	DDZCLK05
+rs_hardpoint_flashlight/off06	DDZCLK06
+rs_hardpoint_flashlight/off07	DDZCLK07
+rs_hardpoint_flashlight/off08	DDZCLK08
+rs_hardpoint_flashlight/off09	DDZCLK09
+rs_hardpoint_flashlight/off10	DDZCLK10
+rs_hardpoint_flashlight/off11	DDZCLK11
+rs_hardpoint_flashlight/off12	DDZCLK12

@@ -369,6 +369,28 @@ class RS_HardPointManager : EventHandler
 			updateGrabs(i, pawn);
 			updateClaims(i, pawn); // also repositions props, via updateProps
 
+			// Throttled live dump of raw off-hand pitch plus the resulting
+			// wrist anchor positions, gated on the arm rig actually being
+			// on. Built for one question: does WristBelow/Knuckle/Joint
+			// move the way a real tilt of the hand should, or backward?
+			// (GlowInTheDark's GITD_Flashlight hit OffhandPitch being
+			// stored negated at the engine level and documented it against
+			// real engine source -- see that file's ResolveMount.) Printed
+			// raw rather than pre-judged: hsFwd/hsSide/hsFrac differ across
+			// all three wrist slots, so one prediction does not obviously
+			// hold the same way for all three -- read the numbers against
+			// the actual tilt rather than trusting a guess about the sign.
+			if (armActiveCount() > 0 && (level.time % 10) == 0)
+			{
+				Vector3 belowP = anchorPos(i, pawn, 11);
+				Vector3 knuckP = anchorPos(i, pawn, 12);
+				Vector3 jointP = anchorPos(i, pawn, 13);
+				Console.Printf("RS_HOLSTER wrist-pitch: raw OffhandPitch=%.1f OffhandRoll=%.1f OffhandAngle=%.1f",
+					pawn.OffhandPitch, pawn.OffhandRoll, pawn.OffhandAngle);
+				Console.Printf("  Below  %.1f,%.1f,%.1f   Knuckle %.1f,%.1f,%.1f   Joint %.1f,%.1f,%.1f",
+					belowP.X, belowP.Y, belowP.Z, knuckP.X, knuckP.Y, knuckP.Z, jointP.X, jointP.Y, jointP.Z);
+			}
+
 			// Consume a dump queued by last tic's store, now that this tic's
 			// updateClaims has actually moved the prop into place.
 			if (pendingDump[i] >= 0)
@@ -1029,6 +1051,10 @@ class RS_HardPointManager : EventHandler
 			string hsNameM; double hsFwdM, hsSideM, hsFracM, hsRadius, hsPitchM, hsYawM, hsRollM;
 			GetHolster(h, hsNameM, hsFwdM, hsSideM, hsFracM, hsRadius, hsPitchM, hsYawM, hsRollM);
 
+			// Computed once, reused for both the color-class choice below and
+			// the SetHot() call -- same "is a hand in range right now" test.
+			bool hot = (nearMain[i] == h || nearOff[i] == h);
+
 			// --- the ring marker: always present, so an empty holster is
 			// still something the player can see and aim a hand at ---
 			//
@@ -1036,21 +1062,37 @@ class RS_HardPointManager : EventHandler
 			// RS_HardPointProp.zs), not a settable field -- an existing marker
 			// whose class no longer matches the cvar gets destroyed and
 			// respawned so a color change takes effect immediately instead of
-			// waiting for something else to force a respawn later.
-			class<Actor> wantColorClass = RS_HardPointMarker.holsterMarkerColorClass();
+			// waiting for something else to force a respawn later. Cold and
+			// hot are independent cvars now, so this same respawn path also
+			// fires on every hand-enter/leave transition -- fade state is
+			// carried across it (GetFadeAlpha/GetFadeVisible/SetFadeState) so
+			// that respawn is invisible: without it, a fresh marker always
+			// starts faded to nothing and would fade back in on every single
+			// hot/cold toggle instead of just switching color instantly.
+			class<Actor> wantColorClass = RS_HardPointMarker.holsterMarkerColorClass(hot);
+			double carryAlpha = 0.0;
+			bool carryVisible = false;
+			bool carryState = false;
 			if (markers[pi] != null && markers[pi].GetClass() != wantColorClass)
 			{
+				carryAlpha = markers[pi].GetFadeAlpha();
+				carryVisible = markers[pi].GetFadeVisible();
+				carryState = true;
 				markers[pi].Destroy();
 				markers[pi] = null;
 			}
 			if (markers[pi] == null)
+			{
 				markers[pi] = RS_HardPointMarker(Actor.Spawn(wantColorClass, at, NO_REPLACE));
+				if (markers[pi] != null && carryState)
+					markers[pi].SetFadeState(carryAlpha, carryVisible);
+			}
 
 			if (markers[pi] != null)
 			{
 				markers[pi].SetVisible(true);
 				markers[pi].SetOrigin(at, true);
-				markers[pi].SetHot(nearMain[i] == h || nearOff[i] == h);
+				markers[pi].SetHot(hot);
 
 				// Same live-tunable orientation the weapon prop uses (edYaw/
 				// edPitch/edRoll, not a fresh GetHolster read) -- so dragging
