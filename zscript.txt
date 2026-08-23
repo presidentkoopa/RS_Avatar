@@ -4,7 +4,7 @@ version "4.14"
 // same engine (UZDXREMA/DoomXR), no genericization needed.
 //
 // REAL DEPENDENCIES, this pk3 is not standalone-playable without them:
-//   - SOME weapon-content pack must be loaded: RS_HardPointProp borrows a
+//   - SOME weapon-content pack must be loaded: RS_HolsterProp borrows a
 //     stored weapon's model via A_ChangeModel(w.GetClassName()), which
 //     resolves against THAT WEAPON'S OWN MODELDEF block, wherever it lives.
 //     Not RS_Main specifically -- confirmed against RS_Lance's LNC_Lance (a
@@ -21,8 +21,8 @@ version "4.14"
 //     QuestZDoom proper -- and none of it is any specific weapon pack's,
 //     it is all engine-level.
 //
-// RS_HardPointManager must ALSO be in MAPINFO.txt's AddEventHandlers (it is).
+// RS_HolsterManager must ALSO be in MAPINFO.txt's AddEventHandlers (it is).
 
-#include "zscript/systems/player/RS_HardPointProp.zs"
-#include "zscript/systems/player/RS_HardPoints.zs"
-#include "zscript/weapons/RS_HardPointFlashlight.zs"
+#include "zscript/systems/player/RS_HolsterProp.zs"
+#include "zscript/systems/player/RS_Holsters.zs"
+#include "zscript/weapons/RS_HolsterFlashlight.zs"

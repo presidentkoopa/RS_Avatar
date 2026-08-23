@@ -34,16 +34,16 @@ still working bugs out with my weaponsets with _2 twins of guns (not released)
 
 
 
-!!!!! also features (disabled by default)
+### The arm rig moved out
 
+The forearm and wrist hardpoints that used to ship here (disabled by default)
+are now their own mod, **RS_HardPoints** — six mount points on your own off
+arm, for grenades, a flashlight, utility gear. Load both at once; they share
+nothing at runtime and each ignores a grip that lands in the other's anchors.
 
-! offhand forearm holsters (3) - for quick grenades, flashlights, etc... utility slots
-
-
-! this system will be expanded to allow a rollodex of quickslots on the offhand
-
-
-! Hardpoints to the left, right, and bottom of each hand, to mount weapons. Gesture based attacks. Put your hand into 'dr strange' pose and use three controls to fire three different attacks
+That's also where the planned gesture work lives now: palm rolled up
+"dr strange" style to arm the wrist mounts, then three controls firing three
+different attacks in place, plus a scrollable rolodex of quickslots.
 
 
 
@@ -51,5 +51,8 @@ still working bugs out with my weaponsets with _2 twins of guns (not released)
 
 - Any weapon-content pack providing standard `Weapon` classes -- borrows whatever is loaded, never references RS_Main or any other specific pack by name
 - The UZDXREMA engine build (for the native holster fields this mod is built on)
+
+**No default binds.** Bind the store/draw keys yourself under Customize
+Controls — F13 and F14 are what the engine sends for grip.
 
 Still actively getting tuned — but the core is solid: reach, grip, it's there.

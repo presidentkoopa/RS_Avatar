@@ -25,7 +25,7 @@
 // to aim a hand at -- and no way to tell a mispositioned anchor from a dead
 // one. Frame A is idle, frame B lights up while a hand is inside the radius,
 // which doubles as live confirmation that the claim is firing.
-class RS_HardPointMarker : Actor
+class RS_HolsterMarker : Actor
 {
 	Default
 	{
@@ -77,7 +77,7 @@ class RS_HardPointMarker : Actor
 	// replacement.
 	static int holsterMarkerShape()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_marker_shape", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_marker_shape", players[consoleplayer]);
 		return (cv != null) ? cv.GetInt() : 0;
 	}
 
@@ -90,7 +90,7 @@ class RS_HardPointMarker : Actor
 	// hardcoded Translation string, in the same "%[desat]:[tint]" syntax
 	// RS_Main already uses on monster skins (RS_Archvile.zs). SetHot() is
 	// inherited unchanged by every one of them, and A_ChangeModel's modeldef
-	// argument there is the LITERAL name 'RS_HardPointMarker', not
+	// argument there is the LITERAL name 'RS_HolsterMarker', not
 	// self.GetClassName() -- so every subclass still redirects model lookup
 	// to the one MODELDEF block that actually exists, regardless of which of
 	// these actually gets spawned. Translation is the only thing that
@@ -103,20 +103,20 @@ class RS_HardPointMarker : Actor
 	// hot selects which cvar gets read; the class list itself is shared.
 	static class<Actor> holsterMarkerColorClass(bool hot)
 	{
-		string cvarName = hot ? "rs_hardpoint_marker_color_hot" : "rs_hardpoint_marker_color";
+		string cvarName = hot ? "rs_holster_marker_color_hot" : "rs_holster_marker_color";
 		let cv = CVar.GetCVar(cvarName, players[consoleplayer]);
 		int c = (cv != null) ? cv.GetInt() : 0;
 		switch (c)
 		{
-			case 1: return "RS_HardPointMarker_Blue";
-			case 2: return "RS_HardPointMarker_Red";
-			case 3: return "RS_HardPointMarker_Gold";
-			case 4: return "RS_HardPointMarker_Purple";
-			case 5: return "RS_HardPointMarker_Orange";
-			case 6: return "RS_HardPointMarker_Green";
-			case 7: return "RS_HardPointMarker_Cyan";
-			case 8: return "RS_HardPointMarker_Pink";
-			default: return "RS_HardPointMarker";
+			case 1: return "RS_HolsterMarker_Blue";
+			case 2: return "RS_HolsterMarker_Red";
+			case 3: return "RS_HolsterMarker_Gold";
+			case 4: return "RS_HolsterMarker_Purple";
+			case 5: return "RS_HolsterMarker_Orange";
+			case 6: return "RS_HolsterMarker_Green";
+			case 7: return "RS_HolsterMarker_Cyan";
+			case 8: return "RS_HolsterMarker_Pink";
+			default: return "RS_HolsterMarker";
 		}
 	}
 
@@ -140,12 +140,12 @@ class RS_HardPointMarker : Actor
 		// and A_ChangeModel is the mechanism already proven to work on the
 		// weapon props -- so use the one that is known good.
 		name skinWanted = hot ? 'rs_wire_hot.png' : 'rs_wire_idle.png';
-		name modelWanted = (wantShape == 1) ? 'rs_wiresphere.obj' : 'rs_hardpoint_bracket.obj';
-		A_ChangeModel('RS_HardPointMarker', 0, "models", modelWanted, 0, "models", skinWanted);
+		name modelWanted = (wantShape == 1) ? 'rs_wiresphere.obj' : 'rs_holster_bracket.obj';
+		A_ChangeModel('RS_HolsterMarker', 0, "models", modelWanted, 0, "models", skinWanted);
 	}
 
 	// 0 = no hand within sense range, 1 = hand exactly at the anchor. Fed by
-	// the manager every tic (RS_HardPoints.zs updateProps) from the same
+	// the manager every tic (RS_Holsters.zs updateProps) from the same
 	// hand-to-anchor distance updateClaims already computes for the claim
 	// radius -- this marker has no way to know a hand position on its own.
 	private double proximity01;
@@ -155,7 +155,7 @@ class RS_HardPointMarker : Actor
 		proximity01 = (t < 0.0) ? 0.0 : (t > 1.0) ? 1.0 : t;
 	}
 
-	// Read/write the fade state directly, for RS_HardPointManager to carry
+	// Read/write the fade state directly, for RS_HolsterManager to carry
 	// across a color-class respawn (updateProps) when hot/cold toggles pick
 	// different subclasses. Without this, every hand-enter/leave would
 	// destroy and respawn the marker, and a fresh instance always starts at
@@ -176,7 +176,7 @@ class RS_HardPointMarker : Actor
 	// const, not a local one -- a const declared inside a method body has no
 	// precedent anywhere in this codebase and no way to confirm ZScript even
 	// allows it without a test-compile this session cannot do (caught making
-	// exactly that mistake once already tonight, in RS_HardPoints.zs).
+	// exactly that mistake once already tonight, in RS_Holsters.zs).
 	const FADE_STEP = 0.125;   // ~8 tics for a full fade, either direction
 
 	private double fadeAlpha;
@@ -209,7 +209,7 @@ class RS_HardPointMarker : Actor
 		// Tighten: brackets draw inward as a hand approaches. Actor Scale is
 		// a straight multiplier on top of MODELDEF's own Scale (RenderModel:
 		// scaleFactorX = actor->Scale.X * smf->xscale) -- the same mechanism
-		// RS_HardPointProp already uses to size the stored weapon, just driven
+		// RS_HolsterProp already uses to size the stored weapon, just driven
 		// by proximity here instead of a fixed cvar.
 		double s = 1.0 - (0.28 * proximity01);
 		Scale = (s, s);
@@ -225,7 +225,7 @@ class RS_HardPointMarker : Actor
 	}
 }
 
-// The color palette for RS_HardPointMarker.holsterMarkerColorClass(). Each one
+// The color palette for RS_HolsterMarker.holsterMarkerColorClass(). Each one
 // adds ONLY a Translation -- everything else (states, Tick, SetHot, the
 // shape choice) is inherited unchanged, and SetHot's A_ChangeModel already
 // redirects model lookup to the parent class's literal name regardless of
@@ -234,40 +234,40 @@ class RS_HardPointMarker : Actor
 // (0.30/0.59/0.11) for all four -- only the tint range after that differs.
 // Same "%[desat]:[tint]" syntax RS_Main already uses on monster skins
 // (RS_Archvile.zs), not a new mechanism.
-class RS_HardPointMarker_Blue : RS_HardPointMarker
+class RS_HolsterMarker_Blue : RS_HolsterMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[0.35,0.65,2.00]"; }
 }
-class RS_HardPointMarker_Red : RS_HardPointMarker
+class RS_HolsterMarker_Red : RS_HolsterMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[2.00,0.35,0.35]"; }
 }
-class RS_HardPointMarker_Gold : RS_HardPointMarker
+class RS_HolsterMarker_Gold : RS_HolsterMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[2.00,1.55,0.30]"; }
 }
-class RS_HardPointMarker_Purple : RS_HardPointMarker
+class RS_HolsterMarker_Purple : RS_HolsterMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[1.40,0.35,1.85]"; }
 }
-class RS_HardPointMarker_Orange : RS_HardPointMarker
+class RS_HolsterMarker_Orange : RS_HolsterMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[2.00,0.85,0.15]"; }
 }
-class RS_HardPointMarker_Green : RS_HardPointMarker
+class RS_HolsterMarker_Green : RS_HolsterMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[0.30,2.00,0.35]"; }
 }
-class RS_HardPointMarker_Cyan : RS_HardPointMarker
+class RS_HolsterMarker_Cyan : RS_HolsterMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[0.25,1.75,2.00]"; }
 }
-class RS_HardPointMarker_Pink : RS_HardPointMarker
+class RS_HolsterMarker_Pink : RS_HolsterMarker
 {
 	Default { Translation "0:255=%[0.30,0.59,0.11]:[2.00,0.30,1.10]"; }
 }
 
-class RS_HardPointProp : Actor
+class RS_HolsterProp : Actor
 {
 	Default
 	{
@@ -316,7 +316,7 @@ class RS_HardPointProp : Actor
 	// The model's measured bounding radius (level.GetModelBoundsHint),
 	// cached from the last class-change so ShowWeapon can recompute
 	// baseScale from it EVERY call, not just when the weapon class
-	// changes -- rs_hardpoint_prop_fill/_scale/_scale_arm need to apply
+	// changes -- rs_holster_prop_fill/_scale/_scale_arm need to apply
 	// live to an already-holstered weapon, not just to the next weapon
 	// that gets stored. Re-measuring the model itself every tic would be
 	// the expensive part (native call + FindModelFrame lookup); this way
@@ -330,17 +330,17 @@ class RS_HardPointProp : Actor
 	// reasoning about model units.
 	static double holsterPropScale()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_scale", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_scale", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.18;
 	}
 
 	// Separate, smaller default for the forearm/wrist hardpoints -- a
 	// utility item riding a wrist mount should read as compact gear, not a
 	// full holstered sidearm. Its OWN cvar rather than reusing
-	// rs_hardpoint_prop_scale means tuning one range never shrinks the other.
+	// rs_holster_prop_scale means tuning one range never shrinks the other.
 	static double holsterPropScaleArm()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_scale_arm", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_scale_arm", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.08;
 	}
 
@@ -349,7 +349,7 @@ class RS_HardPointProp : Actor
 	// scale/scale_arm fallbacks rather than replacing them.
 	static double holsterPropFill()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_fill", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_fill", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.55;
 	}
 
@@ -370,7 +370,7 @@ class RS_HardPointProp : Actor
 	// found by looking at it in the headset, not by reasoning about it.
 	static double holsterPropYaw()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_yaw", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_yaw", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.0;
 	}
 
@@ -388,13 +388,13 @@ class RS_HardPointProp : Actor
 	// and actually behaves like a trim: does nothing until you move it.
 	static double holsterPropPitch()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_pitch", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_pitch", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.0;
 	}
 
 	static double holsterPropRoll()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_roll", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_roll", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.0;
 	}
 
@@ -407,24 +407,24 @@ class RS_HardPointProp : Actor
 	// value is whatever makes it sit in the ring.
 	static double holsterPropUp()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_up", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_up", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.0;
 	}
 
 	static double holsterPropFwd()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_fwd", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_fwd", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.0;
 	}
 
 	static double holsterPropSide()
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_prop_side", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_prop_side", players[consoleplayer]);
 		return (cv != null) ? cv.GetFloat() : 0.0;
 	}
 
 	// Fade instead of a hard bINVISIBLE cut, same mechanism as
-	// RS_HardPointMarker (own copy, not shared -- these two classes have no
+	// RS_HolsterMarker (own copy, not shared -- these two classes have no
 	// common base below Actor to hang a shared const/method off of).
 	const FADE_STEP = 0.125;
 
@@ -580,7 +580,7 @@ class RS_HardPointProp : Actor
 
 			// Borrow the weapon's model definition onto this instance. After
 			// this, FindModelFrame resolves against the weapon's class rather
-			// than RS_HardPointProp, and the (sprite, frame) set above
+			// than RS_HolsterProp, and the (sprite, frame) set above
 			// completes the key.
 			A_ChangeModel(w.GetClassName());
 		}
@@ -604,7 +604,7 @@ class RS_HardPointProp : Actor
 		// the same size for no reason other than sharing one constant.
 		//
 		// Recomputed EVERY call (every tic), not just on a class-change --
-		// otherwise rs_hardpoint_prop_fill/_scale/_scale_arm read as dead
+		// otherwise rs_holster_prop_fill/_scale/_scale_arm read as dead
 		// cvars on any weapon that is already sitting in a holster, since
 		// nothing else ever re-solves baseScale for it. Cheap: this is just
 		// arithmetic over the cached measurement above, no native call.

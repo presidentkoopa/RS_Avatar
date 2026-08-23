@@ -23,46 +23,31 @@
 // Scope: this owns calibration, anchors, and claims. It does not yet spawn
 // holster props -- that is the next piece.
 
-class RS_HardPointManager : EventHandler
+class RS_HolsterManager : EventHandler
 {
-	const HOLSTER_COUNT = 14;
+	const HOLSTER_COUNT = 8;
 
-	// Indices 0-7 are the original torso holsters (head + bodyYaw anchored).
-	// Indices 8-13 are off-hand-anchored forearm/wrist hardpoints, added
-	// later -- anchored to the OFF hand's own live pose (OffhandPos/Angle/
-	// Pitch/Roll) rather than HmdPos/bodyYaw, because that is what a thing
-	// strapped to your own arm actually has to track. See handAnchorPos and
-	// the isHandAnchored callers below for the full split; GetHolster's own
-	// comment block explains what hsFwd/hsSide/hsFrac mean for this range.
+	// The 6 off-hand-anchored forearm/wrist hardpoints that used to occupy
+	// indices 8-13 now live in their own mod, RS_HardPoints -- see README.md.
+	// Both are designed to load at the same time.
+	//
+	// HAND_HOLSTER_START stays 8 rather than being deleted, and
+	// isHandAnchored() still exists: with HOLSTER_COUNT now 8, every valid
+	// index is below it, so the predicate is always false and the
+	// hand-anchored branches it guards are unreachable. That is deliberate.
+	// Tearing out its every call site by hand -- anchor placement,
+	// orientation, edit-mode dragging, claim arbitration -- in a codebase
+	// with no way to test-compile is a far larger risk surface than leaving
+	// one constant pointing past the end of the table.
 	const HAND_HOLSTER_START = 8;
-	const FOREARM_HOLSTER_END = 11;   // exclusive -- 8,9,10 are Forearm1-3
+	const FOREARM_HOLSTER_END = 11;   // unreachable; see above
 
-	// Both Forearm1-3 (8-10) and WristBelow/Knuckle/Joint (11-13) are
-	// anchored the same way: origin AND basis both come from the OFF hand's
-	// own live pose (OffhandPos/Angle/Pitch/Roll), unconditionally -- it
-	// does not matter which hand is holding a weapon, or whether either
-	// hand is holding one at all. (A prior version of this tried deriving
-	// the forearm row's direction from the MAIN hand's aim instead, on the
-	// theory that the off hand's own orientation would be unreliably canted
-	// by gripping a foregrip. The owner rejected that in headset testing --
-	// simpler is correct here: it's the off-arm's own hardpoint rig, full
-	// stop, not a weapon-aim-tracking accessory rail. Reverted.)
-
-	// Forearm1-3 alone get an extra yaw correction on top of the raw off
-	// hand angle -- empirically 90 degrees, determined in headset (a red
-	// reference line drawn across a screenshot showing where the row should
-	// trail vs. where it actually rendered). The negative hsFwd on those
-	// three cases already means "the reverse of forward" -- pointing back
-	// along the arm, per the owner's own framing: "if I were holding that
-	// SMG backwards, pointing 180, it would be pointing along my forearm."
-	// So this constant is NOT that 180 -- it corrects a separate mismatch
-	// between raw OffhandAngle and where the held weapon visually appears to
-	// point, which this mod has no way to introspect (that gap is owned by
-	// the engine's own VR weapon rendering, not by RS_HardPointProp's model
-	// binding, which only corrects HOLSTERED props via
-	// level.GetModelOrientationHint -- there is no equivalent hint for a
-	// weapon actively held in a hand). If this overshoots or undershoots,
-	// the fix is changing this one number, not re-deriving the geometry.
+	// Also unreachable, and also kept rather than deleted: handBasisPose still
+	// REFERENCES this, and dead code still has to compile. Deleting the
+	// constant while leaving its one consumer standing is exactly the kind of
+	// break that only shows up as a load failure in the headset, since there
+	// is no way to test-compile here. The live copy of this constant is in
+	// RS_HardPoints, where the forearm rig actually runs.
 	const FOREARM_YAW_CORRECTION = 90.0;
 
 	// Doom's player scale puts a map unit at roughly one real inch (player
@@ -160,50 +145,8 @@ class RS_HardPointManager : EventHandler
 			// be dragged into place, not a measured position.
 			case 6:
 				hsName = "HipLeft2";  hsFwd = -2.0; hsSide = -16.0; hsFrac = 0.57; hsRadius = 3.0; break;
-			case 7:
+			default: // case 7, and a defensive fallback for idx >= HOLSTER_COUNT
 				hsName = "HipRight2"; hsFwd = -2.0; hsSide =  16.0; hsFrac = 0.57; hsRadius = 3.0; break;
-
-			// Forearm hardpoints: OFF-HAND anchored (see the field-meaning
-			// comment above GetHolster), sitting behind the off-hand along
-			// its OWN aim vector and spaced toward the elbow -- hsFwd
-			// negative means "back", hsFrac 0.0 means "right on the aim
-			// line" since there is no IK yet to say where the forearm's
-			// actual surface is. hsPitch is 0.0, NOT the 90.0 the switch
-			// defaults to above -- that 90 means "barrel down" in the
-			// torso holsters' ABSOLUTE-angle world and would silently
-			// mispitch every one of these, which are TRIMS on top of the
-			// hand's live pose instead. Radius 2.0 (4" catch volume) and
-			// 5-unit spacing leave a 1" gap between neighbours, same
-			// gap-math the second hip pair already uses. Placeholders
-			// meant to be dragged in edit mode, same as every other entry
-			// in this table.
-			case 8:
-				hsName = "Forearm1"; hsFwd =  -4.0; hsSide = 0.0; hsFrac =  0.0; hsRadius = 2.0; hsPitch = 0.0; hsYaw = 0.0; hsRoll = 0.0; break;
-			case 9:
-				hsName = "Forearm2"; hsFwd =  -9.0; hsSide = 0.0; hsFrac =  0.0; hsRadius = 2.0; hsPitch = 0.0; hsYaw = 0.0; hsRoll = 0.0; break;
-			case 10:
-				hsName = "Forearm3"; hsFwd = -14.0; hsSide = 0.0; hsFrac =  0.0; hsRadius = 2.0; hsPitch = 0.0; hsYaw = 0.0; hsRoll = 0.0; break;
-
-			// Wrist hardpoints: also off-hand anchored, hsFrac here is local
-			// "up" inches (negative = below), not eye-height fraction. Same
-			// hsPitch = 0.0 note as the forearm cases above applies.
-			//
-			// Owner's own reference pose: hand outstretched holding a
-			// pistol, pistol at the top of the hand. Below/Knuckle/Wrist
-			// aren't symmetric -- Knuckle sits slightly FORWARD (toward the
-			// fingers, +hsFwd) and Wrist sits slightly BACK (toward the
-			// actual wrist joint, -hsFwd), not just mirrored left/right at
-			// the same depth. Left/right sign is hand-local (edSide's rx/ry
-			// basis in handAnchorPos), so which physical side each name
-			// lands on depends on the off-hand's own resting yaw -- exactly
-			// what edit-mode dragging is for; these starting numbers just
-			// need to be roughly in the right neighbourhood, not exact.
-			case 11:
-				hsName = "WristBelow";   hsFwd =  0.0; hsSide =  0.0; hsFrac = -3.0; hsRadius = 2.0; hsPitch = 0.0; hsYaw = 0.0; hsRoll = 0.0; break;
-			case 12:
-				hsName = "WristKnuckle"; hsFwd =  2.5; hsSide = -3.0; hsFrac =  0.0; hsRadius = 2.0; hsPitch = 0.0; hsYaw = 0.0; hsRoll = 0.0; break;
-			default: // case 13, and a defensive fallback for idx >= 14
-				hsName = "WristJoint";   hsFwd = -2.5; hsSide =  3.0; hsFrac =  0.0; hsRadius = 2.0; hsPitch = 0.0; hsYaw = 0.0; hsRoll = 0.0; break;
 		}
 	}
 
@@ -255,8 +198,8 @@ class RS_HardPointManager : EventHandler
 	// One prop per holster per player, flattened like contents. Held as
 	// pointers so a destroyed prop (level change, player death) reads null and
 	// gets respawned rather than leaving a dangling anchor.
-	Array<RS_HardPointProp> props;
-	Array<RS_HardPointMarker> markers;
+	Array<RS_HolsterProp> props;
+	Array<RS_HolsterMarker> markers;
 
 	// ---- live offsets ----
 	// The switch in GetHolster is the DEFAULT table; these are what anchorPos
@@ -368,28 +311,6 @@ class RS_HardPointManager : EventHandler
 			updateBodyYaw(i, pawn);
 			updateGrabs(i, pawn);
 			updateClaims(i, pawn); // also repositions props, via updateProps
-
-			// Throttled live dump of raw off-hand pitch plus the resulting
-			// wrist anchor positions, gated on the arm rig actually being
-			// on. Built for one question: does WristBelow/Knuckle/Joint
-			// move the way a real tilt of the hand should, or backward?
-			// (GlowInTheDark's GITD_Flashlight hit OffhandPitch being
-			// stored negated at the engine level and documented it against
-			// real engine source -- see that file's ResolveMount.) Printed
-			// raw rather than pre-judged: hsFwd/hsSide/hsFrac differ across
-			// all three wrist slots, so one prediction does not obviously
-			// hold the same way for all three -- read the numbers against
-			// the actual tilt rather than trusting a guess about the sign.
-			if (armActiveCount() > 0 && (level.time % 10) == 0)
-			{
-				Vector3 belowP = anchorPos(i, pawn, 11);
-				Vector3 knuckP = anchorPos(i, pawn, 12);
-				Vector3 jointP = anchorPos(i, pawn, 13);
-				Console.Printf("RS_HOLSTER wrist-pitch: raw OffhandPitch=%.1f OffhandRoll=%.1f OffhandAngle=%.1f",
-					pawn.OffhandPitch, pawn.OffhandRoll, pawn.OffhandAngle);
-				Console.Printf("  Below  %.1f,%.1f,%.1f   Knuckle %.1f,%.1f,%.1f   Joint %.1f,%.1f,%.1f",
-					belowP.X, belowP.Y, belowP.Z, knuckP.X, knuckP.Y, knuckP.Z, jointP.X, jointP.Y, jointP.Z);
-			}
 
 			// Consume a dump queued by last tic's store, now that this tic's
 			// updateClaims has actually moved the prop into place.
@@ -784,7 +705,7 @@ class RS_HardPointManager : EventHandler
 		if (level.JSONProfileSave(name))
 		{
 			Console.Printf("\c[Gold]RS_HOLSTER: saved profile \"%s\"", name);
-			if (name == "seated" || name == "standing")
+			if (name == "holster_seated" || name == "holster_standing")
 				activeProfile = name;
 		}
 		else
@@ -822,7 +743,7 @@ class RS_HardPointManager : EventHandler
 			edRoll[h]  = level.JSONProfileGetDouble(key .. "roll",  hsRoll);
 		}
 		Console.Printf("\c[Gold]RS_HOLSTER: loaded profile \"%s\"", name);
-		if (name == "seated" || name == "standing")
+		if (name == "holster_seated" || name == "holster_standing")
 			activeProfile = name;
 		return true;
 	}
@@ -842,7 +763,7 @@ class RS_HardPointManager : EventHandler
 		// does not visibly move anything, rather than jumping to a table that
 		// has never been saved and quietly falling back to those same
 		// defaults anyway.
-		string target = (activeProfile == "standing") ? "seated" : "standing";
+		string target = (activeProfile == "holster_standing") ? "holster_seated" : "holster_standing";
 
 		// loadProfile only advances activeProfile on an actual successful
 		// load. Used to claim success and force-recalibrate regardless --
@@ -1058,8 +979,8 @@ class RS_HardPointManager : EventHandler
 			// --- the ring marker: always present, so an empty holster is
 			// still something the player can see and aim a hand at ---
 			//
-			// Color is a CLASS choice (RS_HardPointMarker.holsterMarkerColorClass,
-			// RS_HardPointProp.zs), not a settable field -- an existing marker
+			// Color is a CLASS choice (RS_HolsterMarker.holsterMarkerColorClass,
+			// RS_HolsterProp.zs), not a settable field -- an existing marker
 			// whose class no longer matches the cvar gets destroyed and
 			// respawned so a color change takes effect immediately instead of
 			// waiting for something else to force a respawn later. Cold and
@@ -1069,7 +990,7 @@ class RS_HardPointManager : EventHandler
 			// that respawn is invisible: without it, a fresh marker always
 			// starts faded to nothing and would fade back in on every single
 			// hot/cold toggle instead of just switching color instantly.
-			class<Actor> wantColorClass = RS_HardPointMarker.holsterMarkerColorClass(hot);
+			class<Actor> wantColorClass = RS_HolsterMarker.holsterMarkerColorClass(hot);
 			double carryAlpha = 0.0;
 			bool carryVisible = false;
 			bool carryState = false;
@@ -1083,7 +1004,7 @@ class RS_HardPointManager : EventHandler
 			}
 			if (markers[pi] == null)
 			{
-				markers[pi] = RS_HardPointMarker(Actor.Spawn(wantColorClass, at, NO_REPLACE));
+				markers[pi] = RS_HolsterMarker(Actor.Spawn(wantColorClass, at, NO_REPLACE));
 				if (markers[pi] != null && carryState)
 					markers[pi].SetFadeState(carryAlpha, carryVisible);
 			}
@@ -1130,7 +1051,7 @@ class RS_HardPointManager : EventHandler
 			// --- the stored weapon's model, when there is one ---
 			if (props[pi] == null)
 			{
-				props[pi] = RS_HardPointProp(Actor.Spawn("RS_HardPointProp", at, NO_REPLACE));
+				props[pi] = RS_HolsterProp(Actor.Spawn("RS_HolsterProp", at, NO_REPLACE));
 				if (props[pi] == null)
 					continue;
 			}
@@ -1191,10 +1112,10 @@ class RS_HardPointManager : EventHandler
 			}
 			// Show first: it reads level.GetModelOrientationHint, which the
 			// angle below depends on. Hand-anchored holsters get their own,
-			// smaller default scale (RS_HardPointProp.holsterPropScaleArm) --
+			// smaller default scale (RS_HolsterProp.holsterPropScaleArm) --
 			// a wrist-mounted flashlight should read as compact gear, not a
 			// full holstered sidearm.
-			double propScale = isHandAnchored(h) ? RS_HardPointProp.holsterPropScaleArm() : RS_HardPointProp.holsterPropScale();
+			double propScale = isHandAnchored(h) ? RS_HolsterProp.holsterPropScaleArm() : RS_HolsterProp.holsterPropScale();
 			p.ShowWeapon(stored == "" ? null : Weapon(pawn.FindInventory(stored)), propScale, hsRadius);
 
 			// Face the same way the BODY does (not the head), so a holstered
@@ -1221,15 +1142,15 @@ class RS_HardPointManager : EventHandler
 			// to cancel exactly, which none of the current data requires.
 			// baseAngle/basePitch/baseRoll are declared once, up with the
 			// marker orientation code above.
-			double extra = RS_HardPointProp.holsterPropYaw() + edYaw[h];
+			double extra = RS_HolsterProp.holsterPropYaw() + edYaw[h];
 			if (p.mirrored)
 				extra += 180.0;
 			double finalAngle = baseAngle + extra - p.bakedAngleOffset;
-			double finalPitch = basePitch + edPitch[h] + RS_HardPointProp.holsterPropPitch() - p.bakedPitchOffset;
+			double finalPitch = basePitch + edPitch[h] + RS_HolsterProp.holsterPropPitch() - p.bakedPitchOffset;
 
 			p.angle = finalAngle;
 			p.pitch = finalPitch;
-			p.roll  = baseRoll + edRoll[h] + RS_HardPointProp.holsterPropRoll() - p.bakedRollOffset;
+			p.roll  = baseRoll + edRoll[h] + RS_HolsterProp.holsterPropRoll() - p.bakedRollOffset;
 
 			// Local basis for the MANUAL TRIM sliders only now (below). "Push it
 			// forward" should mean forward-relative-to-the-gun, not raw world X,
@@ -1273,9 +1194,9 @@ class RS_HardPointManager : EventHandler
 
 			// Manual trim, local rotated frame, on top of the automatic
 			// correction -- a residual nudge now, not the whole mechanism.
-			double nUp   = RS_HardPointProp.holsterPropUp();
-			double nFwd  = RS_HardPointProp.holsterPropFwd();
-			double nSide = RS_HardPointProp.holsterPropSide();
+			double nUp   = RS_HolsterProp.holsterPropUp();
+			double nFwd  = RS_HolsterProp.holsterPropFwd();
+			double nSide = RS_HolsterProp.holsterPropSide();
 
 			Vector3 placed = (
 				at.X - worldOffX + (nFwd * localFwdX) + (nUp * localUpX) + (nSide * rightX),
@@ -1376,7 +1297,7 @@ class RS_HardPointManager : EventHandler
 
 	private bool showProps() const
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_props", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_props", players[consoleplayer]);
 		return (cv != null) ? cv.GetBool() : true;
 	}
 
@@ -1388,7 +1309,7 @@ class RS_HardPointManager : EventHandler
 	// cvar can be hand-edited in an ini to any int.
 	private int activeCount() const
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_active_count", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_active_count", players[consoleplayer]);
 		int n = (cv != null) ? cv.GetInt() : HOLSTER_COUNT;
 		if (n <= 2) return 2;
 		if (n <= 4) return 4;
@@ -1396,39 +1317,23 @@ class RS_HardPointManager : EventHandler
 		return 8;
 	}
 
-	// True for the 6 off-hand-anchored forearm/wrist indices (8-13), false
-	// for the original 8 torso holsters. The one predicate everything else
-	// in this file branches on to tell the two anchor models apart.
+	// Always false now -- every index in this mod is torso-anchored, since
+	// the arm rig moved out to RS_HardPoints. Kept as a predicate rather
+	// than deleted; see the HAND_HOLSTER_START comment at the top of this
+	// class for why.
 	private bool isHandAnchored(int idx) const
 	{
 		return idx >= HAND_HOLSTER_START;
 	}
 
-	// Mirrors activeCount(), but for the arm rig: 0 off, 3 forearm only, 6
-	// forearm + wrist -- a SEPARATE cvar and tier from the body holsters'
-	// 2/4/6/8, and defaulted OFF (not "everything on" like the body count's
-	// fallback) because this anchor model is new and unproven in headset,
-	// where the existing 8 are already tuned and trusted. Turning this on
-	// should never be a side effect of anything else.
-	private int armActiveCount() const
-	{
-		let cv = CVar.GetCVar("rs_hardpoint_arm_active_count", players[consoleplayer]);
-		int n = (cv != null) ? cv.GetInt() : 0;
-		if (n <= 0) return 0;
-		if (n <= 3) return 3;
-		return 6;
-	}
-
 	private bool holsterActive(int h) const
 	{
-		if (!isHandAnchored(h))
-			return h < activeCount();
-		return (h - HAND_HOLSTER_START) < armActiveCount();
+		return h < activeCount();
 	}
 
 	private bool instantSwitchEnabled() const
 	{
-		let cv = CVar.GetCVar("rs_hardpoint_instant_switch", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_instant_switch", players[consoleplayer]);
 		return (cv != null) ? cv.GetBool() : true;
 	}
 
@@ -1443,19 +1348,19 @@ class RS_HardPointManager : EventHandler
 		PlayerPawn pawn = players[evt.player].mo;
 		if (!pawn) return;
 
-		if (evt.name == "rs-hardpoint-recalibrate")
+		if (evt.name == "rs-holster-recalibrate")
 		{
 			ForceRecalibrate(evt.player);
 			return;
 		}
 
-		if (evt.name == "rs-hardpoint-debug")
+		if (evt.name == "rs-holster-debug")
 		{
 			dumpDebug(evt.player, pawn);
 			return;
 		}
 
-		if (evt.name == "rs-hardpoint-edit")
+		if (evt.name == "rs-holster-edit")
 		{
 			ensureEdit();
 			editMode = !editMode;
@@ -1466,7 +1371,7 @@ class RS_HardPointManager : EventHandler
 				Console.Printf("\c[Gold]RS_HOLSTER: EDIT MODE ON");
 				Console.Printf("  put a hand in a sphere and press its holster key to GRAB it");
 				Console.Printf("  move your hand, press again to DROP it there");
-				Console.Printf("  then: netevent rs-hardpoint-table   (prints the numbers)");
+				Console.Printf("  then: netevent rs-holster-table   (prints the numbers)");
 			}
 			else
 			{
@@ -1475,14 +1380,14 @@ class RS_HardPointManager : EventHandler
 			return;
 		}
 
-		if (evt.name == "rs-hardpoint-table")
+		if (evt.name == "rs-holster-table")
 		{
 			ensureEdit();
 			dumpTable();
 			return;
 		}
 
-		if (evt.name == "rs-hardpoint-reset")
+		if (evt.name == "rs-holster-reset")
 		{
 			edInit = false;
 			ensureEdit();
@@ -1494,25 +1399,39 @@ class RS_HardPointManager : EventHandler
 		// table tuned standing does not fit a seated body (shorter reach,
 		// different eye-to-hip fraction), so "which profile" is really "which
 		// posture", and posture only has two values worth a dedicated bind.
-		if (evt.name == "rs-hardpoint-save-seated")   { saveProfile("seated");   return; }
-		if (evt.name == "rs-hardpoint-load-seated")   { loadProfile("seated");   return; }
-		if (evt.name == "rs-hardpoint-save-standing") { saveProfile("standing"); return; }
-		if (evt.name == "rs-hardpoint-load-standing") { loadProfile("standing"); return; }
+		if (evt.name == "rs-holster-save-seated")   { saveProfile("holster_seated");   return; }
+		if (evt.name == "rs-holster-load-seated")   { loadProfile("holster_seated");   return; }
+		if (evt.name == "rs-holster-save-standing") { saveProfile("holster_standing"); return; }
+		if (evt.name == "rs-holster-load-standing") { loadProfile("holster_standing"); return; }
 
 		// The switcher: flips to whichever of the two you are not currently
 		// on, and re-samples eye height for it. One bind, no menu digging --
 		// this is the one meant for mid-session use (you just sat down),
 		// where the four buttons above are a setup-time thing.
-		if (evt.name == "rs-hardpoint-switch-profile") { switchProfile(evt.player, pawn); return; }
+		if (evt.name == "rs-holster-switch-profile") { switchProfile(evt.player, pawn); return; }
 
 		// One key per hand -- which hand pressed decides which weapon moves,
 		// or in edit mode which sphere gets dragged.
-		if (evt.name == "rs-hardpoint-grab-main")
+		//
+		// TWO event names per hand, and the shared one is why this mod can be
+		// loaded alongside RS_HardPoints. The engine's grip arbiter redirects
+		// a holster-context grip to the synthetic keys F13/F14; a key can only
+		// be bound to ONE alias, so two mods each binding F13 to their own
+		// private alias means the second one loaded silently wins and the
+		// other never hears a grip press again.
+		//
+		// So both mods bind their own alias name (no KEYCONF collision) and
+		// both aliases fire the SAME "rs-vrhp-grab-*" netevent, which every
+		// handler receives. Arbitration then needs no coordination at all,
+		// because it already exists: doSwap's first line returns immediately
+		// when the hand is not inside one of THIS mod's own anchors. The hand
+		// is in exactly one place, so exactly one mod acts.
+		if (evt.name == "rs-holster-grab-main" || evt.name == "rs-vrhp-grab-main")
 		{
 			if (editMode) { toggleGrab(evt.player, true); }
 			else          { doSwap(evt.player, pawn, nearMain[evt.player], false); }
 		}
-		else if (evt.name == "rs-hardpoint-grab-off")
+		else if (evt.name == "rs-holster-grab-off" || evt.name == "rs-vrhp-grab-off")
 		{
 			if (editMode) { toggleGrab(evt.player, false); }
 			else          { doSwap(evt.player, pawn, nearOff[evt.player], true); }
@@ -1777,10 +1696,10 @@ class RS_HardPointManager : EventHandler
 		// clunk that sat unused until now) or rs_allclear_ready (the
 		// ready-to-fire cadence beep, freed up for this now that
 		// rs_allclear_enable defaults off).
-		let sndCv = CVar.GetCVar("rs_hardpoint_sound", pawn.player);
+		let sndCv = CVar.GetCVar("rs_holster_sound", pawn.player);
 		if (sndCv == null || sndCv.GetBool())
 		{
-			let styleCv = CVar.GetCVar("rs_hardpoint_sound_style", pawn.player);
+			let styleCv = CVar.GetCVar("rs_holster_sound_style", pawn.player);
 			string sndName = (styleCv != null && styleCv.GetInt() == 1) ? "rs_allclear_ready" : "rs_fx_holster";
 
 			if (slot < props.Size() && props[slot] != null)
@@ -1923,11 +1842,11 @@ class RS_HardPointManager : EventHandler
 			basePitch = 0.0;
 			baseRoll  = 0.0;
 		}
-		double extra = RS_HardPointProp.holsterPropYaw() + edYaw[h] + (mirrored ? 180.0 : 0.0);
+		double extra = RS_HolsterProp.holsterPropYaw() + edYaw[h] + (mirrored ? 180.0 : 0.0);
 		double finalAngle = baseAngle + extra - angOff;
-		double finalPitch = basePitch + edPitch[h] + RS_HardPointProp.holsterPropPitch() - pitOff;
+		double finalPitch = basePitch + edPitch[h] + RS_HolsterProp.holsterPropPitch() - pitOff;
 
-		double finalRoll = baseRoll + edRoll[h] + RS_HardPointProp.holsterPropRoll() - rolOff;
+		double finalRoll = baseRoll + edRoll[h] + RS_HolsterProp.holsterPropRoll() - rolOff;
 
 		// Same fill-vs-fallback split ShowWeapon actually applies -- kept as
 		// its own copy for the same independent-recomputation reason as the
@@ -1938,9 +1857,9 @@ class RS_HardPointManager : EventHandler
 		// this dump's "world offset" stops matching what is really on screen.
 		bool foundBounds; double measuredRadius;
 		[foundBounds, measuredRadius] = level.GetModelBoundsHint(w.GetClass(), rs.sprite, rs.Frame);
-		double fallbackScale = isHandAnchored(h) ? RS_HardPointProp.holsterPropScaleArm() : RS_HardPointProp.holsterPropScale();
+		double fallbackScale = isHandAnchored(h) ? RS_HolsterProp.holsterPropScaleArm() : RS_HolsterProp.holsterPropScale();
 		double steadyStateScale = (foundBounds && measuredRadius > 0.0)
-			? (hsRadius * RS_HardPointProp.holsterPropFill()) / measuredRadius
+			? (hsRadius * RS_HolsterProp.holsterPropFill()) / measuredRadius
 			: fallbackScale;
 
 		// Prefer the prop's REAL, currently-applied Scale over the formula
@@ -1966,11 +1885,11 @@ class RS_HardPointManager : EventHandler
 		Console.Printf("  offset hint:      found=%d  local(fwd,side,up)= %.2f, %.2f, %.2f",
 			foundOff, offX, offY, offZ);
 		Console.Printf("  bounds hint:      found=%d  radius=%.2f  holster r=%.2f fill=%.2f -> steady-state=%.4f  live=%.4f  (fallback would be %.4f)",
-			foundBounds, measuredRadius, hsRadius, RS_HardPointProp.holsterPropFill(), steadyStateScale, propScale, fallbackScale);
+			foundBounds, measuredRadius, hsRadius, RS_HolsterProp.holsterPropFill(), steadyStateScale, propScale, fallbackScale);
 		Console.Printf("  world offset:     found=%d  world(x,y,z)= %.2f, %.2f, %.2f  (via GetModelWorldOffset, replays the engine's own rotation)",
 			foundWorld, worldDX, worldDY, worldDZ);
 		Console.Printf("  applied:          angle=%.1f pitch=%.1f  (base angle %.1f, holster pitch %.1f, trim yaw %.1f pitch %.1f)",
-			finalAngle, finalPitch, baseAngle, hsPitch, RS_HardPointProp.holsterPropYaw(), RS_HardPointProp.holsterPropPitch());
+			finalAngle, finalPitch, baseAngle, hsPitch, RS_HolsterProp.holsterPropYaw(), RS_HolsterProp.holsterPropPitch());
 
 		if (!foundOri || !foundOff || !foundWorld)
 			Console.Printf("\cg  NATIVE RETURNED NOT-FOUND -- class/sprite/frame lookup failed, model may not have hasmodel set or FSpriteModelFrame is missing for this (sprite,frame)");

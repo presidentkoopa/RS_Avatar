@@ -27,12 +27,12 @@
 // hw_vrmodes.cpp:1170/1192). Getting this wrong is the exact bug
 // Flashlight.zs's own header spends a page describing; this applies the
 // same correction on the way in rather than repeating that debugging
-// session blind. Also relevant to RS_HardPoints.zs's own wrist hardpoints,
+// session blind. Also relevant to RS_Holsters.zs's own wrist hardpoints,
 // which read OffhandPitch WITHOUT this correction -- see handBasisPose
 // there and CLAUDE.md's note on it. Not touched here; that is a position-
 // anchor question, this is a beam-aim one, and they should be tested and
 // fixed independently.
-class RS_HardPointFlashlight : Weapon
+class RS_HolsterFlashlight : Weapon
 {
 	Default
 	{
@@ -76,11 +76,11 @@ class RS_HardPointFlashlight : Weapon
 		FLSH A 1 A_WeaponReady;
 		Loop;
 	Select:
-		FLSH A 0 A_StartSound("rs_hardpoint_flashlight_on", CHAN_WEAPON);
+		FLSH A 0 A_StartSound("rs_holster_flashlight_on", CHAN_WEAPON);
 		FLSH A 1 A_Raise;
 		Loop;
 	Deselect:
-		FLSH A 0 A_StartSound("rs_hardpoint_flashlight_off", CHAN_WEAPON);
+		FLSH A 0 A_StartSound("rs_holster_flashlight_off", CHAN_WEAPON);
 		FLSH A 1 A_Lower;
 		Loop;
 	Fire:
@@ -111,7 +111,7 @@ class RS_HardPointFlashlight : Weapon
 
 		// Raw input plus the corrected/resolved direction, throttled to
 		// ~3.5/sec -- read against an actual physical tilt, same reasoning
-		// as the wrist-pitch dump in RS_HardPoints.zs.
+		// as the wrist-pitch dump in RS_Holsters.zs.
 		if ((debugTic++ % 10) == 0)
 		{
 			double rawPit = offhand ? pmo.OffhandPitch : pmo.AttackPitch;
@@ -135,7 +135,7 @@ class RS_HardPointFlashlight : Weapon
 		level.SetVolumetricBeam(pos, dir, col, inner, outer, range, 0.6, 1.0, 0.35, 0.04, 0.0);
 
 		if (!beamLight)
-			beamLight = Actor.Spawn("RS_HardPointFlashlightSpot", pos);
+			beamLight = Actor.Spawn("RS_HolsterFlashlightSpot", pos);
 		if (beamLight)
 		{
 			beamLight.SetOrigin(pos, true);
@@ -158,7 +158,7 @@ class RS_HardPointFlashlight : Weapon
 		// harsh and floating without a little light going back into the
 		// space around it.
 		if (!bounceLight)
-			bounceLight = Actor.Spawn("RS_HardPointFlashlightBounce", pos);
+			bounceLight = Actor.Spawn("RS_HolsterFlashlightBounce", pos);
 		if (bounceLight)
 		{
 			bounceLight.SetOrigin(pos, true);
@@ -243,7 +243,7 @@ class RS_HardPointFlashlight : Weapon
 // look of an ambient fill rather than a beam. GITD_FlashlightSpot's own
 // comment documents this costing real debugging time; carried forward
 // rather than risking the same miss twice.
-class RS_HardPointFlashlightSpot : SpotLight
+class RS_HolsterFlashlightSpot : SpotLight
 {
 	Default
 	{
@@ -253,7 +253,7 @@ class RS_HardPointFlashlightSpot : SpotLight
 	}
 }
 
-class RS_HardPointFlashlightBounce : PointLight
+class RS_HolsterFlashlightBounce : PointLight
 {
 	Default
 	{
