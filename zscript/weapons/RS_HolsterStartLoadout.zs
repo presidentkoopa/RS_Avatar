@@ -1,5 +1,5 @@
-// Grants the two Holsters test weapons at the start of a game, so there's
-// something to holster-test without a console `give` every fresh session.
+// Grants RS_HolsterFlashlight at the start of a game, so there's something
+// to holster-test without a console `give` every fresh session.
 //
 // A StaticEventHandler rather than a Player.StartItem on some player
 // class -- this mod does not own a player class and should not need one,
@@ -21,7 +21,5 @@ class RS_HolsterStartLoadout : StaticEventHandler
 		// than just "the very first spawn of a new game".
 		if (pawn.FindInventory("RS_HolsterFlashlight") == null)
 			pawn.GiveInventoryType("RS_HolsterFlashlight");
-		if (pawn.FindInventory("RS_HolsterFlamethrower") == null)
-			pawn.GiveInventoryType("RS_HolsterFlamethrower");
 	}
 }

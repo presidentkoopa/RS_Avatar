@@ -307,8 +307,13 @@ inventory — `bNoAutoSwitchTo` is what stops that.
   the working numbers back to bake in as new defaults. Still open.
 - The dead arm-rig code described in Architecture could be removed properly.
   Its own commit, nothing else in it, and expect a load-error round trip.
-- `RS_HolsterFlashlight` is not placed in any map and has no startitem, so
-  `give RS_HolsterFlashlight` in the console is the only way in. It is slot 7.
+- `RS_HolsterFlashlight` is granted automatically on spawn
+  (`RS_HolsterStartLoadout`, a `StaticEventHandler` registered in
+  MAPINFO's `AddEventHandlers`) -- not a map placement or a startitem on
+  any player class. It is slot 7. A second test weapon,
+  `RS_HolsterFlamethrower` (cloned from RS_Main's `RS_GH_Flamethrower`),
+  was built and then removed at the owner's request (2026-08-23) -- if
+  something references it, that's stale, not a sign it should exist.
 - **Nothing has been loaded in the engine since the 2026-08-23 split.** Both
   pk3s build clean and every symbol was verified to both define and resolve,
   but that is not the same as a successful ZScript compile. First headset run

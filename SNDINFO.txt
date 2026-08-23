@@ -56,15 +56,3 @@ rs_holster_flashlight/off09	DDZCLK09
 rs_holster_flashlight/off10	DDZCLK10
 rs_holster_flashlight/off11	DDZCLK11
 rs_holster_flashlight/off12	DDZCLK12
-
-// RS_HolsterFlamethrower's fire and release sounds. Both copied from
-// RS_Main (E:\RS_Main\sounds\rs_gh_weapon\gh_flamethrower\), which stores
-// them as extensionless lumps (FLAMER, FLAMSTOP) -- real Ogg files despite
-// the missing extension, confirmed by file signature (OggS). rs_holster_
-// flamethrower_fire is what RS_Main's own RS_GH_Flamethrower actually
-// plays (SNDINFO: rs_gh/flamethrower_fire -> .../FLAMER). rs_holster_
-// flamethrower_stop is FLAMSTOP, sitting in that same source folder but
-// never mapped to any logical name or referenced anywhere in RS_Main --
-// wired up here as the release-tail sound, unlike in the source.
-rs_holster_flamethrower_fire	FLAMER
-rs_holster_flamethrower_stop	FLAMSTOP

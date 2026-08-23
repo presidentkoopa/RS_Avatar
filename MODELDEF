@@ -53,30 +53,3 @@ Model RS_HolsterFlashlight
 
 	FrameIndex FLSH A 0 0
 }
-
-// RS_HolsterFlamethrower (zscript/weapons/RS_HolsterFlamethrower.zs) -- model
-// and skin copied VERBATIM from RS_Main's RS_GH_Flamethrower entry (MODELDEF,
-// ~line 6545), including its Scale -1.0 1.0 1.0 (mirrored on X -- an authoring
-// choice of the source model, not something to "fix") and ZOffset -5.
-// USEACTORPITCH/USEACTORROLL matter here for the same reason as every other
-// holsterable weapon: this model also renders as a real world Actor with
-// pitch/roll set manually when RS_HolsterProp shows it stored.
-Model RS_HolsterFlamethrower
-{
-	Path "models"
-	Model 0 "rs_holster_flamethrower.md3"
-	Skin 0 "rs_holster_flamethrower.png"
-	Scale -1.0 1.0 1.0
-	Offset 0.0 0.0 0.0
-	NoInterpolation
-	ZOffset -5
-
-	USEACTORPITCH
-	USEACTORROLL
-
-	FrameIndex HBFT A 0 0
-	FrameIndex HBFT B 0 1
-	FrameIndex HBFT C 0 2
-	FrameIndex HBFT D 0 3
-}
-
