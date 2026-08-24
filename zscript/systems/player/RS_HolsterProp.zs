@@ -281,8 +281,11 @@ class RS_HolsterProp : Actor
 	}
 
 	// The class currently displayed, so a re-show with the same weapon does
-	// not rebind the model every tic.
-	class<Weapon> shownClass;
+	// not rebind the model every tic. Actor, not Weapon: this is now the
+	// RESOLVED model class from level.GetActorModelClass(w), which can be a
+	// donor class belonging to a completely different mod (ModelSwapper)
+	// rather than the weapon's own class.
+	class<Actor> shownClass;
 
 	// Measured, not guessed. Whether THIS specific weapon's MODELDEF mirrors
 	// it (negative X Scale) plus its own baked AngleOffset/PitchOffset/
@@ -517,7 +520,14 @@ class RS_HolsterProp : Actor
 	// value this method would otherwise have no way to see.
 	void ShowWeapon(Weapon w, double fallbackScale, double holsterRadius)
 	{
-		let wantClass = (w != null) ? w.GetClass() : null;
+		// GetActorModelClass, not w.GetClass() -- reads what THIS INSTANCE
+		// actually resolves against right now, which is a donor class
+		// rather than w's own class whenever something else (ModelSwapper,
+		// or anything working the same way) has model-swapped w
+		// per-instance. w's own class remains the answer for everything
+		// that was never touched that way -- this is a strict superset of
+		// the old behavior, not a different one for the common case.
+		let wantClass = (w != null) ? level.GetActorModelClass(w) : null;
 		if (wantClass != shownClass)
 		{
 			shownClass = wantClass;
@@ -552,7 +562,7 @@ class RS_HolsterProp : Actor
 
 			bool found;
 			[found, mirrored, bakedAngleOffset, bakedPitchOffset, bakedRollOffset]
-				= level.GetModelOrientationHint(w.GetClass(), sprite, frame);
+				= level.GetModelOrientationHint(wantClass, sprite, frame);
 			if (!found)
 			{
 				mirrored = false;
@@ -564,7 +574,7 @@ class RS_HolsterProp : Actor
 			double stretch = (level.info != null) ? level.info.pixelstretch : 1.0;
 			bool foundOff;
 			[foundOff, bakedOffX, bakedOffY, bakedOffZ]
-				= level.GetModelOffsetHint(w.GetClass(), sprite, frame, stretch);
+				= level.GetModelOffsetHint(wantClass, sprite, frame, stretch);
 			if (!foundOff)
 			{
 				bakedOffX = 0.0; bakedOffY = 0.0; bakedOffZ = 0.0;
@@ -574,15 +584,15 @@ class RS_HolsterProp : Actor
 			// hints above -- the native call and FindModelFrame lookup are
 			// the expensive part. What that measurement is USED for (below)
 			// is not gated the same way.
-			[boundsFound, measuredRadius] = level.GetModelBoundsHint(w.GetClass(), sprite, frame);
+			[boundsFound, measuredRadius] = level.GetModelBoundsHint(wantClass, sprite, frame);
 
 			popTicsRemaining = POP_TICS;   // settle-pop on every fresh show
 
-			// Borrow the weapon's model definition onto this instance. After
-			// this, FindModelFrame resolves against the weapon's class rather
-			// than RS_HolsterProp, and the (sprite, frame) set above
-			// completes the key.
-			A_ChangeModel(w.GetClassName());
+			// Borrow the RESOLVED model definition onto this instance --
+			// wantClass, not w.GetClassName(). After this, FindModelFrame
+			// resolves against that class rather than RS_HolsterProp, and
+			// the (sprite, frame) set above completes the key.
+			A_ChangeModel(wantClass.GetClassName());
 		}
 
 		if (w == null)

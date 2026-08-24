@@ -1811,14 +1811,22 @@ class RS_HolsterManager : EventHandler
 			return;
 		}
 
+		// GetActorModelClass, not w.GetClass() -- same reasoning as
+		// RS_HolsterProp.ShowWeapon: reads what THIS INSTANCE actually
+		// resolves against, which can be a donor class from another mod
+		// (ModelSwapper) that per-instance model-swapped w. Recomputed here
+		// independently rather than read off the prop, matching this
+		// function's existing "independent recomputation" role.
+		class<Actor> resolvedClass = level.GetActorModelClass(w);
+
 		bool foundOri, mirrored;
 		double angOff, pitOff, rolOff;
-		[foundOri, mirrored, angOff, pitOff, rolOff] = level.GetModelOrientationHint(w.GetClass(), rs.sprite, rs.Frame);
+		[foundOri, mirrored, angOff, pitOff, rolOff] = level.GetModelOrientationHint(resolvedClass, rs.sprite, rs.Frame);
 
 		double stretch = (level.info != null) ? level.info.pixelstretch : 1.0;
 		bool foundOff;
 		double offX, offY, offZ;
-		[foundOff, offX, offY, offZ] = level.GetModelOffsetHint(w.GetClass(), rs.sprite, rs.Frame, stretch);
+		[foundOff, offX, offY, offZ] = level.GetModelOffsetHint(resolvedClass, rs.sprite, rs.Frame, stretch);
 
 		string hsName; double hsFwd, hsSide, hsFrac, hsRadius, hsPitch, hsYaw, hsRoll;
 		GetHolster(h, hsName, hsFwd, hsSide, hsFrac, hsRadius, hsPitch, hsYaw, hsRoll);
@@ -1856,7 +1864,7 @@ class RS_HolsterManager : EventHandler
 		// on being handed the actor scale that is actually in effect, or
 		// this dump's "world offset" stops matching what is really on screen.
 		bool foundBounds; double measuredRadius;
-		[foundBounds, measuredRadius] = level.GetModelBoundsHint(w.GetClass(), rs.sprite, rs.Frame);
+		[foundBounds, measuredRadius] = level.GetModelBoundsHint(resolvedClass, rs.sprite, rs.Frame);
 		double fallbackScale = isHandAnchored(h) ? RS_HolsterProp.holsterPropScaleArm() : RS_HolsterProp.holsterPropScale();
 		double steadyStateScale = (foundBounds && measuredRadius > 0.0)
 			? (hsRadius * RS_HolsterProp.holsterPropFill()) / measuredRadius
@@ -1876,7 +1884,7 @@ class RS_HolsterManager : EventHandler
 
 		bool foundWorld; double worldDX, worldDY, worldDZ;
 		[foundWorld, worldDX, worldDY, worldDZ] =
-			level.GetModelWorldOffset(w.GetClass(), rs.sprite, rs.Frame, stretch, finalAngle, finalPitch, finalRoll,
+			level.GetModelWorldOffset(resolvedClass, rs.sprite, rs.Frame, stretch, finalAngle, finalPitch, finalRoll,
 			                          propScale, propScale);
 
 		Console.Printf("%-13s [%s]", hsName, stored);
