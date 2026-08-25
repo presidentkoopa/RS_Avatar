@@ -74,6 +74,7 @@ OptionMenu "RS_HolsterPlacement"
 
 	StaticText "Placement", "Gold"
 	Option "How many holsters",         "rs_holster_active_count", "RS_HolsterActiveCount"
+	Option "Chest ammo pouch (for RS_Reload)", "rs_holster_pouch_enabled", "OnOff"
 	SafeCommand "Edit Mode -- grab spheres and move them", "netevent rs-holster-edit"
 	SafeCommand "Print tuned table to console",            "netevent rs-holster-table"
 	SafeCommand "Reset offsets to defaults",               "netevent rs-holster-reset"
@@ -102,6 +103,7 @@ OptionMenu "RS_HolsterAppearance"
 	Option "Marker shape",              "rs_holster_marker_shape", "RS_HolsterMarkerShape"
 	Option "Marker color (cold)",       "rs_holster_marker_color", "RS_HolsterMarkerColor"
 	Option "Marker color (hot)",        "rs_holster_marker_color_hot", "RS_HolsterMarkerColor"
+	Slider "Marker scale",              "rs_holster_marker_scale", 0.3, 3.0, 0.1, 2
 	Slider "Stored weapon size (fallback)", "rs_holster_prop_scale", 0.05, 1.0, 0.01, 2
 	Slider "Fill amount (measured models)", "rs_holster_prop_fill", 0.1, 1.0, 0.05, 2
 	Slider "Stored weapon yaw",         "rs_holster_prop_yaw", -180.0, 180.0, 5.0, 0
@@ -134,10 +136,12 @@ OptionMenu "RS_HolsterTiming"
 	// When on, a hand inside a holster spends its grip on the holster and
 	// nothing else -- stabilize and the shift layer both stand down for
 	// that hand. Off leaves grip alone entirely and the bound holster keys
-	// are the only way in. These three are ENGINE cvars (DoomXR), not this
-	// pk3's own -- referencing them here does not require this pk3 to own
-	// or declare them.
+	// are the only way in. This is an ENGINE cvar (DoomXR), not this pk3's
+	// own -- referencing it here does not require this pk3 to own or
+	// declare it. Two handed weapons / stabilize distance used to be listed
+	// here too, but those are general VR control settings, not anything
+	// holster-specific -- they already have a home in the engine's own
+	// options menu, and duplicating them here was just two ways to find the
+	// same setting.
 	Option "Grip works holsters",       "vr_holster_use_grip", "OnOff"
-	Option "Two handed weapons",        "vr_two_handed_weapons", "OnOff"
-	Slider "Stabilize distance (in)",   "vr_stabilize_distance_inches", 1.0, 24.0, 1.0, 0
 }

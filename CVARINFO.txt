@@ -82,6 +82,10 @@ user int rs_holster_marker_color = 0;
 // install looks exactly as it did before this existed; the two only
 // diverge once you actually pick different values in the menu.
 user int rs_holster_marker_color_hot = 0;
+// Flat marker size multiplier, on top of the proximity-tighten Tick()
+// already does (RS_HolsterProp.zs). 1.0 is the authored unit-radius mesh
+// at MODELDEF's Scale 3.0 -- unchanged from before this cvar existed.
+user float rs_holster_marker_scale = 1.0;
 
 // How many of the 8 declared holsters are live: 2 = hip, 4 = +shoulder,
 // 6 = +pectoral, 8 = +second hip pair (RS_Holsters.zs, GetHolster/
@@ -91,3 +95,9 @@ user int rs_holster_marker_color_hot = 0;
 // Defaults to everything on -- the point of just having added the second
 // hip pair is seeing it, not opting into it separately.
 user int rs_holster_active_count = 8;
+
+// The chest ammo pouch (AMMO_POUCH_IDX, index 8 in RS_Holsters.zs), for
+// RS_Reload. Its own toggle rather than folded into rs_holster_active_count
+// above -- that cvar's tiers snap to exactly 2/4/6/8 and never reach 9, and
+// a pouch is a different kind of thing anyway (ammo, not a weapon slot).
+user bool rs_holster_pouch_enabled = true;

@@ -81,6 +81,18 @@ class RS_HolsterMarker : Actor
 		return (cv != null) ? cv.GetInt() : 0;
 	}
 
+	// Live-tunable overall marker size, independent of the proximity-tighten
+	// multiplier Tick() already applies -- that one is a fixed, momentary
+	// squeeze as a hand approaches; this is a flat user preference, so it
+	// composes with the tighten rather than replacing it. 1.0 leaves the
+	// mesh at its authored unit-radius/Scale-3 size, same as before this
+	// cvar existed.
+	static double markerScale()
+	{
+		let cv = CVar.GetCVar("rs_holster_marker_scale", players[consoleplayer]);
+		return (cv != null) ? cv.GetFloat() : 1.0;
+	}
+
 	// A fixed small palette, not an arbitrary color picker. GZDoom's
 	// Translation is a per-CLASS Default property (Actor.Translation is
 	// writable, but there is no runtime API in this fork for building an
@@ -210,8 +222,9 @@ class RS_HolsterMarker : Actor
 		// a straight multiplier on top of MODELDEF's own Scale (RenderModel:
 		// scaleFactorX = actor->Scale.X * smf->xscale) -- the same mechanism
 		// RS_HolsterProp already uses to size the stored weapon, just driven
-		// by proximity here instead of a fixed cvar.
-		double s = 1.0 - (0.28 * proximity01);
+		// by proximity here instead of a fixed cvar. markerScale() composes on
+		// top as a flat user preference, not a replacement for the tighten.
+		double s = (1.0 - (0.28 * proximity01)) * markerScale();
 		Scale = (s, s);
 
 		// Pulse, hot state only -- a marker breathing at every holster all

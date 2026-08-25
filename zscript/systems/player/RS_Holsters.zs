@@ -25,22 +25,30 @@
 
 class RS_HolsterManager : EventHandler
 {
-	const HOLSTER_COUNT = 8;
+	const HOLSTER_COUNT = 9;
+
+	// Index 8: the chest ammo pouch (2026-08-25, for RS_Reload -- see its own
+	// GetHolster case and updateClaims' GripClaimOff write below). NOT a
+	// weapon holster like 0-7: nothing is ever stored here, so contents[8]
+	// stays permanently null and the existing empty-slot handling in
+	// updateProps already does the right thing (no prop, marker shows the
+	// idle ring) with no special-casing needed there.
+	const AMMO_POUCH_IDX = 8;
 
 	// The 6 off-hand-anchored forearm/wrist hardpoints that used to occupy
 	// indices 8-13 now live in their own mod, RS_HardPoints -- see README.md.
 	// Both are designed to load at the same time.
 	//
-	// HAND_HOLSTER_START stays 8 rather than being deleted, and
-	// isHandAnchored() still exists: with HOLSTER_COUNT now 8, every valid
-	// index is below it, so the predicate is always false and the
-	// hand-anchored branches it guards are unreachable. That is deliberate.
-	// Tearing out its every call site by hand -- anchor placement,
-	// orientation, edit-mode dragging, claim arbitration -- in a codebase
-	// with no way to test-compile is a far larger risk surface than leaving
-	// one constant pointing past the end of the table.
-	const HAND_HOLSTER_START = 8;
-	const FOREARM_HOLSTER_END = 11;   // unreachable; see above
+	// HAND_HOLSTER_START moved to 9 (was 8) when the ammo pouch took index 8
+	// -- isHandAnchored() is idx >= HAND_HOLSTER_START, so leaving this at 8
+	// would have made the pouch read as hand-anchored (raw hand-relative
+	// offsets instead of body-relative + eye-height fraction) and land
+	// somewhere off the player entirely. Every valid index (0-8) is still
+	// below 9, so isHandAnchored() stays always-false and every hand-anchored
+	// branch it guards stays unreachable, same as before -- this repo still
+	// has no hand-anchored holsters of its own.
+	const HAND_HOLSTER_START = 9;
+	const FOREARM_HOLSTER_END = 12;   // unreachable; see above
 
 	// Also unreachable, and also kept rather than deleted: handBasisPose still
 	// REFERENCES this, and dead code still has to compile. Deleting the
@@ -145,8 +153,23 @@ class RS_HolsterManager : EventHandler
 			// be dragged into place, not a measured position.
 			case 6:
 				hsName = "HipLeft2";  hsFwd = -2.0; hsSide = -16.0; hsFrac = 0.57; hsRadius = 3.0; break;
-			default: // case 7, and a defensive fallback for idx >= HOLSTER_COUNT
+			case 7:
 				hsName = "HipRight2"; hsFwd = -2.0; hsSide =  16.0; hsFrac = 0.57; hsRadius = 3.0; break;
+
+			// Chest ammo pouch (AMMO_POUCH_IDX), for RS_Reload -- NOT a
+			// weapon holster, see that constant's own comment. Side 0: the
+			// only laterally free space left on the torso, since 4/5
+			// (PectoralLeft/Right) already span side -9..-3 and +3..+9 at
+			// this same 0.78 eye-height. Dropped to frac 0.66 -- 0.12
+			// eye-heights lower, ~7.7 inches on a 64" eye height against a
+			// radii sum of 6.5 (3.5 here + 3.0 there) -- so the two volumes
+			// stay clear rather than merely touching. Sternum-to-navel,
+			// where a plate carrier's mag pouches actually sit. Radius 3.5
+			// (a 7" catch volume, wider than a holster's 6") because you
+			// reach for a mag pouch mid-fight without looking at it, unlike
+			// a holster you reach for deliberately.
+			default: // AMMO_POUCH_IDX, and a defensive fallback for idx >= HOLSTER_COUNT
+				hsName = "AmmoPouch"; hsFwd = -1.0; hsSide = 0.0; hsFrac = 0.66; hsRadius = 3.5; break;
 		}
 	}
 
@@ -163,6 +186,30 @@ class RS_HolsterManager : EventHandler
 	int nearMain[MAXPLAYERS];
 	int nearOff[MAXPLAYERS];
 
+	// Whether THIS mod currently holds EACH hand's GripClaim* for the ammo
+	// pouch (GRIPSUBJ_Pouch). Both hands, not just off -- the owner's own
+	// framing: a gun is in EVERY hand as the baseline state here (dual
+	// wielding, not a one-gun/one-empty-hand game), so reloading either
+	// weapon means reaching in with the OTHER hand, and there is no hand
+	// that starts out free. Tracked per hand so the clear on exit only ever
+	// touches a value this mod itself set -- GripClaim* is shared with other
+	// mods (RS_Reload, rs_hands' grab family), each claiming it for their
+	// own reasons, and clearing it unconditionally on leaving the pouch
+	// radius could stomp a claim that belongs to one of them.
+	bool pouchClaimedMain[MAXPLAYERS];
+	bool pouchClaimedOff[MAXPLAYERS];
+
+	// The real weapon each hand held before ammo-pouch business took it
+	// over, null when nothing is currently suppressed. Watches the CLAIM
+	// broadly (GripClaim* != GRIPSUBJ_None), not just whether THIS mod still
+	// owns it -- so if a reload sequence takes the claim over from the pouch
+	// entry itself (still holding a loose round, still holding a magazine,
+	// mid-transfer to the other hand's gun), the real weapon stays a fist
+	// through all of that and only comes back once the hand is genuinely
+	// free again, whichever mod last let go of the claim.
+	Array<Weapon> pouchPreviousMain;
+	Array<Weapon> pouchPreviousOff;
+
 	// Holster index awaiting an auto-diagnostic dump, -1 for none. Set by
 	// doSwap right after a store; consumed one tic later in WorldTick, AFTER
 	// updateClaims (and the updateProps it calls) has actually repositioned
@@ -175,9 +222,20 @@ class RS_HolsterManager : EventHandler
 
 	// Contents by holster index, flattened to one array because ZScript has
 	// no 2D dynamic arrays: index as (player * HOLSTER_COUNT + holster).
-	// Empty string means the holster holds nothing, which reads to the player
-	// as holding fists -- the fist is never stored, it is what empty looks like.
-	Array<string> contents;
+	// Null means the holster holds nothing, which reads to the player as
+	// holding fists -- the fist is never stored, it is what empty looks like.
+	//
+	// INSTANCE POINTERS, not class-name strings (was Array<string> until the
+	// "can't holster it again" bug: two same-class weapons -- e.g. a matched
+	// pair, one per hand -- made the updateProps reconciliation below match
+	// by class name, so the OTHER hand's identical-class weapon looked like
+	// "the stored one drifted back into a hand" and the table wiped a slot
+	// that still legitimately held a different instance. GZDoom nulls out an
+	// Actor-typed field automatically when the actor it points to is
+	// destroyed, so storing the pointer directly also means "gone from
+	// inventory" is just contents[slot] reading null -- no FindInventory
+	// lookup needed to detect it either.
+	Array<Weapon> contents;
 
 	// Split per-hand, but doSwap below still enforces the per-PLAYER
 	// (shared) gate too whenever instant switch is off -- read that
@@ -895,7 +953,102 @@ class RS_HolsterManager : EventHandler
 		pawn.HolsterClaimMain = mainClaimed;
 		pawn.HolsterClaimOff  = offClaimed;
 
+		// Ammo pouch: a SEPARATE claim channel from HolsterClaim* above.
+		// GripClaim*/GripSubject* is pose/priority arbitration (read by
+		// RS_Reload, rs_hands, and anything else in that family), not the
+		// store/draw tap mechanism HolsterClaim* drives -- the pouch never
+		// stores anything, so it has no use for a tap at all. BOTH hands --
+		// see updatePouchClaim's own comment for why this is not an
+		// off-hand-only thing.
+		updatePouchClaim(i, pawn, true);
+		updatePouchClaim(i, pawn, false);
+
 		updateProps(i, pawn);
+	}
+
+	// Ammo pouch claim + the weapon<->fist swap that goes with it, one hand.
+	// BOTH hands can do this: the owner's framing is that a gun is in EVERY
+	// hand as the baseline state (dual wielding, not one gun and one empty
+	// hand), so reloading either weapon means reaching into the pouch with
+	// the OTHER hand -- there is no hand that starts out free, so this
+	// cannot be hand-specific the way the pouch's original design assumed.
+	//
+	// Piggybacks on nearMain[i]/nearOff[i], the SAME hysteresis-respecting
+	// proximity result every other holster already gets this tic, rather
+	// than re-testing distance separately.
+	private void updatePouchClaim(int i, PlayerPawn pawn, bool isMain)
+	{
+		int near = isMain ? nearMain[i] : nearOff[i];
+		bool nowInPouch = holsterActive(AMMO_POUCH_IDX) && (near == AMMO_POUCH_IDX);
+
+		bool claimedByUs = isMain ? pouchClaimedMain[i] : pouchClaimedOff[i];
+		int curClaim = isMain ? pawn.GripClaimMain : pawn.GripClaimOff;
+
+		if (nowInPouch && !claimedByUs && curClaim == GRIPSUBJ_None)
+		{
+			if (isMain) { pawn.GripClaimMain = GRIPSUBJ_Pouch; pouchClaimedMain[i] = true; }
+			else        { pawn.GripClaimOff  = GRIPSUBJ_Pouch; pouchClaimedOff[i]  = true; }
+		}
+		else if (!nowInPouch && claimedByUs)
+		{
+			// Only clear a value that is still ours -- another mod may have
+			// claimed GripClaim* for something else (a mag, a slide) in the
+			// meantime, and that claim is not this mod's to erase.
+			if (isMain)
+			{
+				if (pawn.GripClaimMain == GRIPSUBJ_Pouch) pawn.GripClaimMain = GRIPSUBJ_None;
+				pouchClaimedMain[i] = false;
+			}
+			else
+			{
+				if (pawn.GripClaimOff == GRIPSUBJ_Pouch) pawn.GripClaimOff = GRIPSUBJ_None;
+				pouchClaimedOff[i] = false;
+			}
+		}
+
+		// The weapon<->fist swap watches the CLAIM broadly (GripClaim* !=
+		// None), not just whether THIS mod still owns it -- so if a reload
+		// sequence takes the claim over from the pouch entry itself (still
+		// holding a round or magazine, mid-transfer to the other hand's
+		// gun), the real weapon stays a fist through all of that and only
+		// returns once the hand is genuinely free again, whichever mod last
+		// let go of the claim.
+		ensurePouchPrevious();
+		int liveClaim = isMain ? pawn.GripClaimMain : pawn.GripClaimOff;
+		Weapon prev = isMain ? pouchPreviousMain[i] : pouchPreviousOff[i];
+		bool handClaimed = (liveClaim != GRIPSUBJ_None);
+		int hand = isMain ? 0 : 1;
+
+		if (handClaimed && prev == null)
+		{
+			Weapon real = isMain ? pawn.player.ReadyWeapon : pawn.player.OffhandWeapon;
+			if (real != null && !isFistClass(real.GetClassName()))
+			{
+				// findFist's own parameter is named "offhand" -- !isMain
+				// gives it exactly that.
+				let fist = findFist(pawn, !isMain);
+				if (fist != null)
+				{
+					if (isMain) pouchPreviousMain[i] = real;
+					else        pouchPreviousOff[i]  = real;
+					moveWeaponInstant(pawn, fist, hand);
+				}
+			}
+		}
+		else if (!handClaimed && prev != null)
+		{
+			moveWeaponInstant(pawn, prev, hand);
+			if (isMain) pouchPreviousMain[i] = null;
+			else        pouchPreviousOff[i]  = null;
+		}
+	}
+
+	private void ensurePouchPrevious()
+	{
+		while (pouchPreviousMain.Size() < MAXPLAYERS)
+			pouchPreviousMain.Push(null);
+		while (pouchPreviousOff.Size() < MAXPLAYERS)
+			pouchPreviousOff.Push(null);
 	}
 
 	// Park a prop at every anchor and keep it showing whatever is stored there.
@@ -1058,7 +1211,7 @@ class RS_HolsterManager : EventHandler
 
 			let p = props[pi];
 
-			string stored = contents[(i * HOLSTER_COUNT) + h];
+			Weapon stored = contents[(i * HOLSTER_COUNT) + h];
 
 			// --- reconcile the slot against reality ---
 			// contents[] is only ever written by doSwap, so it drifts: a stored
@@ -1076,15 +1229,31 @@ class RS_HolsterManager : EventHandler
 			// Max of both hands here on purpose -- this gate is about giving
 			// ANY recent swap time to settle before trusting ReadyWeapon/
 			// OffhandWeapon, not about which specific hand caused it.
-			if (stored != "" && pawn.player.PendingWeapon == WP_NOCHANGE
+			if (stored != null && pawn.player.PendingWeapon == WP_NOCHANGE
 			    && level.time - Max(lastSwapTicMain[i], lastSwapTicOff[i]) >= swapCooldown())
 			{
 				let rw = pawn.player.ReadyWeapon;
 				let ow = pawn.player.OffhandWeapon;
-				bool inHand = (rw != null && rw.GetClassName() == stored)
-				           || (ow != null && ow.GetClassName() == stored);
+				// POINTER equality, not class name -- this used to compare
+				// GetClassName() strings, which false-positived the instant
+				// the OTHER hand held a weapon of the same CLASS as this
+				// holster's contents (a matched pair, one per hand: store
+				// one, and the other hand's identical-class weapon looked
+				// like "the stored one drifted back"). That wiped the slot
+				// and reset the WRONG instance's flags below, permanently
+				// orphaning the actually-stored weapon -- bHolsterHidden
+				// stuck true on an instance nothing pointed at anymore, gone
+				// from every holster's table and unable to fire or be cycled
+				// to ever again. contents[] holding the real pointer makes
+				// this test exact.
+				bool inHand = (rw != null && rw == stored) || (ow != null && ow == stored);
 
-				if (inHand || pawn.FindInventory(stored) == null)
+				// contents[] now holds the actual instance, so "still owned"
+				// is just this pointer being non-null -- GZDoom nulls an
+				// Actor-typed field automatically when the actor it refers to
+				// is destroyed (dropped, tier-promoted away), no
+				// FindInventory lookup needed to detect it.
+				if (inHand)
 				{
 					// The weapon drifted back into a hand through something
 					// other than doSwap (ammo-pickup re-arm via
@@ -1096,18 +1265,11 @@ class RS_HolsterManager : EventHandler
 					// bHolsterHidden) and, worse, unable to ever fire again
 					// (CheckAmmo gates that too, unconditionally) -- nothing
 					// else in this file clears either flag.
-					if (inHand)
-					{
-						let strayWeapon = (rw != null && rw.GetClassName() == stored) ? rw : ow;
-						if (strayWeapon != null)
-						{
-							strayWeapon.bNoAutoSwitchTo = strayWeapon.Default.bNoAutoSwitchTo;
-							strayWeapon.bHolsterHidden = false;
-						}
-					}
+					stored.bNoAutoSwitchTo = stored.Default.bNoAutoSwitchTo;
+					stored.bHolsterHidden = false;
 
-					contents[(i * HOLSTER_COUNT) + h] = "";
-					stored = "";
+					contents[(i * HOLSTER_COUNT) + h] = null;
+					stored = null;
 				}
 			}
 			// Show first: it reads level.GetModelOrientationHint, which the
@@ -1116,7 +1278,7 @@ class RS_HolsterManager : EventHandler
 			// a wrist-mounted flashlight should read as compact gear, not a
 			// full holstered sidearm.
 			double propScale = isHandAnchored(h) ? RS_HolsterProp.holsterPropScaleArm() : RS_HolsterProp.holsterPropScale();
-			p.ShowWeapon(stored == "" ? null : Weapon(pawn.FindInventory(stored)), propScale, hsRadius);
+			p.ShowWeapon(stored, propScale, hsRadius);
 
 			// Face the same way the BODY does (not the head), so a holstered
 			// gun stays put on the hip when you look around, plus a tunable
@@ -1326,9 +1488,24 @@ class RS_HolsterManager : EventHandler
 		return idx >= HAND_HOLSTER_START;
 	}
 
+	// The ammo pouch (AMMO_POUCH_IDX) is its OWN toggle, not part of the
+	// 2/4/6/8 weapon-holster progression above -- activeCount() snaps to the
+	// nearest of exactly those four values and never returns 9, so without
+	// this branch the pouch would be permanently unreachable (8 < 8 is
+	// false) regardless of what rs_holster_active_count is set to. It is a
+	// different kind of thing (ammo, not a weapon slot) and toggling it
+	// should not ride a cvar named and tiered for the other eight.
 	private bool holsterActive(int h) const
 	{
+		if (h == AMMO_POUCH_IDX)
+			return pouchEnabled();
 		return h < activeCount();
+	}
+
+	private bool pouchEnabled() const
+	{
+		let cv = CVar.GetCVar("rs_holster_pouch_enabled", players[consoleplayer]);
+		return (cv != null) ? cv.GetBool() : true;
 	}
 
 	private bool instantSwitchEnabled() const
@@ -1531,11 +1708,11 @@ class RS_HolsterManager : EventHandler
 		for (int c = 0; c < HOLSTER_COUNT; ++c)
 		{
 			int ci = (i * HOLSTER_COUNT) + c;
-			if (contents[ci] != "" && isFistClass(contents[ci]))
-				contents[ci] = "";
+			if (contents[ci] != null && isFistClass(contents[ci].GetClassName()))
+				contents[ci] = null;
 		}
 
-		string stored = contents[slot];
+		Weapon stored = contents[slot];
 		Weapon held = offhand ? pawn.player.OffhandWeapon : pawn.player.ReadyWeapon;
 
 		// Never store the fist. It is what an empty holster looks like, not a
@@ -1549,7 +1726,7 @@ class RS_HolsterManager : EventHandler
 		if (held != null && !isFistClass(held.GetClassName()))
 			heldName = held.GetClassName();
 
-		if (stored == "" && heldName == "")
+		if (stored == null && heldName == "")
 			return; // fists into an empty holster: nothing to do
 
 		// The slot names the very gun this hand is holding. That is not a
@@ -1563,49 +1740,48 @@ class RS_HolsterManager : EventHandler
 		// stale slot did nothing visible at all (no haptic, no sound, no
 		// console line), identical to a no-op press, so it read as "I have
 		// to holster something else first to unstick it" even though the
-		// table was already fixed by that first press. Resync stored to ""
+		// table was already fixed by that first press. Resync stored to null
 		// and fall through into the ordinary store logic below instead, so
 		// the SAME press that finds the desync is the press that actually
-		// completes the store, with the normal confirmation.
-		if (stored != "" && stored == heldName)
+		// completes the store, with the normal confirmation. POINTER
+		// equality now (was class-name equality) -- see the field comment on
+		// contents for why that mattered.
+		if (stored != null && stored == held)
 		{
-			contents[slot] = "";
-			stored = "";
+			contents[slot] = null;
+			stored = null;
 		}
 
 		// A weapon lives in exactly one holster. Without this, storing the
 		// same gun in two places leaves both claiming it, and drawing from
-		// one silently empties the other.
+		// one silently empties the other. POINTER equality -- a same-CLASS
+		// weapon sitting in a different holster (a matched pair) must not be
+		// evicted just because it shares a class name with the one just
+		// stored.
 		if (heldName != "")
 		{
 			for (int h = 0; h < HOLSTER_COUNT; ++h)
 			{
 				int other = (i * HOLSTER_COUNT) + h;
-				if (other != slot && contents[other] == heldName)
-					contents[other] = "";
+				if (other != slot && contents[other] == held)
+					contents[other] = null;
 			}
 		}
 
-		contents[slot] = heldName;
+		contents[slot] = (heldName != "") ? held : null;
 
-		// Bring out whatever was in there. Selecting the player's OWN existing
-		// instance rather than spawning a fresh one is essential: GunBonsai
-		// perks live on the instance, and a new copy would silently drop every
-		// perk rolled on that weapon.
+		// Bring out whatever was in there. The instance pointer IS the stored
+		// weapon -- no FindInventory-by-name lookup needed (that used to be
+		// how a same-class matched pair could resolve to the WRONG instance).
+		// stored is only non-null here because GZDoom nulls an Actor-typed
+		// field automatically when the actor it refers to is destroyed
+		// (dropped, tier-promoted away) -- if that had happened, contents[slot]
+		// would already read null and the block above would have returned.
 		int hand = offhand ? 1 : 0;
 
-		if (stored != "")
+		if (stored != null)
 		{
-			let w = Weapon(pawn.FindInventory(stored));
-			if (w == null)
-			{
-				// Owned when stored, gone now (dropped, tier-promoted into a
-				// different class, mod removed it). Clear the slot rather than
-				// leaving a holster pointing at a weapon that cannot be drawn.
-				contents[slot] = "";
-				Console.Printf("RS_HOLSTER: %s no longer in inventory, slot cleared", stored);
-				return;
-			}
+			let w = stored;
 
 			// MoveWeaponToHand is VOID and bails SILENTLY on a hand mismatch:
 			//     if (weap.bNoHandSwitch && weap.bOffhandWeapon != (hand == 1)) return;
@@ -1619,7 +1795,7 @@ class RS_HolsterManager : EventHandler
 			if (w.bNoHandSwitch && w.bOffhandWeapon != offhand)
 			{
 				contents[slot] = stored;   // roll back the commit above
-				Console.Printf("\cgRS_HOLSTER: %s belongs to the %s hand", stored, offhand ? "main" : "off");
+				Console.Printf("\cgRS_HOLSTER: %s belongs to the %s hand", stored.GetClassName(), offhand ? "main" : "off");
 				return;
 			}
 
@@ -1710,9 +1886,17 @@ class RS_HolsterManager : EventHandler
 
 		string hsName; double hsFwd, hsSide, hsFrac, hsRadius, hsPitch, hsYaw, hsRoll;
 		GetHolster(holsterIdx, hsName, hsFwd, hsSide, hsFrac, hsRadius, hsPitch, hsYaw, hsRoll);
+		// GetClassName() returns Name, not string -- ?: needs both branches
+		// to be the SAME type (an assignment coerces Name->string fine, a
+		// ternary does not), so the conversion happens on its own line, not
+		// inline in the ternary below. This is exactly what broke the real
+		// compile (line 1734/1780 in the actual error log).
+		string storedName = "";
+		if (stored != null)
+			storedName = stored.GetClassName();
 		Console.Printf("RS_HOLSTER: %s <-> %s (%s)",
 			heldName == "" ? "fists" : heldName,
-			stored == "" ? "empty" : stored,
+			stored == null ? "empty" : storedName,
 			hsName);
 
 		// Auto-diagnostic: if a real weapon just went INTO this holster (not a
@@ -1720,7 +1904,7 @@ class RS_HolsterManager : EventHandler
 		// This is what makes "record as I play" true -- store a gun and the
 		// full orientation/offset breakdown lands in the log on its own, no
 		// menu, no netevent, nothing to remember mid-session.
-		if (contents[slot] != "")
+		if (contents[slot] != null)
 			pendingDump[i] = holsterIdx;
 	}
 
@@ -1752,13 +1936,16 @@ class RS_HolsterManager : EventHandler
 			Vector3 anchor = anchorPos(i, pawn, h);
 			double dMain = (pawn.AttackPos - anchor).Length();
 			double dOff  = (pawn.OffhandPos - anchor).Length();
-			string slotHas = contents[(i * HOLSTER_COUNT) + h];
+			Weapon slotHas = contents[(i * HOLSTER_COUNT) + h];
+			string slotHasName = "";
+			if (slotHas != null)
+				slotHasName = slotHas.GetClassName();
 
 			Console.Printf("%-13s at %.1f,%.1f,%.1f  r%.0f  main %.1f%s  off %.1f%s  [%s]",
 				hsName, anchor.X, anchor.Y, anchor.Z, hsRadius,
 				dMain, dMain < hsRadius ? " IN" : "",
 				dOff,  dOff  < hsRadius ? " IN" : "",
-				slotHas == "" ? "empty" : slotHas);
+				slotHas == null ? "empty" : slotHasName);
 		}
 
 		dumpPropOrientation(i, pawn);
@@ -1777,7 +1964,7 @@ class RS_HolsterManager : EventHandler
 		bool anyStored = false;
 		for (int h = 0; h < HOLSTER_COUNT; ++h)
 		{
-			if (contents[(i * HOLSTER_COUNT) + h] == "") continue;
+			if (contents[(i * HOLSTER_COUNT) + h] == null) continue;
 			anyStored = true;
 			dumpOneHolsterProp(i, pawn, h);
 		}
@@ -1794,20 +1981,19 @@ class RS_HolsterManager : EventHandler
 	// needing to remember a menu press.
 	private void dumpOneHolsterProp(int i, PlayerPawn pawn, int h)
 	{
-		string stored = contents[(i * HOLSTER_COUNT) + h];
-		if (stored == "") return;
+		Weapon stored = contents[(i * HOLSTER_COUNT) + h];
+		if (stored == null) return;
 
-		let w = Weapon(pawn.FindInventory(stored));
-		if (w == null)
-		{
-			Console.Printf("%-13s [%s] -- NOT in inventory, cannot resolve", "?", stored);
-			return;
-		}
+		// The instance pointer IS the stored weapon -- no FindInventory-by-name
+		// lookup, same reasoning as doSwap. Still owned because GZDoom nulls an
+		// Actor-typed field automatically when the actor it refers to is
+		// destroyed; if that had happened, stored above would already be null.
+		let w = stored;
 
 		State rs = w.FindState("Ready");
 		if (rs == null)
 		{
-			Console.Printf("%-13s [%s] -- no Ready state, cannot resolve model", "?", stored);
+			Console.Printf("%-13s [%s] -- no Ready state, cannot resolve model", "?", stored.GetClassName());
 			return;
 		}
 
@@ -1887,7 +2073,7 @@ class RS_HolsterManager : EventHandler
 			level.GetModelWorldOffset(resolvedClass, rs.sprite, rs.Frame, stretch, finalAngle, finalPitch, finalRoll,
 			                          propScale, propScale);
 
-		Console.Printf("%-13s [%s]", hsName, stored);
+		Console.Printf("%-13s [%s]", hsName, stored.GetClassName());
 		Console.Printf("  orientation hint: found=%d mirrored=%d angOff=%.1f pitOff=%.1f rolOff=%.1f",
 			foundOri, mirrored, angOff, pitOff, rolOff);
 		Console.Printf("  offset hint:      found=%d  local(fwd,side,up)= %.2f, %.2f, %.2f",
@@ -1920,6 +2106,6 @@ class RS_HolsterManager : EventHandler
 	{
 		int want = MAXPLAYERS * HOLSTER_COUNT;
 		while (contents.Size() < want)
-			contents.Push("");
+			contents.Push(null);
 	}
 }
