@@ -156,6 +156,17 @@ proposing a native because it means touching UZDXREMA.**
 - `HolsterClaimMain/Off` (bool) — script writes, engine's grip arbiter reads
 - `GripContextMain/Off` (int) — published by the arbiter for diagnostics
 
+**`Weapon.bHolsterHidden`** (`wadsrc/static/zscript/actors/inventory/
+weapons.zs`, base `Weapon` class, NOT a holster-mod field) — the universal
+weapon-cycling exclusion. `doSwap` sets it true on store, false on draw.
+`Weapon.CheckAmmo` refuses a holstered weapon as a candidate at all (so
+weapnext/weapprev/slot-select skip straight past it), `hw_vrwheel.cpp`'s
+`IsWheelWeaponUsable` refuses to let the native VR wheel select it into a
+hand, and `alt_hud.zs`'s `DrawOneWeapon` refuses to draw it in the
+weapon-switch HUD strip. All three read the SAME field, so there is one
+source of truth for "is this weapon stowed" across every selection path in
+the engine, not three separate opinions.
+
 **Functions on FLevelLocals** (`src/scripting/vmthunks.cpp` + ZScript decl
 in `wadsrc/static/zscript/doombase.zs`):
 - `VRHaptic(hand, intensity, durationMs)` — pre-existing, hand 0=main 1=off
@@ -173,11 +184,48 @@ in `wadsrc/static/zscript/doombase.zs`):
   file I/O ZScript has. Flat key→double documents only; see the big comment
   block above these in vmthunks.cpp for the full protocol and the name
   sanitization rules.
+- `GetActorModelClass(act)` → `class<Actor>` — added 2026-08-24. What class's
+  MODELDEF a live actor INSTANCE actually resolves against right now
+  (`modelData->modelDef` if something set a per-instance override via
+  `A_ChangeModel` called on that instance, else the actor's own class).
+  `RS_HolsterProp.ShowWeapon` uses this instead of `w.GetClass()` so a
+  weapon another mod has model-swapped per-instance (ModelSwapper is the
+  motivating case — it never gives the swapped weapon's own class a MODELDEF
+  entry, only the live held instance) still shows correctly when holstered.
+  **Built, engine-rebuilt, mod-side rebuilt, both committed — NOT yet
+  confirmed against a real ModelSwapper weapon in headset.**
 
-**Engine build**: `E:\UZDXREMA\build-dxr\DoomXR.slnx`, MSBuild,
-`Configuration=RelWithDebInfo /Platform=x64`. Output lands directly at
-`E:\UZDXREMA\build-dxr\RelWithDebInfo\doomxr.exe` + `doomxr.pk3` — that IS
-the launch location, no separate copy step for the engine itself.
+**Engine build**: `E:\UZDXREMA\build-dxr\DoomXR.slnx`, MSBuild. Two configs
+exist, `RelWithDebInfo` and `Debug` — the owner's ACTUAL launch config as of
+2026-08-24 is `Debug` (confirmed from a real crash log: paths were
+`E:/UZDXREMA/build-dxr/Debug/doomxr.pk3` etc.), so build that one unless told
+otherwise: `/p:Configuration=Debug /p:Platform=x64`. Output lands directly at
+`E:\UZDXREMA\build-dxr\Debug\doomxr.exe` (or `RelWithDebInfo\` for that
+config) — that IS the launch location, no separate copy step for the engine
+itself.
+
+MSBuild.exe's real path is NOT the "obvious" one — `C:\Program Files\
+Microsoft Visual Studio\2022\...` does not exist on this machine. Use
+`vswhere` to find it rather than guessing:
+`& "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+-latest -products * -requires Microsoft.Component.MSBuild -find
+MSBuild\**\Bin\MSBuild.exe`. On 2026-08-24 that resolved to VS "18" (not
+"2022"), at `C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\
+Current\Bin\MSBuild.exe` — do not assume that path is stable either, re-run
+vswhere.
+
+**UZDXREMA is a live, multi-tenant tree.** Other lanes build and leave
+uncommitted work in this same checkout at any time — as of 2026-08-24 there
+was a large unrelated pile sitting there (`p_physics.cpp/h`, `models_iqm.cpp`,
+`vk_openxrdevice.*`, `CMakeLists.txt`, untracked `ENGINE_DELTA.md`/
+`IQM_ENGINE_NOTES.md`/`VR_INTERACTION_PLAN.md`/`tools/fbx2iqm/`, an
+`hw_vrwheel.cpp` change adding a `wr_suppress_native_wheel` cvar check for
+RS_WeaponWheel). None of it is this mod's — before committing here, `git
+status` and stage ONLY the specific files this mod's own work touched, never
+`-A`/`.`. Before building, check for a live `MSBuild.exe`/`mspdbsrv.exe`
+process first (`tasklist | grep -i msbuild`) — two builds against the same
+tree can produce a genuine link collision, not just wasted time; wait for it
+to clear rather than raced.
 
 ## Build & deploy checklist (mod side)
 
@@ -294,6 +342,14 @@ inventory — `bNoAutoSwitchTo` is what stops that.
   alongside your own netevents, bind your own alias name, and ship no default
   F13/F14 bind. See Split history above for why.
 
+## Miscellany
+
+`holsterideas.txt` at the repo root is the owner's own personal notes file
+(untracked, deliberately never added to git) — a running brainstorm of
+holster-mode ideas. If a fresh session is asked to brainstorm more, that
+file is where prior ideas (and whatever the owner jotted down separately)
+actually live; check it before assuming a clean slate.
+
 ## Open / not done
 
 - Seated and standing profiles exist as a system (save/load/switch, all
@@ -314,7 +370,23 @@ inventory — `bNoAutoSwitchTo` is what stops that.
   `RS_HolsterFlamethrower` (cloned from RS_Main's `RS_GH_Flamethrower`),
   was built and then removed at the owner's request (2026-08-23) -- if
   something references it, that's stale, not a sign it should exist.
-- **Nothing has been loaded in the engine since the 2026-08-23 split.** Both
-  pk3s build clean and every symbol was verified to both define and resolve,
-  but that is not the same as a successful ZScript compile. First headset run
-  after the split is the real test.
+- **First real launch after the split (2026-08-24) crashed, but not on
+  anything here.** `Could not submit command buffer: device lost` — a
+  Vulkan/GPU-driver failure at the main menu, before a level loaded or a
+  player pawn existed, i.e. before a single tic of this mod's code could
+  have run. Also running the `Debug` engine config, which is slower/less
+  stable than `RelWithDebInfo`. Not a ZScript compile failure and not
+  evidence this mod's changes are bad — but also means the split STILL has
+  not been confirmed working end-to-end in headset. That confirmation is
+  still the real open item, now stacked with confirming the
+  `GetActorModelClass`/ModelSwapper fix at the same time.
+- **The wrist-pitch hypothesis is still just a hypothesis.** See
+  `E:\RS_HardPoints\CLAUDE.md` for the actual claim and the debug dump built
+  to test it (`rs_hardpoint_arm_active_count` = 2 or 3, tilt the wrist, read
+  the console). Nothing in either repo has been changed based on it yet.
+- **The `GetActorModelClass` engine commit is local-only, not pushed** to
+  UZDXREMA's remote — deliberately, since that tree has other lanes' work
+  sitting in it and pushing shared infra wasn't asked for. The mod-side
+  commit using it (this repo) IS pushed as part of a separate v0.3.0-era
+  release; re-check `git log`/`git status` before assuming either state,
+  since both may have moved by the time you read this.
