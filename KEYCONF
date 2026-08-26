@@ -29,9 +29,16 @@ addkeysection "RS Holsters" RSHolsters
 // alias, so if both mods bound F13 to their own alias the second one loaded
 // would silently win and the other would never see a grip press again. Both
 // bind their own alias (no KEYCONF collision) and both fire rs-vrhp-grab-*,
-// which every handler receives. Which mod actually acts needs no
-// coordination: its doSwap returns immediately unless the hand is inside one
-// of ITS anchors, and a hand is only ever in one place.
+// which every handler receives, and each mod's doSwap returns immediately
+// unless the hand is inside one of ITS anchors.
+//
+// THAT IS NOT ARBITRATION, and this comment used to say it was ("a hand is
+// only ever in one place"). It is false as soon as two anchors from the two
+// mods overlap, which is easy -- a hip holster sits on the body and a wrist
+// mount rides the forearm, and one reach can put the hand inside both. Both
+// handlers receive the same netevent, both find a claim, and BOTH act on one
+// press. A real grip arbiter is in progress; until it lands, one-mod-acts is
+// a property of where the anchors happen to be, not of this design.
 addmenukey "Holster: store/draw (MAIN hand)" rs_holster_main
 alias rs_holster_main "netevent rs-vrhp-grab-main"
 

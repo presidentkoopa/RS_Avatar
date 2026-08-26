@@ -62,6 +62,13 @@ OptionMenu "RS_HolsterOptions"
 
 	StaticText "Diagnostics", "Gold"
 	SafeCommand "Debug dump to console", "netevent rs-holster-debug"
+	// ADDED 2026-08-26. Everything this switch covers used to run
+	// unconditionally in the shipped build -- see CVARINFO.txt for the full
+	// list. The manual dump above and the range haptic are NOT affected.
+	Option "Verbose console logging",    "rs_holster_verbose", "OnOff"
+	StaticText "Range enter/leave lines, the automatic orientation dump", "DarkGray"
+	StaticText "after every store, and the flashlight's pose printf.", "DarkGray"
+	StaticText "Off in a normal build; turn on for a tuning session.", "DarkGray"
 }
 
 // SafeCommand rather than Command for the destructive/modal ones: edit

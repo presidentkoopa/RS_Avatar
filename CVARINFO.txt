@@ -64,10 +64,18 @@ user float rs_holster_prop_yaw = 0.0;
 // The store/draw confirm sound (RS_Holsters.zs doSwap).
 user bool rs_holster_sound = true;
 
-// Which sound plays: 0 = rs_fx_holster, 1 = rs_allclear_ready. Both are
-// looked up by NAME, so whichever loaded weapon pack happens to define
-// them supplies them -- and GZDoom resolves an undefined sound to silence
-// rather than to an error, so neither is a hard dependency.
+// Which sound plays: 0 = the mechanical clunk (rs_holster_fx_store, a
+// $random over three takes), 1 = the ready-to-fire cadence beep
+// (rs_holster_fx_ready).
+//
+// REWIRED 2026-08-26. This used to name rs_fx_holster / rs_allclear_ready
+// and the comment here claimed that was safe because "whichever loaded
+// weapon pack happens to define them supplies them". Nothing in this family
+// defines either -- only RS_Main does, and RS_Main is not part of it, nor a
+// declared dependency of this pk3. GZDoom resolves an undefined sound to
+// silence rather than to an error, so this entire setting selected between
+// two silences. The audio now ships in this pk3 under its own names (see
+// SNDINFO.txt), so both options actually sound.
 user int rs_holster_sound_style = 0;
 
 // Store/draw uses GZDoom's own CF_INSTANTWEAPSWITCH cheat flag (constants.zs),
@@ -115,3 +123,30 @@ user int rs_holster_active_count = 8;
 // above -- that cvar's tiers snap to exactly 2/4/6/8 and never reach 9, and
 // a pouch is a different kind of thing anyway (ammo, not a weapon slot).
 user bool rs_holster_pouch_enabled = true;
+
+// Developer instrumentation, OFF by default. Added 2026-08-26 alongside the
+// same switch in RS_HardPoints (rs_hardpoint_verbose) -- one gate per repo,
+// same meaning, so a tuning session turns both on together.
+//
+// Until this existed, a PERMANENT INSTRUMENTATION LAYER shipped switched on
+// in the default build. Three separate sources, all of them unconditional:
+//   - a seven-line prop-orientation dump one tic after EVERY store
+//     ("record as I play" -- a tuning session's want, not a player's);
+//   - a console line on every hand-enters/leaves-holster-range transition,
+//     across nine overlapping anchors;
+//   - RS_HolsterFlashlight's pose printf, roughly 3.5 lines a SECOND for as
+//     long as the flashlight was held.
+//
+// GATED, NOT DELETED. Each exists because a specific question is still
+// open -- most of all the flashlight one, which documents OffhandPitch
+// being stored negated and is the live lead on whether the hand-anchored
+// basis in RS_Holsters.zs shares that bug.
+//
+// Deliberately NOT behind this gate: the range-entry HAPTIC (player
+// feedback, not instrumentation), the one-line store/draw confirmation,
+// every error line, and the MANUAL dump on netevent rs-holster-debug --
+// asking for that one is the whole gesture.
+//
+// NAMED _verbose, NOT _debug: KEYCONF binds an ALIAS called rs_holster_debug,
+// and a cvar sharing that name would collide in the console namespace.
+user bool rs_holster_verbose = false;
