@@ -1056,7 +1056,25 @@ class RS_HolsterManager : EventHandler
 	// move with the player's head every frame and there is nothing to parent to.
 	private void updateProps(int i, PlayerPawn pawn)
 	{
-		if (!showProps())
+		// TWO INDEPENDENT SWITCHES as of 2026-08-26. The markers (wireframe
+		// rings showing WHERE a holster is) and the props (the stored weapon's
+		// model) are separate actor arrays, and they used to share one cvar
+		// under a menu row labelled "Show holster spheres".
+		//
+		// That row was wrong twice. It did not only hide spheres -- the default
+		// marker shape is the bracket reticle -- and it did not hide the markers
+		// AT ALL: the early return below only ever touched props[], while every
+		// line that positions markers[] sits after it. Switching it off hid your
+		// stored weapons and left the rings visible and FROZEN in world space,
+		// no longer following you.
+		//
+		// Now: markers and stored weapons toggle independently, which is the
+		// case worth having -- once the anchors are learned by feel the rings
+		// are clutter, but the guns parked in them are still worth seeing.
+		bool wantProps   = showProps();
+		bool wantMarkers = showMarkers();
+
+		if (!wantProps || !wantMarkers)
 		{
 			// Setting invisible rather than destroying: the player can toggle
 			// this mid-session, and respawning six actors on every toggle is
@@ -1064,10 +1082,17 @@ class RS_HolsterManager : EventHandler
 			for (int h = 0; h < HOLSTER_COUNT; ++h)
 			{
 				int pi = (i * HOLSTER_COUNT) + h;
-				if (pi < props.Size() && props[pi] != null)
+				if (!wantProps && pi < props.Size() && props[pi] != null)
 					props[pi].SetVisible(false);
+				if (!wantMarkers && pi < markers.Size() && markers[pi] != null)
+					markers[pi].SetVisible(false);
 			}
-			return;
+
+			// Only bail entirely when there is nothing left to draw. With one
+			// of the two still on, the loop below must run so that one keeps
+			// tracking the player.
+			if (!wantProps && !wantMarkers)
+				return;
 		}
 
 		ensureContents();
@@ -1164,7 +1189,7 @@ class RS_HolsterManager : EventHandler
 
 			if (markers[pi] != null)
 			{
-				markers[pi].SetVisible(true);
+				markers[pi].SetVisible(wantMarkers);
 				markers[pi].SetOrigin(at, true);
 				markers[pi].SetHot(hot);
 
@@ -1278,7 +1303,14 @@ class RS_HolsterManager : EventHandler
 			// a wrist-mounted flashlight should read as compact gear, not a
 			// full holstered sidearm.
 			double propScale = isHandAnchored(h) ? RS_HolsterProp.holsterPropScaleArm() : RS_HolsterProp.holsterPropScale();
-			p.ShowWeapon(stored, propScale, hsRadius);
+
+			// Passing null is the existing "this holster is empty" path --
+			// ShowWeapon sets pendingClear and fades the model out. Reusing it
+			// for "stored weapons are switched off" means the hide is the same
+			// well-tested route rather than a second way to make a prop
+			// invisible, and it comes back correctly when switched on again.
+			Weapon toShow = wantProps ? stored : null;
+			p.ShowWeapon(toShow, propScale, hsRadius);
 
 			// Face the same way the BODY does (not the head), so a holstered
 			// gun stays put on the hip when you look around, plus a tunable
@@ -1457,9 +1489,19 @@ class RS_HolsterManager : EventHandler
 			markers.Push(null);
 	}
 
+	// The STORED WEAPON models parked in occupied holsters.
 	private bool showProps() const
 	{
 		let cv = CVar.GetCVar("rs_holster_props", players[consoleplayer]);
+		return (cv != null) ? cv.GetBool() : true;
+	}
+
+	// The WIREFRAME MARKERS showing where each holster is. Separate actors from
+	// the props and, since 2026-08-26, a separate switch -- see updateProps for
+	// why they used to share one and what that broke.
+	private bool showMarkers() const
+	{
+		let cv = CVar.GetCVar("rs_holster_markers", players[consoleplayer]);
 		return (cv != null) ? cv.GetBool() : true;
 	}
 

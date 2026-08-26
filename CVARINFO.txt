@@ -1,5 +1,19 @@
-// Show a model of the stored weapon at each body holster anchor.
+// Show a model of the stored weapon at each OCCUPIED body holster anchor.
 user bool rs_holster_props = true;
+
+// Show the wireframe marker at each holster anchor -- the ring or bracket that
+// tells you where the pocket is, and lights up when a hand is in range.
+//
+// SPLIT OUT 2026-08-26. This used to be part of rs_holster_props under a menu
+// row labelled "Show holster spheres", which was wrong twice: the default shape
+// is the bracket reticle, not a sphere, and switching it off never hid the
+// markers at all -- it hid the stored weapons and left the rings visible and
+// frozen where they last were, no longer following the player.
+//
+// Independent now, because that is the case actually worth having: once the
+// anchor positions are learned by feel the rings are clutter, while the weapons
+// parked in them are still worth seeing.
+user bool rs_holster_markers = true;
 
 // Holster prop appearance. Live-tunable because the right values are found by
 // looking at them in the headset, not by reasoning about model units.
