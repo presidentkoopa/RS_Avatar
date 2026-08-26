@@ -124,6 +124,26 @@ user int rs_holster_active_count = 8;
 // a pouch is a different kind of thing anyway (ammo, not a weapon slot).
 user bool rs_holster_pouch_enabled = true;
 
+// Ammo-driven pouch glow, ON by default. The pouch marker fades UP as the gun
+// in your hand runs low, and sits invisible while you are stocked.
+//
+// THE POUCH ONLY (AMMO_POUCH_IDX). The eight torso holsters are not touched by
+// this in either position -- the curve is being proven on one marker in a
+// headset before the idea is allowed to spread.
+//
+// The curve is deliberately non-linear (RS_Holsters.zs pouchAmmoCurve, which
+// carries the three data points it was specified from): 20% ammo left reads as
+// 20% visible, 10% as 50%, 1% as 90%. Quiet until it matters, then it shouts --
+// linear would leave it whispering at exactly the moment you need telling.
+//
+// It combines with the existing proximity fade rather than replacing it: a hand
+// reaching for the pouch lights it regardless of how full you are, so a stocked
+// pouch is still something you can find and aim at.
+//
+// OFF restores the marker to plain full brightness, which is exactly how it
+// looked before this existed -- not to invisible.
+user bool rs_holster_pouch_glow = true;
+
 // Developer instrumentation, OFF by default. Added 2026-08-26 alongside the
 // same switch in RS_HardPoints (rs_hardpoint_verbose) -- one gate per repo,
 // same meaning, so a tuning session turns both on together.

@@ -82,6 +82,16 @@ OptionMenu "RS_HolsterPlacement"
 	StaticText "Placement", "Gold"
 	Option "How many holsters",         "rs_holster_active_count", "RS_HolsterActiveCount"
 	Option "Chest ammo pouch (for RS_Reload)", "rs_holster_pouch_enabled", "OnOff"
+	// Filed here under the pouch's own on/off rather than over in Appearance
+	// with the other marker-look rows, because it is meaningless without the
+	// row above it: the user who just switched the pouch on is exactly the
+	// user this should be sitting in front of. Pouch only -- the eight torso
+	// holsters have no equivalent and this row does not claim otherwise.
+	Option "  Pouch glows when low on ammo", "rs_holster_pouch_glow", "OnOff"
+	StaticText "Invisible while stocked, fades up as the gun in your", "DarkGray"
+	StaticText "hand runs dry -- 20% ammo left reads as barely there,", "DarkGray"
+	StaticText "10% as half lit, 1% as almost solid. A hand reaching", "DarkGray"
+	StaticText "for the pouch still lights it however full you are.", "DarkGray"
 	SafeCommand "Edit Mode -- grab spheres and move them", "netevent rs-holster-edit"
 	SafeCommand "Print tuned table to console",            "netevent rs-holster-table"
 	SafeCommand "Reset offsets to defaults",               "netevent rs-holster-reset"
