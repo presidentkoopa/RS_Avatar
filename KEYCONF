@@ -1,4 +1,17 @@
-addkeysection "RS HardPoints" RSHardPoints
+// SECTION ID FIXED 2026-08-26. This line previously read
+//
+//     addkeysection "RS HardPoints" RSHardPoints
+//
+// byte-identical to RS_HardPoints/KEYCONF:1 -- a copy-paste survivor of the
+// 2026-08-23 split that was never renamed on this side. Two packages
+// declaring one section id means they SHARE a section file, so whichever
+// loaded first had its binds overwritten on every config save. That has been
+// quietly happening since the split.
+//
+// NOTE FOR THE OWNER: this changes which file your holster binds live in, so
+// any binds you had here need setting once more. They were not reliably
+// surviving a restart anyway -- that was the bug.
+addkeysection "RS Holsters" RSHolsters
 
 // The engine redirects grip to these keys, per hand, ONLY when the grip
 // arbiter resolves a clean tap (pressed and released, no other button joined
