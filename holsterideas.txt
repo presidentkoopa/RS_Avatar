@@ -1,0 +1,8 @@
+Gesture-Cast Mode — arm-extended + wrist-rolled-up fires whatever's in a wrist/forearm slot in place, no draw into hand. The wrist rig's actual intended point per CLAUDE.md's own roadmap.
+Paged Forearm Inventory — each of the 3 forearm slots becomes a scrollable row instead of one fixed item.
+Quick-Draw vs. Deliberate — a claim-style preset that widens/tightens grab radius + hysteresis together.
+Mirror Layout — flip the whole torso table for left-hand-dominant play, one command instead of re-dragging all 8 anchors.
+Holster Dwell/Lock — require the hand to sit in a holster's radius for a beat before a grip press counts, cutting accidental swaps from a hand passing through.
+Silent/Tactical Mode — haptics currently have no off-switch at all (sound already does); one toggle for both.
+Auto-Recalibrate on posture change — detect a seated-height drop and offer/auto-trigger the seated profile instead of the manual switch bind.
+Per-Holster Sound Identity — already an explicit CLAUDE.md TODO: thread a sound name through GetHolster's table instead of one global style pick.
