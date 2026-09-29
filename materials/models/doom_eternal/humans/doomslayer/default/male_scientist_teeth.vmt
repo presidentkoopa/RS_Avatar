@@ -1,0 +1,11 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models\doom_eternal\humans\doomslayer\default\male_scientist_teeth"
+	"$bumpmap" "models\doom_eternal\humans\doomslayer\default\male_scientist_teeth_n"
+	"$phongexponenttexture" "models\doom_eternal\shared\black"
+	
+    "$phong" "1"
+    "$phongboost"    "0"
+	"$phongfresnelranges"	"[1 1 1]"
+    "$phongdisablehalflambert"    "1"
+}

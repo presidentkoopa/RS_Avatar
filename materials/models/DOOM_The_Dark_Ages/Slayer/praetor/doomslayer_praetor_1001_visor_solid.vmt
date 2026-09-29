@@ -1,0 +1,21 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "models\doom_the_dark_ages\slayer\doomslayer_glass"
+	"$bumpmap" "models\doom_the_dark_ages\slayer\praetor\doomslayer_praetor_1001_visor_n"
+
+"$envmap"			"models\doom_the_dark_ages/mirror_surface_bw"
+"$envmaptint"			"[0.02 0.05 0.05]"
+"$envmapfresnel"			"1.00"
+"$normalmapalphaenvmapmask"	"1.00"
+
+"$nocull"				"1.00"
+
+"$phong"				"1.00"
+"$phongboost"			"1.75"
+"$phongexponent"			"32.00"
+"$phongfresnelranges"		"[1.00 1.25 1.75]"
+"$phongtint"			"[0.2 0.3 0.3]"
+"$phongdisablehalflambert"		"1.00"
+
+"$color"				"[0.4 0.5 0.5]"
+}

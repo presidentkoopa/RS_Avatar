@@ -1,0 +1,5 @@
+# built pack -- rebuild with pack.py
+RS_Avatar.pk3
+*.bak
+*.handunits.bak
+__pycache__/

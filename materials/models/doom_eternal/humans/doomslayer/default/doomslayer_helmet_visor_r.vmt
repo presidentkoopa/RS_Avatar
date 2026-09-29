@@ -1,0 +1,10 @@
+"Refract"
+{
+  "$model" "1"
+	"$refracttinttexture" "models\doom_eternal\shared\white"
+	"$normalmap" "models\doom_eternal\shared\norm2"
+	"$refracttint" "[0.0 0.537219 0.360873]"
+  "$bluramount" "0"
+  "$refractamount" ".0"
+  "$nocull" "1"
+}

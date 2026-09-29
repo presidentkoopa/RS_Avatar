@@ -1,0 +1,35 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/auditor/doom/praetor_suit/models_characters_doommarine_doommarine_visor_c"
+	"$bumpmap" "models/auditor/doom/praetor_suit/models_characters_doommarine_doommarine_visor_nml"
+	//"$color" "[0.3 0.5 0.6]"
+	"$color2" "[0.1 0.1 0.1]"
+	//"$blendTintByBaseAlpha"	"1"
+	//"$additive" "1"
+	"$translucent" "0"
+	"$ambientocclusion" "0"
+	//"$selfillum" "1"
+	//"$selfillummaskscale" "15"
+	//"$selfillummask" ""
+	$no_draw 0
+	$nocull 1		
+	"$normalmapalphaenvmapmask" "1" 	
+	//"$basealphaenvmapmask"	"1"
+	//"$envmap" "models/auditor/doom/praetor_suit/Shared/metal_generic_006"					
+	"$envmaptint" "[0.04 0.04 0.04]"				
+
+
+	//ReflectionsDir
+
+	"$phong" "1"						
+	"$phongboost"	"3" 		
+	"$phongexponent" "175"	
+	//"$phongexponenttexture" "models/auditor/doom/praetor_suit/models_characters_doommarine_doommarine_legs_rgh_a"
+		
+	//"$phongwarptexture"		"models/auditor/doom/praetor_suit/Shared/phongwarp2"		
+	$lightwarptexture "models/auditor/doom/praetor_suit/Shared/lightwarp_soft"
+	
+	"$phongfresnelranges"	"[1 2.05 3.25]"			
+	//"$phongtint" 			"[1 1 1.1]"			
+	"$PhongAlbedoTint" "1"
+}

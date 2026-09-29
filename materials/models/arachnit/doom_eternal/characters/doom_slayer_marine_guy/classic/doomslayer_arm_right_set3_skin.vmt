@@ -1,0 +1,42 @@
+//Arachnit's super duper cool MLG vmt config, donut steal plz. :(
+
+"VertexLitGeneric"
+{
+//Basic
+	"$BaseTexture" 			    "models/arachnit/doom_eternal/characters/doom_slayer_marine_guy/classic/doomslayer_arm_right_set3"
+	"$BumpMap" 				    "models/arachnit/doom_eternal/characters/doom_slayer_marine_guy/classic/doomslayer_arm_right_set3_n"
+	"$PhongExponentTexture"     "models/arachnit/doom_eternal/characters/doom_slayer_marine_guy/classic/doomslayer_arm_right_set3_g"
+
+//Warp
+	"$LightWarpTexture"         "models/arachnit/shared/base_m_caucasian_wrp"		//< Change as needed
+
+//Phong
+	"$Phong"				    "1"
+	"$PhongBoost"               "2.1" 	//< Change as needed
+//	"$PhongExponent"            "15" 	//< $PhongExponent overrides $PhongExponentTexture !!!
+	"$PhongFresnelRanges"	    "[0.3 0.5 24]"
+	"$PhongAlbedoTint"          "0"
+	"$PhongDisableHalfLambert"  "1"
+	"$NormalmapAlphaPhongMask"  "1"
+
+//Rimlight
+	"$Rimlight" 			    "0"
+
+//Transparency
+	"$AlphaTest" 			  	"1"
+	"$AllowAlphaToCoverage"    	"0"
+	"$AlphaTestReference" 		"0.1"
+
+//Other
+	"$Model"                    "1"
+	"$HalfLambert" 			    "0"
+	"$NoDecal" 				    "0"
+	"$AmbientOcclusion" 	    "0"
+	"$NoCull" 				    "0"
+	"$SurfaceProp" 			    "flesh"
+//	"$BlendTintByBaseAlpha"     "1"
+//	"$Color2"					"{ 200 200 200 }"	//< RGB colors
+	"$CloakPassEnabled" 		"1" 	//< For SFM and TF2
+//	"$CloakColorTint" 			"[0.4 0.5 1]" // BLU
+//	"$CloakColorTint" 			"[1 0.5 0.4]" // RED
+}

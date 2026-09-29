@@ -1,0 +1,18 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "models\doom_the_dark_ages\slayer\praetor\doomslayer_praetor_1007"
+	"$bumpmap" "models\doom_the_dark_ages\slayer\praetor\doomslayer_praetor_1007_n"
+
+"$detail" "models\doom_the_dark_ages\slayer\praetor\doomslayer_praetor_1007_s"
+"$detailblendmode"			"2"
+"$detailblendfactor"			"0.2"
+"$detailscale"			"1"
+
+"$phong"				"1"
+"$phongboost"			"4"
+"$phongexponent"			"4"
+"$phongexponenttexture"		"models\doom_the_dark_ages\slayer\praetor\doomslayer_praetor_1007_e"
+"$phongfresnelranges"   "[1 .7 .3]"
+"$phongalbedotint"			"1.00"
+
+}

@@ -1,0 +1,14 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models\doom_eternal\humans\doomslayer\default\doomslayer_hair"
+	"$bumpmap" "models\doom_eternal\humans\doomslayer\default\doomslayer_hair_n"
+	"$phongexponenttexture" "models\doom_eternal\humans\doomslayer\default\doomslayer_hair_e"
+	"$alphatest"	"1"
+	"$allowalphatocoverage"	"1"
+	"$ambientocclusion"	"0"
+	
+    "$phong" "1"
+    "$phongboost"    "23.076"
+	"$phongfresnelranges"	"[0.0 0.225 1.0]"
+    "$phongdisablehalflambert"    "1"
+}

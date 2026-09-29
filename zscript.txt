@@ -1,0 +1,7 @@
+version "4.14"
+
+#include "zscript/avatar/actor.zs"
+#include "zscript/avatar/bodies.zs"
+#include "zscript/avatar/handler.zs"
+#include "zscript/avatar/fitmode.zs"
+#include "zscript/avatar/mirror.zs"

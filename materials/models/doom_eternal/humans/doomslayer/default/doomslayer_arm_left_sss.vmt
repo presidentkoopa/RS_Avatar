@@ -1,0 +1,20 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models\doom_eternal\humans\doomslayer\default\doomslayer_arm_left_sss"
+	"$bumpmap" "models\doom_eternal\humans\doomslayer\default\doomslayer_arm_left_n2"
+	"$phongexponenttexture" "models\doom_eternal\humans\doomslayer\default\doomslayer_arm_left_e"
+    "$color2"            "[0.4 0.4 0.4]"
+    "$ambientocclusion"    "0.3"
+    "$additive"    "1"
+
+    "$phong" "1"
+    "$phongalbedotint"    "1"
+    "$phongfresnelranges"    "[1 1.05 1.25]"
+    "$phongexponent"    "1.5"
+    "$phongboost"    "1.125"
+
+    "$selfillum"    "1"
+    "$selfIllumFresnel"    "1"
+    "$selfIllumFresnelMinMaxExp"    "[0 0.00000001 0.5]"
+    "$selfillumtint"    "[-.000000001 -.000000001 -.000000001]"
+}

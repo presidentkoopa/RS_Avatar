@@ -1,0 +1,16 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models\doom_eternal\humans\doomslayer\default\doomslayer_helmet_visor_s"
+	"$bumpmap" "models\doom_eternal\humans\doomslayer\default\doomslayer_helmet_visor_n"
+	"$phongexponenttexture" "models\doom_eternal\humans\doomslayer\default\doomslayer_helmet_visor_e"
+	"$color2" "[0.0 0.0 0.0]"
+	"$additive"	"1"
+	"$translucent"	"1"
+	
+    "$PhongAlbedoTint"    "1"
+    "$phong" "1"
+    "$phongboost"    "184.615"
+    "$phongfresnelranges"    "[0.25 0.625 1]"
+    "$ambientocclusion"    "0.7"
+    "$phongdisablehalflambert"    "1"
+}

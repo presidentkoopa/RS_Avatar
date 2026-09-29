@@ -1,0 +1,12 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "models\doom_the_dark_ages\slayer\doomslayer_eyes"
+	"$bumpmap" "models\doom_the_dark_ages\slayer\doomslayer_eyes_n"
+
+"$phong" "1"
+"$phongboost" "3"
+"$phongfresnelranges" "[0.5 1 2]"
+"$ambientocclusion" "1"
+"$halflambert" "1"
+
+}

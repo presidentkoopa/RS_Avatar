@@ -1,0 +1,37 @@
+//Arachnit's super duper cool MLG vmt config, donut steal plz. :(
+
+"VertexLitGeneric"
+{
+//Basic
+	"$BaseTexture" 			    "models/arachnit/doom_eternal/characters/male_scientist_teeth"
+	"$BumpMap" 				    "models/arachnit/doom_eternal/characters/male_scientist_teeth_n"
+//	"$PhongExponentTexture"     "models/arachnit/shared/flat_exponent"
+
+//Warp
+//	"$LightWarpTexture"         "models/arachnit/shared/base_m_caucasian_wrp"		//< Change as needed
+
+//Phong
+	"$Phong"				    "1"
+	"$PhongBoost"               "1.05" 	//< Change as needed
+	"$PhongExponent"            "50" 	//< $PhongExponent overrides $PhongExponentTexture !!!
+	"$PhongFresnelRanges"	    "[0.3 1 4]"
+	"$PhongAlbedoTint"          "0"
+	"$PhongDisableHalfLambert"  "1"
+	"$NormalmapAlphaPhongMask"  "1"
+
+//Rimlight
+	"$Rimlight" 			    "0"
+
+//Other
+	"$Model"                    "1"
+	"$HalfLambert" 			    "0"
+	"$NoDecal" 				    "0"
+	"$AmbientOcclusion" 	    "1"
+	"$NoCull" 				    "0"
+	"$SurfaceProp" 			    "flesh"
+//	"$BlendTintByBaseAlpha"     "1"
+//	"$Color2"					"{ 200 200 200 }"	//< RGB colors
+	"$CloakPassEnabled" 		"1" 	//< For SFM and TF2
+//	"$CloakColorTint" 			"[0.4 0.5 1]" // BLU
+//	"$CloakColorTint" 			"[1 0.5 0.4]" // RED
+}

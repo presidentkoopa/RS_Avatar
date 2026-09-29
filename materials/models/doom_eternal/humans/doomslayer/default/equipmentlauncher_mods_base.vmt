@@ -1,0 +1,16 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models\doom_eternal\humans\doomslayer\default\equipmentlauncher_mods_base"
+	"$bumpmap" "models\doom_eternal\humans\doomslayer\default\equipmentlauncher_mods_base_n"
+	"$phongexponenttexture" "models\doom_eternal\humans\doomslayer\default\equipmentlauncher_mods_base_e"
+	
+    "$phong" "1"
+    "$phongboost"    "23.076"
+	"$phongfresnelranges"	"[0.0 0.225 1.0]"
+    "$phongdisablehalflambert"    "1"
+
+	"$selfillum"	"1"
+	"$selfillummask"	"models\doom_eternal\humans\doomslayer\default\equipmentlauncher_mods_base_i"
+	"$selfIllumFresnel"	"1"
+	"$selfIllumFresnelMinMaxExp"	"[1 30 0]"
+}

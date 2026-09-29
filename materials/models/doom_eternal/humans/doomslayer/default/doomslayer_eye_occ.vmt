@@ -1,0 +1,13 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models\doom_eternal\humans\doomslayer\default\doomslayer_eye_occ"
+	"$bumpmap" "models\doom_eternal\shared\norm"
+	"$phongexponenttexture" "models\doom_eternal\shared\black"
+	"$translucent"	"1"
+	"$ambientocclusion"	"0"
+	
+    "$phong" "1"
+    "$phongboost"    "0"
+	"$phongfresnelranges"	"[1 1 1]"
+    "$phongdisablehalflambert"    "1"
+}

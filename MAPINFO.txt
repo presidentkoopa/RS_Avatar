@@ -1,0 +1,6 @@
+// The avatar caretaker. One handler, always on; it does nothing at all while
+// vr_avatar is empty.
+GameInfo
+{
+	AddEventHandlers = "RSA_Handler", "RSA_FitMode", "RSA_MirrorHandler"
+}

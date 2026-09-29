@@ -1,0 +1,26 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "models\doom_the_dark_ages\slayer\doomslayer_glass"
+	"$bumpmap" "models\doom_the_dark_ages\slayer\praetor\doomslayer_praetor_glass_1001_n"
+
+"$detail" "models\doom_the_dark_ages\slayer\praetor\doomslayer_praetor_glass_1001_s"
+"$detailblendmode"			"2"
+"$detailblendfactor"			"0.3"
+"$detailscale"			"1"
+
+$translucent 1
+$ambientocclusion 0
+
+"$phong"				"1"
+"$phongboost"			"1"
+"$phongexponent"			"33"
+"$phongfresnelranges"   "[1 .7 .3]"
+"$phongalbedotint"			"1.00"
+
+"$envmap"			"env_cubemap"
+"$envmaptint"			"[0.1 0.1 0.1]"
+"$envmapfresnel"			"2"
+
+
+	$color2 "[.6 .7 .8]" //darken metals
+}

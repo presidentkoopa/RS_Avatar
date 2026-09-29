@@ -1,0 +1,5 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "Models/Doomguy/LiandriTrooperBodyGreen_00_00_001"
+	"$halflambert" 1
+}

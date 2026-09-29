@@ -1,0 +1,27 @@
+"EyeRefract"
+{
+	"$Iris" 				"models/arachnit/shared/eyes"
+	"$AmbientOcclTexture" 	"models/arachnit/shared/mechanic_eye_ao"
+	"$Envmap" 				"Engine/eye-reflection-cubemap-"
+	"$CorneaTexture" 		"models/arachnit/shared/eyes_cornea"
+	"$LightWarpTexture" 	"models/arachnit/shared/eye_lightwarp"
+
+	"$Irisframe" 			"2"
+
+"$AmbientOcclColor" 	"[0.4 0.3 0.27]"
+"$Dilation" 			"0.65"
+"$Glossiness" 			"0.75"
+"$ParallaxStrength" 	"0.25"
+"$CorneaBumpStrength" 	"0.25"
+"$HalfLambert" 			"1"
+"$NoDecal" 				"1"
+"$AmbientOcclusion" 	"0.5"
+
+"$EyeballRadius" 		"0.605"
+"$RaytraceSphere" 		"0"
+"$SphereTexkillCombo" 	"0"
+
+"$CloakPassEnabled"	"1" 	//< For SFM and TF2
+//"$CloakColorTint"	"[0.4 0.5 1]" // BLU
+//"$CloakColorTint"	"[1 0.5 0.4]" // RED
+}

@@ -1,0 +1,9 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "Models/Doomguy/LiandriTrooperVisor"
+
+	"$halflambert" 1
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[ .3 .3 .3 ]"
+
+}

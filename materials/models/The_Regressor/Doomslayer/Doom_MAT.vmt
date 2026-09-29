@@ -1,0 +1,24 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/The_Regressor/Doomslayer/Doom_MAT"
+	"$bumpmap" "models/The_Regressor/Doomslayer/shared/blanknormal" 
+
+    "$nocull" 1	
+	
+	"$basetexturealphaenvmapmask" 1
+ 	"$phong" "1"
+	"$phongexponent" "10"
+	"$phongboost"	".1"
+	"$phongfresnelranges"	"[.3 .3 .3]"
+	"$phongalbedotint" "1"
+	
+	"$emissiveBlendEnabled"     "1"
+	"$emissiveBlendTexture"     "dev/null"
+	"$emissiveBlendBaseTexture" "models/The_Regressor/Doomslayer/Doom_MAT_Emission"
+	"$emissiveBlendFlowTexture" "dev/null"
+	"$emissiveBlendTint"        "[1 1 1]"
+	"$emissiveBlendStrength" "1"
+	
+$halflambert 0
+$diffuseexp 1.5
+}

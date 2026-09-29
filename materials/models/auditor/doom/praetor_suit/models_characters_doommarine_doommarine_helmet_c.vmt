@@ -1,0 +1,64 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/auditor/doom/praetor_suit/models_characters_doommarine_doommarine_helmet_c"
+	"$bumpmap" "models/auditor/doom/praetor_suit/models_characters_doommarine_doommarine_helmet_nml"
+	"$color2" "[0.0 0.0 0.0]"
+	"$blendTintByBaseAlpha"	"1"
+	//"$additive" "1"
+
+	//"$selfillum" "1"
+	//"$selfillummaskscale" "15"
+	//"$selfillummask" ""
+	$no_draw 0
+	$nocull 1		
+	"$normalmapalphaenvmapmask" "1" 	
+	//"$basealphaenvmapmask"	"1"
+	//"$envmap" "models/auditor/doom/praetor_suit/Shared/metal_generic_006"					
+	"$envmaptint" "[0.04 0.04 0.04]"				
+
+
+	//ReflectionsDir
+
+	"$phong" "1"						
+	"$phongboost"	"3" 		
+	//"$phongexponent" "2"	
+	"$phongexponenttexture" "models/auditor/doom/praetor_suit/models_characters_doommarine_doommarine_helmet_rgh_a"
+		
+	//"$phongwarptexture"		"models/auditor/doom/praetor_suit/Shared/phongwarp2"		
+	$lightwarptexture "models/auditor/doom/praetor_suit/Shared/lightwarp_soft"
+	
+	"$phongfresnelranges"	"[1 2.05 3.25]"			
+	//"$phongtint" 			"[1 1 1.1]"			
+	"$PhongAlbedoTint" "1"
+
+	//Situational
+
+	//"$rimlight" "1"
+	//"$rimmask" "1"
+	//"$rimlightboost" "0.2"	
+	//"$rimexponent" "0.3"
+
+	//"$detail" "models/auditor/doom/praetor_suit/models_characters_doommarine_doommarine_helmet_c"
+	//"$detailscale"	"1"
+	//"$detailblendfactor"	"1"
+	//"$detailblendmode"	"0"
+	//"$detailtexturetransform" "center .15 .5 scale 1 1 rotate 125 translate 0 0"
+	//"$detailtint" "[0.5 1 1]"
+
+	
+	//BLENDREFERENCE
+	//0 - OVERLAY
+	//2 - ALPHA OVERLAY
+
+	//FresnelReferences 
+ 
+	//"[0.22 0.856 20]" - NonMet
+	//"[1 1.05 1.25]" - Leath_Gen
+	//"[0.76 0.921 1.25]" - TheRest
+	//"[1 5 22.5]" - MtRef
+	//"[1 1.35 2.5]" -AlbGldMtl
+	//"[0.5 2.5 22.5] - mtldm
+	//"[0.8 2 22.5] - skn
+ 
+
+}

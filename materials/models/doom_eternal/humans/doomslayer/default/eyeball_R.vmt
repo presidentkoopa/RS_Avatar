@@ -1,0 +1,19 @@
+"EyeRefract"
+{
+	"$iris"	"models\doom_eternal\humans\doomslayer\default\doomslayer_eyes"
+	"$AmbientOcclTexture"	"models\doom_eternal\shared\eyeball_ao_flip"
+	"$Envmap"	"Engine/eye-reflection-cubemap-"
+	"$CorneaTexture"      "models\doom_eternal\shared\eye-cornea"
+
+	"$EyeballRadius"	"0.75"
+	"$AmbientOcclColor"	"[0.8 0.79 0.73]"
+	"$Dilation"	"0.6"
+	"$ParallaxStrength"	".25"
+	"$CorneaBumpStrength"	".5"
+	"$halflambert"	"0"
+	"$nodecal"	"1"
+	"$ambientocclusion"	"1"
+	
+	"$RaytraceSphere"	"0"
+	"$SphereTexkillCombo"	"0"
+}

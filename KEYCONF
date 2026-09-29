@@ -1,0 +1,16 @@
+// RS_Avatar -- fit mode.
+//
+// NET EVENTS, NOT DIRECT CALLS. Turning fit mode on makes the player invulnerable and
+// untargetable, which is playsim state: every machine has to agree about it, and a net event
+// is the channel that guarantees that and names who asked. A console command that poked the
+// handler directly would do it on one client only.
+
+alias vr_fitmode_hand "netevent rsa_fit_hand"
+alias vr_fitmode_off  "netevent rsa_fit_off"
+
+// One command with an argument reads better than two commands, and it is what the spec
+// names: `vr_fitmode hand`, `vr_fitmode off`.
+alias vr_fitmode "vr_fitmode_hand"
+
+alias vr_fitmode_weapon "netevent rsa_fit_weapon"
+alias vr_fitmode_body "netevent rsa_fit_body"

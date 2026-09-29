@@ -1,0 +1,25 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "models\doom_the_dark_ages\slayer\slayer_fur_a"
+	"$bumpmap" "models\doom_the_dark_ages\slayer\slayer_fur_a_n"
+
+"$detail" "models\doom_the_dark_ages\slayer\slayer_fur_a_s"
+"$detailblendmode"			"0"
+"$detailblendfactor"			"0.4"
+"$detailscale"			"1"
+
+"$phong"				"1"
+"$phongboost"			"0.5"
+"$phongexponent"			"8"
+"$phongexponenttexture"		"models\doom_the_dark_ages\phongexp"
+"$phongfresnelranges"   "[1 .7 .3]"
+"$phongalbedotint"			"1.00"
+
+
+$alphatest 1
+$alphatestreference 0.1
+$ambientocclusion 0
+
+	$color2 "[.5 .45 .45]" //darken metals
+
+}

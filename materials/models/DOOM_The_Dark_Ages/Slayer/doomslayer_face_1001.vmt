@@ -1,0 +1,14 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "models\doom_the_dark_ages\slayer\doomslayer_face_1001"
+	"$bumpmap" "models\doom_the_dark_ages\slayer\doomslayer_face_1001_n"
+
+"$phong"				"1"
+"$phongboost"			"1"
+"$phongexponent"			"4"
+"$phongexponenttexture"		"models\doom_the_dark_ages\exp_skin"
+"$phongfresnelranges"   "[1 .7 .3]"
+"$phongalbedotint"			"1.00"
+
+
+}

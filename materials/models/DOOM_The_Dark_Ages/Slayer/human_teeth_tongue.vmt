@@ -1,0 +1,13 @@
+"vertexlitGeneric"
+{
+	"$basetexture" "models\doom_the_dark_ages\slayer\human_teeth_tongue"
+	"$bumpmap" "models\doom_the_dark_ages\slayer\human_teeth_tongue_n"
+
+"$phong"				"1"
+"$phongboost"			"2"
+"$phongexponent"			"12"
+"$phongexponenttexture"		"models\doom_the_dark_ages\exp_skin"
+"$phongfresnelranges"   "[1 .7 .3]"
+"$phongalbedotint"			"1"
+
+}
