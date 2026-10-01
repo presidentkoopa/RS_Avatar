@@ -358,8 +358,14 @@ class RSA_FitMode : EventHandler
 		Vector3 hL = VRAvatarTable.RigHandPos(1);
 		double spanUnits = (hR - hL).Length();
 
-		// Eye height above his own feet: the view, less where the pawn is standing.
-		double eyeUnits = players[mPlayer].viewz - pmo.pos.z;
+		// Eye height above his own feet, in map units.
+		//
+		// NOT `viewz - pos.z`. That is the playsim's view height, and in VR it is a constant 44
+		// map units whatever the player is doing -- so this measured every person who ever stood
+		// in the T as the same man, and the body was built for him rather than for whoever was
+		// wearing it. EyeAboveFloor is where the headset actually is, and is the exact number the
+		// rig sizes the body from, so measuring with anything else guarantees the two disagree.
+		double eyeUnits = VRAvatarTable.EyeAboveFloor(pmo.pos.z);
 
 		CVar vpm = CVar.FindCVar("vr_vunits_per_meter");
 		double unitsPerMetre = vpm ? vpm.GetFloat() : 0.0;
@@ -371,7 +377,15 @@ class RSA_FitMode : EventHandler
 			return;
 		}
 
-		double heightM = eyeUnits / unitsPerMetre;
+		// MAP UNITS ARE NOT ISOTROPIC. Doom's vertical axis is stretched by pixelstretch (1.2
+		// unless a map says otherwise), so a height in map units is metres only after it has been
+		// multiplied by it. Leaving it out shortened every saved height by that factor, and the
+		// engine then undoes the same stretch when it turns vr_fit_height back into units.
+		//
+		// The armspan below does NOT want it: with both arms straight out the hands are side by
+		// side, so that length lies along the horizontal axes, and those are the unstretched ones.
+		double stretch = level.pixelstretch > 0.0 ? level.pixelstretch : 1.2;
+		double heightM = eyeUnits * stretch / unitsPerMetre;
 		double spanM = spanUnits / unitsPerMetre;
 
 		// REFUSED RATHER THAN SAVED WRONG. A crouch, a dropout or a controller on the desk
