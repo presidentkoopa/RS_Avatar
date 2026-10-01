@@ -73,6 +73,12 @@ Model RSA_PechenkoDoomslayer
 }
 
 
+// ==== HAND-WRITTEN BELOW HERE -- genbodies.py KEEPS THIS ====
+//
+// Everything below this line is hand-written and genbodies.py keeps it. Anything ABOVE the
+// line is deleted the next time the generator runs; it refuses rather than doing that
+// silently, but the only safe place for a hand-written block is down here.
+
 // ============================================================= the helmet ==
 //
 // Worn on the body's head bone (WornOnBody / WornOnBone, set in handler.zs). The three OBJs

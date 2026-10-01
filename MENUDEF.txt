@@ -11,6 +11,18 @@ OptionString "RSA_BodyList"
 	"pechenko_doomslayer", "Pechenko Doomslayer"
 }
 
+// ==== HAND-WRITTEN BELOW HERE -- genbodies.py KEEPS THIS ====
+//
+// THE MENU ITSELF IS HAND-WRITTEN. genbodies.py owns only the body list above, because that
+// has to track which bodies are actually installed -- offering one that is not there spawns
+// nothing and says so in a console the owner cannot read from inside a headset.
+//
+// It used to template this whole menu too, and the template had fallen a long way behind
+// what is below: no height section, no helmet section, no colour option, none of the
+// explanatory lines. Running the generator would have replaced the real menu with the older,
+// poorer one and said nothing, because generating succeeds.
+
+
 OptionMenu "RSA_AvatarOptions"
 {
 	Title "VR BODY AND HANDS"

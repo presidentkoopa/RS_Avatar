@@ -45,13 +45,6 @@ user float vr_mirror_standoff = 8.0;    // camera clear of its own panel; see mi
 user float vr_fit_height = 0.0;      // eye height standing, metres
 user float vr_fit_armspan = 0.0;     // wrist to wrist, arms out, metres
 
-// The aim ray drawn while a weapon is being fitted -- the line the barrel is aligned
-// against. DECLARED HERE, NOT IN THE ENGINE, and set by fit mode. ZScript cannot write an
-// engine cvar outside menu code (it aborts the VM), so the engine reads this one instead;
-// see the note on FitAimRayWanted in src/r_data/vr_rig.cpp. Nothing should bind this to a
-// menu -- fit mode owns it.
-user bool vr_fit_aimray = false;
-
 // ---- fit mode storage (VR_BODY_HANDS_SPEC.md C.5) --------------------------
 //
 // Six numbers as one string: "x y z pitch yaw roll". Offsets are in the hand frame;
@@ -81,6 +74,19 @@ user string vr_fit_hand_marine_guy_classic_L = "";
 user string vr_fit_hand_pechenko_doomslayer_R = "";
 user string vr_fit_hand_pechenko_doomslayer_L = "";
 
+
+// ==== HAND-WRITTEN BELOW HERE -- genbodies.py KEEPS THIS ====
+//
+// Everything below this line is hand-written and genbodies.py keeps it. Anything ABOVE the
+// line is deleted the next time the generator runs; it refuses rather than doing that
+// silently, but the only safe place for a hand-written cvar is down here.
+
+// The aim ray drawn while a weapon is being fitted -- the line the barrel is aligned
+// against. DECLARED HERE, NOT IN THE ENGINE, and set by fit mode. ZScript cannot write an
+// engine cvar outside menu code (it aborts the VM), so the engine reads this one instead;
+// see the note on FitAimRayWanted in src/r_data/vr_rig.cpp. Nothing should bind this to a
+// menu -- fit mode owns it.
+user bool vr_fit_aimray = false;
 
 // ------------------------------------------------------- what the body says
 // The design is the owner's, out of RS_VRBody; see zscript/avatar/colour.zs.
