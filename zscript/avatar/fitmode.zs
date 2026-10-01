@@ -30,6 +30,31 @@
 
 class RSA_FitMode : EventHandler
 {
+	//==========================================================================
+	//
+	// SAYING SOMETHING WHERE THE PLAYER CAN ACTUALLY SEE IT.
+	//
+	// Every message in this file went to Console.Printf, and the player is in a headset. He
+	// cannot look at a console, so fit mode refused, explained exactly why, and from where he
+	// was sitting did nothing at all -- which is precisely how it came back: "fit gun to hand
+	// doesn't do anything". Fifteen messages, none of them readable by the only person they
+	// were written for.
+	//
+	// So they go on the screen as well. Still to the console, because that is what ends up in
+	// the log and the log is how any of this gets diagnosed afterwards.
+	//
+	// MidPrint takes a leading '$' as a language lookup, so a message that ever starts with
+	// one would silently become a missing string. Ours start with a colour escape; the guard
+	// is here because that is a trap someone will otherwise walk into later.
+	//
+	//==========================================================================
+	private static void Say(String s)
+	{
+		Console.Printf("%s", s);
+		if (s.Left(1) != "$")
+			Console.MidPrint(smallfont, s);
+	}
+
 	// SEVEN FOR A WEAPON, SIX FOR A HAND. A weapon carries a scale as well, because the
 	// models come from a dozen sets at a dozen different scales and none of them is the
 	// player's to measure. A hand does not: the body is already sized to the player.
@@ -80,7 +105,7 @@ class RSA_FitMode : EventHandler
 		if (mAvatar == "")
 		{
 			if (pnum == consoleplayer)
-				Console.Printf("\cgFit mode: you are not wearing a body (vr_avatar is empty).");
+				Say(String.Format("\cgFit mode: you are not wearing a body (vr_avatar is empty)."));
 			return;
 		}
 
@@ -100,8 +125,8 @@ class RSA_FitMode : EventHandler
 		{
 			mPlayer = -1;
 			if (pnum == consoleplayer)
-				Console.Printf("\cgFit mode: no weapon prop is being drawn in that hand. "
-					"Take a gun out first.");
+				Say(String.Format("\cgFit mode: no weapon prop is being drawn in that hand. "
+					"Take a gun out first."));
 			return;
 		}
 		if (mMode != 2) Load();
@@ -115,13 +140,13 @@ class RSA_FitMode : EventHandler
 		if (pnum == consoleplayer)
 		{
 			if (mMode == 2)
-				Console.Printf("\ccBody fit: stand up straight, hold both arms straight out "
-					"to the sides, and hold the trigger for a second.");
+				Say(String.Format("\ccBody fit: stand up straight, hold both arms straight out "
+					"to the sides, and hold the trigger for a second."));
 			else
-				Console.Printf("\ccFit mode on: %s, %s hand. Turn stick picks a field, move "
+				Say(String.Format("\ccFit mode on: %s, %s hand. Turn stick picks a field, move "
 					"stick changes it, crouch zeroes it, fire swaps hands. `vr_fitmode off` "
 					"when it feels right.",
-					mWeaponMode ? mWpnClass : mAvatar, mRightHand ? "right" : "left");
+					mWeaponMode ? mWpnClass : mAvatar, mRightHand ? "right" : "left"));
 		}
 	}
 
@@ -144,7 +169,7 @@ class RSA_FitMode : EventHandler
 		{
 			CVar ray = CVar.FindCVar("vr_fit_aimray");
 			if (ray) ray.SetBool(false);
-			Console.Printf("\ccFit mode off. Saved.");
+			Say(String.Format("\ccFit mode off. Saved."));
 		}
 		mPlayer = -1;
 	}
@@ -273,8 +298,8 @@ class RSA_FitMode : EventHandler
 		if (c == null)
 		{
 			if (mPlayer == consoleplayer)
-				Console.Printf("\cgFit mode: the cvar %s does not exist, so nothing was "
-					"saved. Re-run genbodies.py -- it declares one pair per body.", KeyName());
+				Say(String.Format("\cgFit mode: the cvar %s does not exist, so nothing was "
+					"saved. Re-run genbodies.py -- it declares one pair per body.", KeyName()));
 			return;
 		}
 
@@ -324,7 +349,7 @@ class RSA_FitMode : EventHandler
 		// Both hands have to be tracked, or the span is a guess wearing a number's clothes.
 		if (!VRAvatarTable.RigHandValid(0) || !VRAvatarTable.RigHandValid(1))
 		{
-			Console.Printf("\cgBody fit: both controllers have to be tracked. Nothing saved.");
+			Say(String.Format("\cgBody fit: both controllers have to be tracked. Nothing saved."));
 			mBodyHeld = 0;
 			return;
 		}
@@ -340,8 +365,8 @@ class RSA_FitMode : EventHandler
 		double unitsPerMetre = vpm ? vpm.GetFloat() : 0.0;
 		if (unitsPerMetre < 1.0)
 		{
-			Console.Printf("\cgBody fit: vr_vunits_per_meter is not set, so there is no way "
-				"to turn units into metres. Nothing saved.");
+			Say(String.Format("\cgBody fit: vr_vunits_per_meter is not set, so there is no way "
+				"to turn units into metres. Nothing saved."));
 			mBodyHeld = 0;
 			return;
 		}
@@ -354,23 +379,23 @@ class RSA_FitMode : EventHandler
 		// the game by it forever.
 		if (heightM < 0.8 || heightM > 2.4)
 		{
-			Console.Printf("\cgBody fit: your eyes came out %.2f m from the floor, which is "
-				"not a standing person. Stand up and try again.", heightM);
+			Say(String.Format("\cgBody fit: your eyes came out %.2f m from the floor, which is "
+				"not a standing person. Stand up and try again.", heightM));
 			mBodyHeld = 0;
 			return;
 		}
 		if (spanM < 0.8 || spanM > 2.6)
 		{
-			Console.Printf("\cgBody fit: your arms measured %.2f m across, which is not an "
-				"armspan. Hold them straight out to the sides.", spanM);
+			Say(String.Format("\cgBody fit: your arms measured %.2f m across, which is not an "
+				"armspan. Hold them straight out to the sides.", spanM));
 			mBodyHeld = 0;
 			return;
 		}
 		// A person's armspan is close to their height. Far off means one arm was down.
 		if (spanM < heightM * 0.7 || spanM > heightM * 1.35)
 		{
-			Console.Printf("\cgBody fit: %.2f m tall but %.2f m across -- one arm is probably "
-				"not out. Try again.", heightM, spanM);
+			Say(String.Format("\cgBody fit: %.2f m tall but %.2f m across -- one arm is probably "
+				"not out. Try again.", heightM, spanM));
 			mBodyHeld = 0;
 			return;
 		}
@@ -379,16 +404,16 @@ class RSA_FitMode : EventHandler
 		CVar ca = CVar.FindCVar("vr_fit_armspan");
 		if (ch == null || ca == null)
 		{
-			Console.Printf("\cgBody fit: vr_fit_height / vr_fit_armspan do not exist. "
-				"Re-run genbodies.py.");
+			Say(String.Format("\cgBody fit: vr_fit_height / vr_fit_armspan do not exist. "
+				"Re-run genbodies.py."));
 			mBodyHeld = 0;
 			return;
 		}
 		ch.SetFloat(heightM);
 		ca.SetFloat(spanM);
 
-		Console.Printf("\ccBody fit saved: %.2f m tall at the eyes, %.2f m across the arms.",
-			heightM, spanM);
+		Say(String.Format("\ccBody fit saved: %.2f m tall at the eyes, %.2f m across the arms.",
+			heightM, spanM));
 		Finish();
 	}
 
@@ -469,13 +494,13 @@ class RSA_FitMode : EventHandler
 			if (mWeaponMode && !FindHeldWeapon())
 			{
 				mRightHand = !mRightHand;      // nothing in that hand; stay where we were
-				Console.Printf("\cgFit mode: nothing is drawn in the other hand.");
+				Say(String.Format("\cgFit mode: nothing is drawn in the other hand."));
 			}
 			else
 			{
 				Load();
-				Console.Printf("\ccFit mode: %s hand%s.", mRightHand ? "right" : "left",
-					mWeaponMode ? (", " .. mWpnClass) : "");
+				Say(String.Format("\ccFit mode: %s hand%s.", mRightHand ? "right" : "left",
+					mWeaponMode ? (", " .. mWpnClass) : ""));
 			}
 		}
 		mPrevSwap = swap;

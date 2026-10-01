@@ -18,14 +18,57 @@ OptionMenu "RSA_AvatarOptions"
 	StaticText ""
 	Option "Body", "vr_avatar", "RSA_BodyList"
 	Option "Mirror", "vr_mirror", "OnOff"
+	StaticText "Bindable under Controls, DoomXR Body. Worth binding:", "DarkGray"
+	StaticText "the game pauses while this menu is open, so the body", "DarkGray"
+	StaticText "stops moving exactly when you came here to look at it.", "DarkGray"
 	StaticText ""
 
-	StaticText "Fitting", gold
-	StaticText "Do the body first: it sizes everything else.", darkgray
-	Command "Fit my body (stand in a T)", "vr_fitmode_body"
-	Command "Fit my hands", "vr_fitmode_hand"
-	Command "Fit the weapon I am holding", "vr_fitmode_weapon"
-	Command "Done fitting", "vr_fitmode_off"
+	StaticText "Your height", gold
+	Command "Set my height -- stand up straight and pick this", "vr_avatar_setheight"
+	Slider "  Floor offset (metres)", "vr_height_adjust", -0.50, 1.00, 0.01, 2
+	StaticText "  The engine's own setting, put here because this is where you", darkgray
+	StaticText "  look. Raise it if the game thinks you are shorter than you", darkgray
+	StaticText "  are -- your headset's floor calibration, not the body.", darkgray
+	StaticText "  Measures where your eyes are now and sizes the body to it.", darkgray
+	StaticText "  One press, nothing taken over. Bindable under Controls,", darkgray
+	StaticText "  DoomXR Body -- worth binding, because a menu pauses the", darkgray
+	StaticText "  game and you cannot stand naturally while reading it.", darkgray
+	StaticText ""
+
+	StaticText "Fitting -- these SAVE, and stay saved", gold
+	StaticText "You do not need any of these to play. Each one writes a", darkgray
+	StaticText "number that persists until it is overwritten, and while any", darkgray
+	StaticText "of them is on, your stick adjusts the fit instead of moving", darkgray
+	StaticText "you -- 'Done fitting' is how you get the stick back.", darkgray
+	StaticText ""
+	Command "Measure me: height and armspan (stand in a T)", "vr_fitmode_body"
+	StaticText "  Reads your standing eye height from the headset. If your", darkgray
+	StaticText "  floor calibration is off, this saves that error for good.", darkgray
+	Command "Move the hand model on my wrist", "vr_fitmode_hand"
+	StaticText "  Shifts the drawn hand away from where your real hand is.", darkgray
+	StaticText "  Only for a hand that is visibly in the wrong place.", darkgray
+	Command "Move the gun in my grip", "vr_fitmode_weapon"
+	StaticText "  Affects the one weapon you are holding, not all of them.", darkgray
+	Command "Done fitting -- give me my stick back", "vr_fitmode_off"
+	StaticText ""
+
+	StaticText "Helmet", gold
+	Option "Wear the helmet", "vr_avatar_helmet", "OnOff"
+	StaticText "  Worn on the head and turns with it. You cannot see it --", darkgray
+	StaticText "  it fades out close to your eyes -- but a mirror can.", darkgray
+	Slider "  Gone by this distance from your eye", "rsa_helmet_eyefade_near", 0.0, 20.0, 0.5, 1
+	Slider "  Starts fading at",                    "rsa_helmet_eyefade_far",  2.0, 60.0, 1.0, 1
+	StaticText "  If you can see it in your own view, raise the second one.", darkgray
+	StaticText "  If the mirror cannot see it, lower them both.", darkgray
+	StaticText ""
+
+	StaticText "What the body tells you", gold
+	Option "Colour the body at all", "vr_avatar_colour", "OnOff"
+	Option "Colour follows my armour", "vr_avatar_armour_colour", "OnOff"
+	StaticText "  Under 100 your own colours, 100-149 green, 150+ blue.", darkgray
+	Option "Go red when badly hurt", "vr_avatar_breathe", "OnOff"
+	Slider "  Start below this health", "vr_avatar_breathe_below", 5, 75, 1, 0
+	StaticText "  Fades in and out, faster the worse it gets. Never flashes.", darkgray
 	StaticText ""
 
 	StaticText "Looking at it", gold

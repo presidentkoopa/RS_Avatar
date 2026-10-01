@@ -72,3 +72,33 @@ Model RSA_PechenkoDoomslayer
 	FrameIndex PIST A 0 0
 }
 
+
+// ============================================================= the helmet ==
+//
+// Worn on the body's head bone (WornOnBody / WornOnBone, set in handler.zs). The three OBJs
+// are the shell, the visor glass and the dark interior, ORIGIN AT THE EYE and already in map
+// units -- so the part sits where the head is and turns about the eyes. Provenance and the
+// rule that this rip is never pushed: models/helmet/PROVENANCE.md.
+//
+// HIDDEN FROM THE WEARER BY THE EYE FADE, not by a per-view hide. rsa_helmet_eyefade_near
+// and _far dissolve it per pixel by distance from the eye, so the shell a few units from
+// your own face is gone from your view while a mirror across the room sees it whole. A visor
+// you look through should thin out as it reaches your eye rather than vanish at a threshold,
+// and the interior behind your head stays solid because it is further away.
+Model RSA_Helmet
+{
+	Path "models/helmet"
+	Model 0 "helmet.obj"
+	Skin 0 "helmet.png"
+	Model 1 "helmet_visor.obj"
+	Skin 1 "helmet_visor.png"
+	Model 2 "helmet_interior.obj"
+	Skin 2 "helmet_interior.png"
+	Scale 1.0 1.0 1.0
+	PlacementCVars rsa_helmet
+	USEACTORPITCH
+	USEACTORROLL
+	FrameIndex PIST A 0 0
+	FrameIndex PIST A 1 0
+	FrameIndex PIST A 2 0
+}

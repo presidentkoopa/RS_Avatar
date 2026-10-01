@@ -3,3 +3,7 @@ RS_Avatar.pk3
 *.bak
 *.handunits.bak
 __pycache__/
+
+# The Doom Eternal helmet rip -- see models/helmet/PROVENANCE.md. Never pushed.
+models/helmet/*.obj
+models/helmet/*.png

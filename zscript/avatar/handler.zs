@@ -17,6 +17,16 @@ class RSA_Handler : EventHandler
 	// state, and a loaded save spawns its own on the next tic.
 	private Actor mAvatar[MAXPLAYERS];
 	private string mWornName[MAXPLAYERS];
+	// Where each player's breath is in its cycle. Per player on purpose: two men near death
+	// should not breathe in step, and one shared value would put them there.
+	private double mBreathPhase[MAXPLAYERS];
+	// The helmet worn on each body's head. Its own actor because it is its own model with
+	// its own skins, and because the same attachment will carry holsters and a pouch.
+	private Actor mHelmet[MAXPLAYERS];
+	// Which body last had its own helmet skinned away, and to what. A_ChangeModel
+	// allocates, so this is only redone when the answer actually changes.
+	private Actor mHidOn[MAXPLAYERS];
+	private bool  mHidWas[MAXPLAYERS];
 	private string mComplainedAbout[MAXPLAYERS];
 
 	override void WorldTick()
@@ -126,6 +136,60 @@ class RSA_Handler : EventHandler
 			// `target` is the stock "who does this belong to" pointer and is already
 			// serialized and cleaned up when the pawn dies, so it needs nothing new.
 			av.target = pmo;
+
+			// WHAT THE BODY SAYS ABOUT HOW YOU ARE DOING. See colour.zs -- the design is
+			// the owner's, out of RS_VRBody.
+			//
+			// Driven from here, per player, because this is the one loop that already has
+			// both the body and the pawn it belongs to. The breath's phase is kept per
+			// player rather than inside the helper: two players near death should not
+			// breathe in lockstep, and a static would make them.
+			RSA_BodyColour.Apply(av, pmo, mBreathPhase[i]);
+
+			// THE HELMET RIDES THE HEAD BONE. Nothing here positions it: WornOnBody and
+			// WornOnBone tell the renderer to draw it at the body's posed head and turn it
+			// with the bone, and the eye fade in MODELDEF takes it out of the wearer's own
+			// view while leaving it whole in a mirror.
+			//
+			// Kept near the body because an actor's own position still decides whether it
+			// is drawn at all -- see the note on Actor.FollowActor, which has the same trap.
+			bool wantHelmet = true;
+			let ch = CVar.GetCVar("vr_avatar_helmet", players[i]);
+			if (ch) wantHelmet = ch.GetBool();
+
+			if (wantHelmet)
+			{
+				if (mHelmet[i] == null)
+					mHelmet[i] = Actor.Spawn("RSA_Helmet", pmo.pos);
+				if (mHelmet[i] != null)
+				{
+					mHelmet[i].SetOrigin(pmo.pos, true);
+					mHelmet[i].WornOnBody = av;
+					mHelmet[i].WornOnBone = 'head';
+					// The body's own owner, so a helmet is hidden and drawn by the same
+					// rule the head is.
+					mHelmet[i].target = pmo;
+				}
+			}
+			else if (mHelmet[i] != null)
+			{
+				mHelmet[i].Destroy();
+				mHelmet[i] = null;
+			}
+
+			// The body's own helmet comes off while the universal one is worn, or he wears
+			// two, intersecting.
+			//
+			// ONLY WHEN IT CHANGES. A_ChangeModel allocates, so doing this every tic would
+			// be 35 skin swaps a second for a thing that changes when he toggles a menu
+			// option. Keyed on the body actor as well as the state, because a new body is a
+			// new actor with its own unswapped skins.
+			if (mHidOn[i] != av || mHidWas[i] != wantHelmet)
+			{
+				mHidOn[i] = av;
+				mHidWas[i] = wantHelmet;
+				RSA_HelmetHide.Apply(av, mWornName[i], wantHelmet);
+			}
 		}
 	}
 
@@ -136,6 +200,11 @@ class RSA_Handler : EventHandler
 
 	private void Retire(int i)
 	{
+		if (mHelmet[i] != null)
+		{
+			mHelmet[i].Destroy();
+			mHelmet[i] = null;
+		}
 		if (mAvatar[i] != null)
 		{
 			mAvatar[i].Destroy();

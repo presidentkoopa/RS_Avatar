@@ -58,10 +58,33 @@ class RSA_AvatarBase : Actor
 	// VRRigRole is render-only state the engine reads while drawing, and it is not
 	// serialized -- so it has to be re-asserted, not set once. Set here rather than from
 	// the handler so an avatar spawned by anything at all is still a complete avatar.
+	// Set once, so the surface hide below is only asked for once.
+	private bool mHasModelData;
+
 	override void Tick()
 	{
 		Super.Tick();
 		VRRigRole = 1;      // 1 = avatar body (spec B.3 item 5)
+
+		// MODEL DATA, SO A SURFACE CAN BE HIDDEN.
+		//
+		// The universal helmet needs the body's OWN helmet surfaces switched off, or he
+		// wears two. SetModelSurfaceHidden writes to modelData, and MODELDEF alone never
+		// creates that -- only A_ChangeModel does. Without it the hide returns false and
+		// fails silently, which is exactly what the log reported the first time.
+		//
+		// Binding this actor's OWN class is the whole call: MODELDEF is keyed on the class,
+		// so the model drawn is the one already being drawn and nothing about the body
+		// changes. ChangeModel destroys the data again if it would be empty
+		// (p_actionfunctions.cpp), and naming a modeldef is what keeps it alive.
+		//
+		// Once. It is not free, and re-asserting it every tic would be 35 allocations a
+		// second for a thing that does not change.
+		if (!mHasModelData)
+		{
+			mHasModelData = true;
+			A_ChangeModel(GetClassName());
+		}
 	}
 }
 

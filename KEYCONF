@@ -14,3 +14,38 @@ alias vr_fitmode "vr_fitmode_hand"
 
 alias vr_fitmode_weapon "netevent rsa_fit_weapon"
 alias vr_fitmode_body "netevent rsa_fit_body"
+
+// THE MIRROR IS NOT A NET EVENT, and that is the difference between it and everything
+// above. Fit mode changes playsim state -- invulnerable, untargetable -- so every machine
+// has to agree. A panel you look at yourself in changes nothing anyone else can observe, so
+// it is a plain local toggle of this mod's own cvar. `toggle` is the engine's own command
+// for a bool (c_cvars.cpp:1701), so this needs no script and cannot desync.
+alias rsa_mirror "toggle vr_mirror"
+
+// BINDABLE, WHICH NONE OF THIS WAS.
+//
+// Every alias above existed and none of them could be put on a button: addmenukey needs a
+// section opened first, and without one the keys never reach the Controls menu at all. That
+// matters more here than anywhere else -- the owner is in a headset and cannot reach a
+// keyboard to type a command, so an unbindable command is an unusable one.
+addkeysection "DoomXR Body" rs_avatar_keys
+addmenukey "Body: mirror on / off"          rsa_mirror
+
+// SAFE TO BIND, unlike the fit commands below. It measures where your eyes are right now
+// and saves it as your height -- one press, no mode, no stick taken, and it says on screen
+// what it saved. Press it again standing straight and it simply re-measures.
+addmenukey "Body: set my height (stand up)"  vr_avatar_setheight
+
+// THE FIT COMMANDS ARE DELIBERATELY NOT HERE.
+//
+// They were, for one build, and it went badly. The owner asked for the mirror on a button
+// and got four more keys beside it with no explanation of any of them: "fit the hands" wrote
+// an 8.9 unit offset into his left wrist and "fit the body" captured his standing height
+// from a floor reading that is 40cm wrong, and between them they wrecked a body that had
+// just started working. Neither was his fault -- an unlabelled button that permanently
+// alters the rig has no business sitting next to a view toggle.
+//
+// They are still available as console commands (vr_fitmode_body, vr_fitmode_weapon,
+// vr_fitmode_hand, vr_fitmode_off) for when someone means to use them. Fit mode also takes
+// over the stick while it is on and does not exit by itself, which is another reason it is a
+// thing you choose rather than a thing you can hit by accident.

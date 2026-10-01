@@ -45,6 +45,13 @@ user float vr_mirror_standoff = 8.0;    // camera clear of its own panel; see mi
 user float vr_fit_height = 0.0;      // eye height standing, metres
 user float vr_fit_armspan = 0.0;     // wrist to wrist, arms out, metres
 
+// The aim ray drawn while a weapon is being fitted -- the line the barrel is aligned
+// against. DECLARED HERE, NOT IN THE ENGINE, and set by fit mode. ZScript cannot write an
+// engine cvar outside menu code (it aborts the VM), so the engine reads this one instead;
+// see the note on FitAimRayWanted in src/r_data/vr_rig.cpp. Nothing should bind this to a
+// menu -- fit mode owns it.
+user bool vr_fit_aimray = false;
+
 // ---- fit mode storage (VR_BODY_HANDS_SPEC.md C.5) --------------------------
 //
 // Six numbers as one string: "x y z pitch yaw roll". Offsets are in the hand frame;
@@ -74,3 +81,30 @@ user string vr_fit_hand_marine_guy_classic_L = "";
 user string vr_fit_hand_pechenko_doomslayer_R = "";
 user string vr_fit_hand_pechenko_doomslayer_L = "";
 
+
+// ------------------------------------------------------- what the body says
+// The design is the owner's, out of RS_VRBody; see zscript/avatar/colour.zs.
+//
+//   armour_colour  the body's colour follows how much armour you HAVE:
+//                  0-99 your own skins, 100-149 green, 150+ blue.
+//   breathe        below breathe_below health a red tint fades in and out,
+//                  slowly, faster the closer you are to dying. A sine, never
+//                  a flash -- photosensitivity.
+//
+// Nothing ever mixes: hurt wins, so one colour only ever shows one thing.
+user bool vr_avatar_armour_colour = true;
+user bool vr_avatar_breathe       = true;
+user int  vr_avatar_breathe_below = 33;
+
+// ON. It was off while this used a palette translation, which draws nothing at
+// all on a truecolour Source skin and hid the whole body. It now drives the
+// engine's ModelTint, which the shader multiplies into the skin directly.
+user bool vr_avatar_colour = true;
+
+// ------------------------------------------------------------- the helmet
+// Worn on the head and hidden from your own eyes by distance, not by a switch:
+// the shader dissolves it per pixel where it is nearer than _far and it is gone
+// by _near, so a mirror across the room still sees it whole. See MODELDEF.
+user bool  vr_avatar_helmet = true;
+user float rsa_helmet_eyefade_near = 4.0;
+user float rsa_helmet_eyefade_far  = 14.0;
