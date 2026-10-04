@@ -125,6 +125,30 @@ class RSA_Handler : EventHandler
 			av.VRRigRole = 1;
 			av.VRRigHand = 0;
 
+			// YOUR OWN HEAD IS NOT IN YOUR EYES (owner, 2026-10-04: bodies "displaying their
+			// heads and helmets ... these need to be collapsed or hidden from my eyes").
+			//
+			// The engine fades a model out by distance from the EYE when its placement prefix
+			// carries <prefix>_eyefade_far (models.cpp ModelEyeFadeRange). The helmet has had
+			// one since it was written; THE BODIES NEVER HAD A PREFIX AT ALL, so that test
+			// returns false on its first line and no body has ever faded. The note below about
+			// the head being "hidden in the first case" described an intent, not a path.
+			//
+			// WHY NOT RS_VRBODY'S WAY, which is where this behaviour came from. It skinned the
+			// head surface invisible and drew a SECOND head actor with MASTERNOSEE. That needs
+			// the head's surface INDEX per body, and two of these -- doomslayer_lowpoly and
+			// doomslayer -- are a single merged surface (tools/avatar/dump_surfaces.py), so
+			// there is no head to skin: hiding it hides the whole man. The fade is per DRAW,
+			// which buys the same thing for free -- a mirror renders from the mirror's
+			// viewpoint, far from this body, so it does not fade there.
+			//
+			// ONE PREFIX FOR EVERY BODY, deliberately: how far your eye is from your own head
+			// does not depend on which model you wear, and one pair of sliders beats seven.
+			// These models declare no placement cvars of their own, so naming one displaces
+			// nothing. Per-body tuning, if it is ever wanted, is a different name here and
+			// needs no other change.
+			av.PlacementPrefix = 'rsa_body';
+
 			// WHOSE BODY THIS IS.
 			//
 			// The engine needs it to answer one question every frame: am I drawing this for

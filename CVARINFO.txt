@@ -114,3 +114,22 @@ user bool vr_avatar_colour = true;
 user bool  vr_avatar_helmet = true;
 user float rsa_helmet_eyefade_near = 4.0;
 user float rsa_helmet_eyefade_far  = 14.0;
+
+// --------------------------------------------------------------- the body
+// THE SAME FADE, FOR THE BODY ITSELF, which never had one (owner, 2026-10-04:
+// bodies "displaying their heads and helmets ... hidden from my eyes").
+//
+// The helmet above has faded since it was written because the helmet model
+// declares a placement prefix. The bodies declared none, so the engine's test
+// (models.cpp ModelEyeFadeRange) failed on its first line and every body drew
+// its own head, and its own built-in helmet, straight into your view. The
+// prefix is set on the avatar actor in handler.zs, one name for all of them.
+//
+// _far is where it STARTS to dissolve and _near is where it is gone, both in
+// map units from the eye. Wider than the helmet's on purpose: a built-in head
+// sits closer in than a worn helmet, and the chest wants to survive a look
+// down. Raise _far if you can still see your jaw; lower it if your chest goes.
+// A mirror draws from the mirror, which is far from the body, so it is whole
+// there whatever these say.
+user float rsa_body_eyefade_near = 6.0;
+user float rsa_body_eyefade_far  = 18.0;

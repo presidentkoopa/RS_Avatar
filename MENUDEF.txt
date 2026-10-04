@@ -74,6 +74,15 @@ OptionMenu "RSA_AvatarOptions"
 	StaticText "  If the mirror cannot see it, lower them both.", darkgray
 	StaticText ""
 
+	StaticText "Your own head", gold
+	StaticText "  The same fade, for the body's OWN head and built-in helmet.", darkgray
+	StaticText "  Every body has one and until now none of them faded at all.", darkgray
+	Slider "  Gone by this distance from your eye", "rsa_body_eyefade_near", 0.0, 24.0, 0.5, 1
+	Slider "  Starts fading at",                    "rsa_body_eyefade_far",  2.0, 60.0, 1.0, 1
+	StaticText "  Still see your jaw or a visor edge? Raise the second one.", darkgray
+	StaticText "  Chest vanishing when you look down? Lower them both.", darkgray
+	StaticText ""
+
 	StaticText "What the body tells you", gold
 	Option "Colour the body at all", "vr_avatar_colour", "OnOff"
 	Option "Colour follows my armour", "vr_avatar_armour_colour", "OnOff"
