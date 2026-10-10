@@ -126,10 +126,33 @@ user float rsa_helmet_eyefade_far  = 14.0;
 // prefix is set on the avatar actor in handler.zs, one name for all of them.
 //
 // _far is where it STARTS to dissolve and _near is where it is gone, both in
-// map units from the eye. Wider than the helmet's on purpose: a built-in head
-// sits closer in than a worn helmet, and the chest wants to survive a look
-// down. Raise _far if you can still see your jaw; lower it if your chest goes.
-// A mirror draws from the mirror, which is far from the body, so it is whole
-// there whatever these say.
-user float rsa_body_eyefade_near = 6.0;
-user float rsa_body_eyefade_far  = 18.0;
+// map units from the eye. A mirror draws from the mirror, which is far from
+// the body, so it is whole there whatever these say.
+//
+// DEFAULT OFF (far = 0), BECAUSE A DISTANCE FADE CANNOT DO THIS JOB.
+//
+// Shipped at 6/18 on 2026-10-04 and the owner reported it the same week: "my
+// entire body is mostly transparent. that's a new thing and i do not care for
+// it." He was right and the idea was wrong, not the numbers.
+//
+// The measurement is distance from the EYE, and on a drawn avatar the chest is
+// as close to the eye as the head is. From his own boot log: AVSCALE drew the
+// body at 53.6 units with eyeHeight 71.39 and viewZ 44 -- so the head spans
+// roughly 0-10 units from the eye and the chest roughly 2-14. THEY OVERLAP.
+// There is no near/far pair that takes the head and leaves the torso; every
+// value either keeps the jaw or eats the chest. Narrowing it is not a fix.
+//
+// The helmet's fade above is fine and stays: a WORN helmet is a separate model
+// sitting at the head, with nothing of the body at that distance to catch.
+//
+// The real mechanism for the body's own head is per SURFACE, which is what
+// RS_VRBody did -- skin the head surface to a transparent texture and draw the
+// head as a separate actor with MASTERNOSEE so mirrors still see it. That needs
+// a head surface index per body, which now exists: tools/avatar/dump_surfaces.py
+// prints them in the engine loader's own order. Two bodies (doomslayer_lowpoly,
+// doomslayer) are a single merged surface and cannot be done that way at all.
+//
+// Left as a cvar rather than deleted so the mechanism stays reachable, and so
+// anyone who sets it learns why it was off.
+user float rsa_body_eyefade_near = 0.0;
+user float rsa_body_eyefade_far  = 0.0;

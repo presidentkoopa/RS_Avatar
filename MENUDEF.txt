@@ -75,12 +75,12 @@ OptionMenu "RSA_AvatarOptions"
 	StaticText ""
 
 	StaticText "Your own head", gold
-	StaticText "  The same fade, for the body's OWN head and built-in helmet.", darkgray
-	StaticText "  Every body has one and until now none of them faded at all.", darkgray
+	StaticText "  OFF. A fade by distance from your eye cannot take the head", darkgray
+	StaticText "  without taking the chest -- on a drawn body they are the same", darkgray
+	StaticText "  distance away. Set 'starts fading at' above 0 to try it anyway;", darkgray
+	StaticText "  your torso will go with it.", darkgray
 	Slider "  Gone by this distance from your eye", "rsa_body_eyefade_near", 0.0, 24.0, 0.5, 1
-	Slider "  Starts fading at",                    "rsa_body_eyefade_far",  2.0, 60.0, 1.0, 1
-	StaticText "  Still see your jaw or a visor edge? Raise the second one.", darkgray
-	StaticText "  Chest vanishing when you look down? Lower them both.", darkgray
+	Slider "  Starts fading at (0 = off)",          "rsa_body_eyefade_far",  0.0, 60.0, 1.0, 1
 	StaticText ""
 
 	StaticText "What the body tells you", gold
