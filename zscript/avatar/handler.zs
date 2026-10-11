@@ -181,6 +181,34 @@ class RSA_Handler : EventHandler
 			let ch = CVar.GetCVar("vr_avatar_helmet", players[i]);
 			if (ch) wantHelmet = ch.GetBool();
 
+			// A BODY WHOSE HEAD IS ALREADY A HELMET DOES NOT GET A SECOND ONE (2026-10-11).
+			//
+			// RSA_HelmetHide takes a body's own helmet off while this one is worn, and for
+			// four of the seven that works, because the helmet is its own surface and there
+			// is a FACE underneath to show. For the other two there is not:
+			//
+			//   pechenko_doomslayer -- the whole body is ONE merged surface, so there is no
+			//     helmet surface to hide without hiding the man, and its bone table is plain
+			//     ValveBiped with no helmet bone to hide instead. Read, not assumed: 60
+			//     bones, not one matching helm or visor.
+			//   lillwasa_doomguy -- its head IS the helmet (surface 1 the shell, 2 the
+			//     visor) and no face is modelled under it, so hiding both would leave the
+			//     universal helmet sitting on an empty neck.
+			//
+			// Both already wear a full sculpted helmet. So the honest fix is the other way
+			// round -- give them no second helmet rather than fail to remove the first --
+			// and the rule is "this body brings its own", not "these two are awkward", so a
+			// future body sculpted with a helmet joins by name and nothing else changes.
+			//
+			// Deliberately NOT folded into `vr_avatar_helmet`: switching the universal
+			// helmet off must still leave these two wearing their own, and it does, because
+			// nothing is ever hidden on them.
+			if (mWornName[i] ~== "pechenko_doomslayer"
+			 || mWornName[i] ~== "lillwasa_doomguy")
+			{
+				wantHelmet = false;
+			}
+
 			if (wantHelmet)
 			{
 				if (mHelmet[i] == null)

@@ -7,7 +7,7 @@
 tier            Full
 forward         -y
 height          91.398464
-eyeheight       82.164396
+eyeheight       83.263056
 shoulderwidth   20.320857
 claviclesep     2.017658
 
@@ -69,6 +69,8 @@ joints
   chest            5    bip_spine_4
   clavicle_L       6    bip_collar_L
   clavicle_R       7    bip_collar_R
+  eye_L            40   eye_L
+  eye_R            41   eye_R
   foot_L           130  bip_foot_L
   foot_R           139  bip_foot_R
   forearm_L        62   bip_lowerArm_L
@@ -95,6 +97,8 @@ joints
   middle_knuckle_L 71   bip_middle_knuckle_L
   middle_knuckle_R 100  bip_middle_knuckle_R
   neck             8    bip_neck1
+  ownhide_doomblade 118  bip_doomblade_base_L
+  ownhide_launcher 146  bip_launcher_base_L
   pelvis           0    bip_pelvis
   pinky_1_L        80   bip_pinky_0_L
   pinky_1_R        109  bip_pinky_0_R

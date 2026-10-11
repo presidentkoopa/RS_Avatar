@@ -7,7 +7,7 @@
 tier            Full
 forward         -y
 height          77.323227
-eyeheight       69.721793
+eyeheight       71.788108
 shoulderwidth   17.630655
 claviclesep     1.714862
 
@@ -69,6 +69,8 @@ joints
   chest            6    spine_part05_md
   clavicle_L       21   arm_clavicle_lf
   clavicle_R       12   arm_clavicle_rt
+  eye_L            115  eyeball_lf
+  eye_R            116  eyeball_rt
   foot_L           72   leg_foot_lf
   foot_R           80   leg_foot_rt
   forearm_L        23   arm_lower_lf
