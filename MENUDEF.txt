@@ -66,6 +66,12 @@ OptionMenu "RSA_AvatarOptions"
 
 	StaticText "Helmet", gold
 	Option "Wear the helmet", "vr_avatar_helmet", "OnOff"
+
+	StaticText "Your own body", gold
+	Option "See your own body", "vr_avatar_ownbody", "RSAOwnBody"
+	StaticText "  Needs vr_body on. Off shows arms only, as before.", darkgray
+	Option "Where the neck collapses to", "vr_body_hide_point", "RSAHidePoint"
+	StaticText "  Chest pulls the seam down into you; Own leaves a stump.", darkgray
 	StaticText "  Worn on the head and turns with it. You cannot see it --", darkgray
 	StaticText "  it fades out close to your eyes -- but a mirror can.", darkgray
 	Slider "  Gone by this distance from your eye", "rsa_helmet_eyefade_near", 0.0, 20.0, 0.5, 1
@@ -106,4 +112,18 @@ OptionMenu "RSA_AvatarOptions"
 AddOptionMenu "OptionsMenu"
 {
 	Submenu "VR Body and Hands", "RSA_AvatarOptions"
+}
+
+// [OWNBODY] WholeBodyIK step 9.
+OptionValue "RSAOwnBody"
+{
+	0, "Arms only"
+	1, "Body when it is posed"
+	2, "Always"
+}
+
+OptionValue "RSAHidePoint"
+{
+	0, "Chest"
+	1, "Its own place"
 }

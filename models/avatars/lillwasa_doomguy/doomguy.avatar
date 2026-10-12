@@ -63,6 +63,10 @@ side L
   bone pinky    3 40   1.00000000 0.00000085 -0.00000018 0.00000086 -0.95643134 0.29195735 0.00000008 -0.29195735 -0.95643134  tipaxis
 end
 
+body
+  soleheight    7.107397
+end
+
 joints
   calf_L           45   lleg2
   calf_R           42   rleg2

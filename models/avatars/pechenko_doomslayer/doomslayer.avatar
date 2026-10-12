@@ -63,6 +63,10 @@ side L
   bone pinky    3 29   1.00000000 -0.00001885 0.00002042 -0.00001177 -0.95285622 -0.30342220 0.00002518 0.30342220 -0.95285622  tipaxis
 end
 
+body
+  soleheight    6.635857
+end
+
 joints
   calf_L           16   ValveBiped.Bip01_L_Calf
   calf_R           11   ValveBiped.Bip01_R_Calf

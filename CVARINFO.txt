@@ -156,3 +156,26 @@ user float rsa_helmet_eyefade_far  = 14.0;
 // anyone who sets it learns why it was off.
 user float rsa_body_eyefade_near = 0.0;
 user float rsa_body_eyefade_far  = 0.0;
+
+// ---------------------------------------------------------------------------
+// [OWNBODY] WHAT THE WEARER SEES OF HIMSELF, once the whole body is posed.
+// WholeBodyIK step 9.
+//
+// Until the torso was actually posed, showing it from the inside was plainly
+// wrong: a rigid trunk under a head that never came down reads as standing in
+// a mannequin. A posed one bends at the hips with him, so looking down he
+// should see his chest, belly, hips, legs and feet, and his arms attached to
+// shoulders rather than floating.
+//
+//   0  arms only, exactly as before
+//   1  the body, but only while it is actually posed (vr_body >= 1)
+//   2  always
+//
+// A SEPARATE CVAR FROM vr_avatar_fullbody ON PURPOSE. The owner has `false`
+// archived for that one, from when a rigid torso seen from inside was wrong.
+// Reusing it would mean his saved preference silently hid the new body and the
+// feature would look broken for the one person testing it.
+//
+// The engine declares these; they are repeated here so the menu can reach them
+// and so a reader of this package can see what it exposes.
+// ---------------------------------------------------------------------------
