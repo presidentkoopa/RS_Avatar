@@ -13,6 +13,7 @@ from the cards as `tools/avatar_grip/out/guns.json` read them on 2026-10-10.
 | `vanilla_fit_4.png` | BFG, BFGHeavy, BFGRifle, Unmaker, Chainsaw, ChainsawHeavy, LongbarChainsaw, Flamer, Flamethrower, grenade |
 | `modern_fit_1.png` | RS Modern: Glock, Kimber, MP5, Benelli |
 | `modern_fit_2.png` | RS Modern: MK18, HK416, MCX, G36C |
+| `parts_vanilla_1.png`, `parts_vanilla_2.png`, `parts_modern.png` | the reload hand on every slide, charging handle, bolt, pump, foregrip and barrel (`tools/avatar/part_fit_preview.py`) |
 | `roll_p60.png`, `roll_m60.png` | SSG and PumpDoom with the hand turned 60 degrees either way about the handle: neither fixes a straight stock |
 
 What each shows, and what is still open: `../GUN_POSE_STANDARD.md`, section 7.

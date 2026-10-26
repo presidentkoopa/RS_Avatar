@@ -91,4 +91,24 @@ hands (material `v_hands*`) are dropped.
 | sits right | Glock, Kimber (left hand), MP5, Benelli, MK18, HK416, MCX, G36C |
 | not checked | GlockS: its mesh (`glocksil.iqm`) is in RS_VR_Weapons only |
 
-Sheets: RS_Avatar `reference/gun_fit/`.
+**Real-world check.** The 1911's grip angle is 18 degrees and the Glock's 22 (American Rifleman,
+"All In The Grip"; KSG Armory): the cards say Kimber 17.6 and Glock 23.7. The AR family's cards run
+26.8 (MCX) to 35.4 (HK416); the HK416 is the one to look at.
+
+## 9. The reload hand on its part, 2026-10-26
+
+`tools/avatar/part_fit_preview.py`: the working hand placed on every slide, charging handle, bolt,
+pump, foregrip and break-open barrel by RS_VR_Reload's own rule (AnchorHeldParts), in the FBX
+`hold_<subject>` pose. All 21 parts with a card in the two sets have a `handseat` except the
+G36C's charging handle, which falls back to its grab.
+
+| | parts |
+|---|---|
+| right | pistol slides (M4A3, Pistolet, Glock, Kimber: over the top, fingers down the far side); pumps (M37, Doom shotgun: under, palm up); the bullpup's upright pump (held like a pistol grip, its `handaxis`); revolver barrel and crane, SSG and DoubleBarrel barrels, the machine gun's launcher tube (under and round) |
+| **a real gun is worked differently** | the AR-family charging handles (MK18, HK416, MCX, the Rifle, the SMG): pulled straight back by the rear T with two fingers, not grabbed over the top. The MP5's cocking handle is on the left of the front tube and the Benelli's bolt handle on the right of the receiver: both pinched from the side. Tec9's bolt the same. All are `subject = slide` today, so they get the slide's overhand grab |
+
+**The standard gains:** a part's subject says how a hand works it, not only what it is called:
+`slide` (overhand), and **new** `charginghandle` (rear-T pull) and `bolthandle` (side pinch), each with
+its `handaxis` and its pose. The FBX has no pinch, so those two poses are the gap (worklist F12).
+
+Sheets: RS_Avatar `reference/gun_fit/` (`parts_vanilla_1/2.png`, `parts_modern.png`).
