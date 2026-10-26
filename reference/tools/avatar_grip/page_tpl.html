@@ -1,0 +1,121 @@
+<title>Avatar Grip Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* layout: one reading column for the brief, then a wide scrolling table, then the sheets stacked full width */
+:root{
+  --bg:#eef0f3; --panel:#ffffff; --fg:#1d2228; --muted:#5d6672; --line:#d5d9df;
+  --now:#b5412f; --new:#1f8a4c; --warn:#a86a00; --warnbg:#fff3d6; --link:#2d5f9a;
+  --sans:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif; --mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14171b; --panel:#1c2026; --fg:#e3e6ea; --muted:#9aa3ad; --line:#2e343c;
+  --now:#ef7b67; --new:#5fcf8c; --warn:#f0b54a; --warnbg:#3a2f17; --link:#8fb7ea; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14171b; --panel:#1c2026; --fg:#e3e6ea; --muted:#9aa3ad; --line:#2e343c;
+  --now:#ef7b67; --new:#5fcf8c; --warn:#f0b54a; --warnbg:#3a2f17; --link:#8fb7ea; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--sans)}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:28px 60px;display:grid;gap:28px}
+h1{font-size:1.7rem;margin:0;text-wrap:balance;font-weight:600}
+h2{font-size:1.15rem;margin:0 0 10px;font-weight:600}
+p,li{max-width:68ch}
+.lede{color:var(--muted);margin:6px 0 0}
+a{color:var(--link)}
+.rules{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.rules li{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px}
+.rules b{display:block}
+.needs{background:var(--warnbg);border-radius:6px;padding:12px 16px}
+.needs ul{margin:6px 0 0;padding-left:18px;display:grid;gap:4px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filters button{font:500 13px var(--sans);border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:4px 12px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.filters button:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:980px;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{font-weight:600;font-size:12px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;background:var(--panel)}
+td.num{font:12.5px/1.45 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.now,.new{display:block}.now{color:var(--now)}.new{color:var(--new)}
+.now::before{content:"now ";color:var(--muted)}.new::before{content:"new ";color:var(--muted)}
+.sub{color:var(--muted);font:12px var(--sans)}
+td.gun a{font-weight:600;text-decoration:none}
+td.note{min-width:220px;color:var(--muted)}
+tr.needs td{background:var(--warnbg)}
+.pill{display:inline-block;font:500 11px var(--sans);border:1px solid var(--line);border-radius:999px;padding:0 7px;margin-left:4px;color:var(--muted)}
+.pill.warn{border-color:var(--warn);color:var(--warn)}
+.sheets{display:grid;gap:22px}
+figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+figcaption{padding:8px 12px;display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+figcaption span{color:var(--muted);font-size:13px}
+figure img{display:block;width:100%;height:auto;background:#30323e}
+details{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px}
+summary{cursor:pointer;font-weight:600}
+pre{overflow-x:auto;font:12px/1.45 var(--mono);margin:10px 0 0}
+.key{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+.key i{font-style:normal;font-weight:600}
+</style>
+<div class="wrap">
+<header>
+  <h1>Avatar grip points</h1>
+  <p class="lede">{{NOK}} of {{NALL}} guns have a new <code>palm</code>, <code>rake</code> and <code>supportat</code>. Proposed values. These tools never write the cards; <code>emit.py</code> makes copies and a diff.</p>
+</header>
+
+<section>
+  <h2>How the points were found</h2>
+  <ul class="rules">
+    <li><b>Palm: where c_doom_marine's grip socket goes.</b>On the handle's centre line, at the height where that body's middle finger sits under the guard and its index pad sits on the card's trigger point. Both come from the body's measured hand (palm width 2.03 map units), so the hand closes on the grip instead of the wrist landing there.</li>
+    <li><b>Rake: the handle's own tilt.</b>The centre line of the stretch the three lower fingers close on, cut square to itself until it stops turning.</li>
+    <li><b>Support: the middle of what the off hand closes on.</b>Your click's position along the gun is kept; the point moves into the centre of the forend. A forend deeper than 5.5 cm is cupped from below instead. Pistols use Ermac's two-hand hold, sized to the body. Vertical grips and held magazines are treated like a second pistol grip.</li>
+  </ul>
+  <p class="lede">Ermac's posed hands are drawn on each sheet only to show the hold. They are not used in the engine or the packs. Guns that share a mesh get the same numbers.</p>
+</section>
+
+
+
+<section>
+  <h2>All guns</h2>
+  <div class="filters" role="group" aria-label="Show set">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="Vanilla VR" aria-pressed="false">Vanilla VR</button>
+    <button type="button" data-f="BD22" aria-pressed="false">BD22</button>
+    <button type="button" data-f="RS Modern" aria-pressed="false">RS Modern</button>
+  </div>
+  <div class="key"><span><i style="color:var(--now)">now</i> what the card says today</span><span><i style="color:var(--new)">new</i> fitted</span><span>mesh units, card axes</span></div>
+  <div class="tablebox">
+  <table>
+    <thead><tr><th>Gun</th><th>Palm</th><th>Moved cm</th><th>Rake</th><th>Support</th><th>Moved cm</th><th>Note</th></tr></thead>
+    <tbody>
+{{TABLE}}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<details>
+  <summary>Exactly what would change in the cards ({{NRAKE}} rakes)</summary>
+  <pre>{{DIFF}}</pre>
+</details>
+
+<section>
+  <h2>Sheets</h2>
+  <p class="lede">Side view from the gun's right, top view below. Red is the card today, green is new. The blue line is the handle axis.</p>
+  <div class="sheets">
+{{SHEETS}}
+  </div>
+</section>
+</div>
+<script>
+(function(){
+  var btns=[].slice.call(document.querySelectorAll('.filters button'));
+  function apply(f){
+    btns.forEach(function(b){b.setAttribute('aria-pressed', String(b.dataset.f===f));});
+    [].slice.call(document.querySelectorAll('tr[data-set], figure[data-set]')).forEach(function(el){
+      el.hidden = !(f==='all' || el.dataset.set===f);
+    });
+    try{localStorage.setItem('gripset',f);}catch(e){}
+  }
+  btns.forEach(function(b){b.addEventListener('click',function(){apply(b.dataset.f);});});
+  var f='all'; try{f=localStorage.getItem('gripset')||'all';}catch(e){}
+  apply(f);
+})();
+</script>

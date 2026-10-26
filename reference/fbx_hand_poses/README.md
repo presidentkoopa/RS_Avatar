@@ -40,3 +40,16 @@ plan in UZDXREMA `GUNS_IN_AVATAR_HANDS.md`). Until then the engine's `grip_*` po
 curl values, not FBX data.
 
 This folder is left out of `RS_Avatar.pk3` by `pack.py`; it is reference, not game data.
+
+## Added later the same day
+
+| file | what |
+|---|---|
+| `poses_on_c_doom_marine.png`, `poses_on_slayer_praetor.png` | every FBX pose on two bodies, each hand with its own bones, beside the FBX frame |
+| `grips_on_*.png` | the gun and reload poses the engine now uses, composed from the FBX a whole finger at a time |
+| `support_poses.png` | the support hand on the other hand's gun: the FBX two-hand hold, a forend wrap, the handlebar fist |
+| `data/fbx_pose_mats.json` | the FBX's pose matrices at the frames above, both hands: what `mkfbxposes.py` reads |
+| `iqm/hand_fbx_A.iqm`, `iqm/hand_fbx_B.iqm` | both FBX hands exported whole: 1,279 frames, 22 joints, each from its own skeleton and weights, checked against Blender's deformed mesh. B is written unmirrored: draw it with a negative X scale |
+
+The praetor's first sheets left out its palm (skinned to metacarpal and wrist bones the preview
+skipped); the ones here are redrawn whole.

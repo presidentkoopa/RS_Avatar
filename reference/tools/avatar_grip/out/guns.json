@@ -1,0 +1,2675 @@
+[
+ {
+  "cls": "WM_M4A3",
+  "card": "WMCARD.01_pistol",
+  "line": 24,
+  "gripstart": 70,
+  "gripend": null,
+  "hand": "main",
+  "type": "pistol",
+  "prop": "WM_PropM4A3",
+  "mesh": "models\\vanilla\\pistols\\m4a3.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.2788,
+   0.2788,
+   0.2788
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.2788 0.2788 0.2788",
+  "cm_per_unit": 0.82,
+  "grip": {
+   "triggerat": "1.005, 0.016, -0.878",
+   "supportat": "-2.193, 0.004, -6.758",
+   "palm": "-5.453, 0.004, -5.141",
+   "rake": "19.3",
+   "seat": "0.484, 0.016, 5.393"
+  },
+  "griplines": {
+   "triggerat": 72,
+   "supportat": 73,
+   "palm": 74,
+   "rake": 75,
+   "seat": 76
+  }
+ },
+ {
+  "cls": "WM_Pistolet",
+  "card": "WMCARD.01_pistol",
+  "line": 147,
+  "gripstart": 188,
+  "gripend": null,
+  "hand": "off",
+  "type": "pistol",
+  "prop": "WM_PropPistolet",
+  "mesh": "models\\vanilla\\pistols\\pistolet.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.459,
+   0.459,
+   0.459
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [
+   "casing"
+  ],
+  "csv_frame": "0",
+  "csv_scale": "0.4590 0.4590 0.4590",
+  "cm_per_unit": 1.3499,
+  "grip": {
+   "triggerat": "0.900, 0.110, -2.153",
+   "supportat": "-1.695, -0.128, -6.070",
+   "palm": "-3.814, -0.128, -5.441",
+   "rake": "9.5",
+   "seat": "0.267, 0.110, 1.491"
+  },
+  "griplines": {
+   "triggerat": 190,
+   "supportat": 191,
+   "palm": 192,
+   "rake": 193,
+   "seat": 194
+  }
+ },
+ {
+  "cls": "WM_PistoletBlue",
+  "card": "WMCARD.01_pistol",
+  "line": 263,
+  "gripstart": 272,
+  "gripend": null,
+  "hand": "off",
+  "type": "pistol",
+  "prop": "WM_PropPistoletBlue",
+  "mesh": "models\\vanilla\\pistols\\pistolet.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.459,
+   0.459,
+   0.459
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [
+   "casing"
+  ],
+  "csv_frame": "0",
+  "csv_scale": "0.4590 0.4590 0.4590",
+  "cm_per_unit": 1.3499,
+  "grip": {
+   "triggerat": "0.244, 0.110, -2.357",
+   "supportat": "-1.695, -0.128, -6.070",
+   "palm": "-3.814, -0.128, -5.441",
+   "rake": "9.5",
+   "seat": "0.267, 0.110, 1.491"
+  },
+  "griplines": {
+   "triggerat": 274,
+   "supportat": 275,
+   "palm": 276,
+   "rake": 277,
+   "seat": 278
+  }
+ },
+ {
+  "cls": "WM_PumpM37",
+  "card": "WMCARD.02_pump",
+  "line": 18,
+  "gripstart": 79,
+  "gripend": null,
+  "hand": "main",
+  "type": "shotgun",
+  "prop": "WM_PropPumpM37",
+  "mesh": "models\\vanilla\\shotguns\\AE_Shotgun\\m37a2.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-17.356, -0.173, -3.254",
+   "supportat": "19.495, -0.249, -0.042",
+   "palm": "-24.013, -0.229, -5.327",
+   "rake": "35.5",
+   "seat": "-17.745, -0.170, -1.282"
+  },
+  "griplines": {
+   "triggerat": 81,
+   "supportat": 82,
+   "palm": 83,
+   "rake": 84,
+   "seat": 85
+  }
+ },
+ {
+  "cls": "WM_PumpDoom",
+  "card": "WMCARD.02_pump",
+  "line": 158,
+  "gripstart": 198,
+  "gripend": null,
+  "hand": "off",
+  "type": "shotgun",
+  "prop": "WM_PropPumpDoom",
+  "mesh": "models\\vanilla\\shotguns\\Shotgun\\shotgun.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.459,
+   0.459,
+   0.459
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [
+   "shotshl"
+  ],
+  "csv_frame": "0",
+  "csv_scale": "0.4590 0.4590 0.4590",
+  "cm_per_unit": 1.3499,
+  "grip": {
+   "triggerat": "-7.867, 0.031, -3.122",
+   "supportat": "15.799, -0.031, 0.474",
+   "palm": "-13.026, -0.068, -1.562",
+   "rake": "62.2",
+   "seat": "-7.811, 0.031, 1.358"
+  },
+  "griplines": {
+   "triggerat": 200,
+   "supportat": 201,
+   "palm": 202,
+   "rake": 203,
+   "seat": 204
+  }
+ },
+ {
+  "cls": "WM_BullpupPump",
+  "card": "WMCARD.02_pump",
+  "line": 264,
+  "gripstart": 299,
+  "gripend": null,
+  "hand": "off",
+  "type": "shotgun",
+  "prop": "WM_PropBullpupPump",
+  "mesh": "models\\vanilla\\shotguns\\BullpupPump\\bullpuppump_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-7.772, -0.002, -6.216",
+   "supportat": "17.066, -0.023, -9.202",
+   "palm": "-12.893, -0.023, -9.556",
+   "rake": "24.5",
+   "seat": "-6.975, 0.000, -2.098"
+  },
+  "griplines": {
+   "triggerat": 301,
+   "supportat": 302,
+   "palm": 303,
+   "rake": 304,
+   "seat": 305
+  }
+ },
+ {
+  "cls": "WM_Moonlight",
+  "card": "WMCARD.03_revolver_breaktop",
+  "line": 41,
+  "gripstart": 93,
+  "gripend": null,
+  "hand": "main",
+  "type": "revolver",
+  "prop": "WM_PropMoonlight",
+  "mesh": "models\\vanilla\\revolvers\\Revolver\\rev_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.459,
+   0.459,
+   0.459
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "0.4590 0.4590 0.4590",
+  "cm_per_unit": 1.3499,
+  "grip": {
+   "triggerat": "-1.987, 0.000, -3.517",
+   "supportat": "-4.467, -0.019, -7.276",
+   "palm": "-6.616, -0.019, -6.762",
+   "rake": "6.4",
+   "seat": "-0.813, 0.000, -0.860"
+  },
+  "griplines": {
+   "triggerat": 95,
+   "supportat": 96,
+   "palm": 97,
+   "rake": 98,
+   "seat": 99
+  }
+ },
+ {
+  "cls": "WM_Sunset",
+  "card": "WMCARD.03_revolver_breaktop",
+  "line": 175,
+  "gripstart": 185,
+  "gripend": null,
+  "hand": "off",
+  "type": "revolver",
+  "prop": "WM_PropSunset",
+  "mesh": "models\\vanilla\\revolvers\\Revolver\\rev_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.459,
+   0.459,
+   0.459
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "0.4590 0.4590 0.4590",
+  "cm_per_unit": 1.3499,
+  "grip": {
+   "triggerat": "-2.004, 0.000, -3.650",
+   "supportat": "-4.467, -0.019, -7.276",
+   "palm": "-6.616, -0.019, -6.762",
+   "rake": "6.4",
+   "seat": "0.150, -0.000, 1.362"
+  },
+  "griplines": {
+   "triggerat": 187,
+   "supportat": 188,
+   "palm": 189,
+   "rake": 190,
+   "seat": 191
+  }
+ },
+ {
+  "cls": "WM_ColaRevolver",
+  "card": "WMCARD.04_revolver_swingout",
+  "line": 12,
+  "gripstart": 58,
+  "gripend": null,
+  "hand": "off",
+  "type": "revolver",
+  "prop": "WM_PropCola",
+  "mesh": "models\\vanilla\\revolvers\\Cola_Revolver\\revolver.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.238,
+   0.238,
+   0.238
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.2380 0.2380 0.2380",
+  "cm_per_unit": 0.7,
+  "grip": {
+   "triggerat": "-5.678, 0.023, -6.847",
+   "supportat": "-11.184, 0.018, -13.017",
+   "palm": "-15.051, 0.018, -11.224",
+   "rake": "17.8",
+   "seat": "-4.346, -0.046, 0.924"
+  },
+  "griplines": {
+   "triggerat": 60,
+   "supportat": 61,
+   "palm": 62,
+   "rake": 63,
+   "seat": 64
+  }
+ },
+ {
+  "cls": "WM_Rifle",
+  "card": "WMCARD.05_rifle",
+  "line": 22,
+  "gripstart": 74,
+  "gripend": null,
+  "hand": "main",
+  "type": "rifle",
+  "prop": "WM_PropRifle",
+  "mesh": "models\\vanilla\\rifles\\Rifle\\Rifle.md3",
+  "mesh_ok": true,
+  "frame": 3,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "3",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-7.745, 0.132, -7.346",
+   "supportat": "26.410, 0.141, -0.832",
+   "palm": "-13.426, 0.108, -10.131",
+   "rake": "33.0",
+   "seat": "-11.016, -0.344, -4.819"
+  },
+  "griplines": {
+   "triggerat": 76,
+   "supportat": 77,
+   "palm": 78,
+   "rake": 79,
+   "seat": 80
+  }
+ },
+ {
+  "cls": "WM_M16",
+  "card": "WMCARD.05_rifle",
+  "line": 159,
+  "gripstart": 205,
+  "gripend": null,
+  "hand": "off",
+  "type": "rifle",
+  "prop": "WM_PropM16",
+  "mesh": "models\\vanilla\\rifles\\M16\\m16_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.459,
+   0.459,
+   0.459
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [
+   "casing"
+  ],
+  "csv_frame": "0",
+  "csv_scale": "0.4590 0.4590 0.4590",
+  "cm_per_unit": 1.3499,
+  "grip": {
+   "triggerat": "-11.371, -0.125, -3.250",
+   "supportat": "11.240, -0.125, -0.541",
+   "palm": "-14.669, -0.144, -6.542",
+   "rake": "19.5",
+   "seat": "-10.724, 0.125, 0.466"
+  },
+  "griplines": {
+   "triggerat": 207,
+   "supportat": 208,
+   "palm": 209,
+   "rake": 210,
+   "seat": 211
+  }
+ },
+ {
+  "cls": "WM_SSG",
+  "card": "WMCARD.06_breakaction",
+  "line": 34,
+  "gripstart": 77,
+  "gripend": null,
+  "hand": "main",
+  "type": "breakaction",
+  "prop": "WM_PropSSG",
+  "mesh": "models\\vanilla\\shotguns\\SuperShotgun\\ssg.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.459,
+   0.459,
+   0.459
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [
+   "newshell1.006",
+   "newshell2.006"
+  ],
+  "csv_frame": "0",
+  "csv_scale": "0.4590 0.4590 0.4590",
+  "cm_per_unit": 1.3499,
+  "grip": {
+   "triggerat": "-4.322, 0.000, -3.333",
+   "supportat": "11.690, 0.023, -0.198",
+   "palm": "-9.840, -0.011, -2.862",
+   "rake": "43.6",
+   "seat": "-4.818, 0.000, -1.222"
+  },
+  "griplines": {
+   "triggerat": 79,
+   "supportat": 80,
+   "palm": 81,
+   "rake": 82,
+   "seat": 83
+  }
+ },
+ {
+  "cls": "WM_DoubleBarrel",
+  "card": "WMCARD.06_breakaction",
+  "line": 150,
+  "gripstart": 190,
+  "gripend": null,
+  "hand": "off",
+  "type": "breakaction",
+  "prop": "WM_PropDoubleBarrel",
+  "mesh": "models\\vanilla\\shotguns\\DoubleBarrel\\doublebarrel_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.1782,
+   0.1782,
+   0.1782
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.1782 0.1782 0.1782",
+  "cm_per_unit": 0.5241,
+  "grip": {
+   "triggerat": "8.043, 0.205, 6.308",
+   "supportat": "21.730, 0.010, 13.216",
+   "palm": "5.239, 0.016, 8.466",
+   "rake": "59.3",
+   "seat": "-53.095, 0.187, 16.022"
+  },
+  "griplines": {
+   "triggerat": 192,
+   "supportat": 193,
+   "palm": 194,
+   "rake": 195,
+   "seat": 196
+  }
+ },
+ {
+  "cls": "WM_Tec9",
+  "card": "WMCARD.07_smg",
+  "line": 21,
+  "gripstart": 67,
+  "gripend": null,
+  "hand": "off",
+  "type": "smg",
+  "prop": "WM_PropTec9",
+  "mesh": "models\\vanilla\\smgs\\Tec9\\tec9_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-7.092, -0.078, -2.806",
+   "supportat": "-0.848, -0.101, -8.947",
+   "palm": "-13.049, -0.101, -5.661",
+   "rake": "27.4",
+   "seat": "-6.294, 0.078, 1.988"
+  },
+  "griplines": {
+   "triggerat": 69,
+   "supportat": 70,
+   "palm": 71,
+   "rake": 72,
+   "seat": 73
+  }
+ },
+ {
+  "cls": "WM_SMG",
+  "card": "WMCARD.07_smg",
+  "line": 135,
+  "gripstart": 182,
+  "gripend": null,
+  "hand": "main",
+  "type": "smg",
+  "prop": "WM_PropSMG",
+  "mesh": "models\\vanilla\\smgs\\SMG\\smg_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-6.460, -0.156, 1.336",
+   "supportat": "17.687, 0.375, 1.202",
+   "palm": "-11.534, -0.181, -2.058",
+   "rake": "22.1",
+   "seat": "-6.888, -0.156, 4.493"
+  },
+  "griplines": {
+   "triggerat": 184,
+   "supportat": 185,
+   "palm": 186,
+   "rake": 187,
+   "seat": 188
+  }
+ },
+ {
+  "cls": "WM_PlasmaRifle",
+  "card": "WMCARD.08_cell",
+  "line": 18,
+  "gripstart": 54,
+  "gripend": null,
+  "hand": "main",
+  "type": "plasma",
+  "prop": "WM_PropPlasmaRifle",
+  "mesh": "models\\vanilla\\plasma\\PlasmaRifle\\plasmarifle_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-27.656, 0.398, -4.143",
+   "supportat": "10.970, 0.506, -8.590",
+   "palm": "-33.214, 0.452, -7.346",
+   "rake": "30.0",
+   "seat": "-28.088, 0.399, -2.081"
+  },
+  "griplines": {
+   "triggerat": 56,
+   "supportat": 57,
+   "palm": 58,
+   "rake": 59,
+   "seat": 60
+  }
+ },
+ {
+  "cls": "WM_PlasmaRifleBlue",
+  "card": "WMCARD.08_cell",
+  "line": 109,
+  "gripstart": 118,
+  "gripend": null,
+  "hand": "off",
+  "type": "plasma",
+  "prop": "WM_PropPlasmaRifleBlue",
+  "mesh": "models\\vanilla\\plasma\\PlasmaRifle\\plasmarifle_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-27.656, 0.398, -4.143",
+   "supportat": "10.750, 0.506, -8.595",
+   "palm": "-33.214, 0.452, -7.346",
+   "rake": "30.0",
+   "seat": "-26.778, -0.539, 0.919"
+  },
+  "griplines": {
+   "triggerat": 120,
+   "supportat": 121,
+   "palm": 122,
+   "rake": 123,
+   "seat": 124
+  }
+ },
+ {
+  "cls": "WM_PlasmaCarbine",
+  "card": "WMCARD.08_cell",
+  "line": 133,
+  "gripstart": 164,
+  "gripend": null,
+  "hand": "off",
+  "type": "plasma",
+  "prop": "WM_PropPlasmaCarbine",
+  "mesh": "models\\vanilla\\plasma\\PlasmaCarbine\\plasmacarbine_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "11.542, -0.028, 4.491",
+   "supportat": "59.527, 0.004, 10.296",
+   "palm": "1.113, -0.116, 1.852",
+   "rake": "11.5",
+   "seat": "-24.000, 0.000, 12.000"
+  },
+  "griplines": {
+   "triggerat": 166,
+   "supportat": 167,
+   "palm": 168,
+   "rake": 169,
+   "seat": 170
+  }
+ },
+ {
+  "cls": "WM_Railgun",
+  "card": "WMCARD.08_cell",
+  "line": 231,
+  "gripstart": 275,
+  "gripend": null,
+  "hand": "off",
+  "type": "railgun",
+  "prop": "WM_PropRailgun",
+  "mesh": "models\\vanilla\\railguns\\Railgun\\railgun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-18.637, -0.092, -7.447",
+   "supportat": "27.350, -0.094, -9.532",
+   "palm": "-25.262, -0.130, -9.440",
+   "rake": "29.5",
+   "seat": "-17.756, 0.191, -3.048"
+  },
+  "griplines": {
+   "triggerat": 277,
+   "supportat": 278,
+   "palm": 279,
+   "rake": 280,
+   "seat": 281
+  }
+ },
+ {
+  "cls": "WM_Bolter",
+  "card": "WMCARD.08_cell",
+  "line": 333,
+  "gripstart": 369,
+  "gripend": null,
+  "hand": "off",
+  "type": "plasma",
+  "prop": "WM_PropBolter",
+  "mesh": "models\\vanilla\\plasma\\Bolter\\bolter_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-5.118, 0.005, -0.406",
+   "supportat": "8.540, 0.008, -1.831",
+   "palm": "-9.958, -0.019, -2.254",
+   "rake": "41.5",
+   "seat": "-9.308, 0.203, 9.181"
+  },
+  "griplines": {
+   "triggerat": 371,
+   "supportat": 372,
+   "palm": 373,
+   "rake": 374,
+   "seat": 375
+  }
+ },
+ {
+  "cls": "WM_Chaingun",
+  "card": "WMCARD.09_chaingun",
+  "line": 28,
+  "gripstart": 64,
+  "gripend": null,
+  "hand": "main",
+  "type": "chaingun",
+  "prop": "WM_PropChaingun",
+  "mesh": "models\\vanilla\\chainguns\\ChaingunGH\\chaingungh_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-37.098, -0.484, 4.002",
+   "supportat": "-7.250, 22.600, 5.400",
+   "palm": "-43.264, -0.498, 1.522",
+   "rake": "25.9",
+   "seat": "-38.930, -0.470, 9.444"
+  },
+  "griplines": {
+   "triggerat": 66,
+   "supportat": 67,
+   "palm": 68,
+   "rake": 69,
+   "seat": 70
+  }
+ },
+ {
+  "cls": "WM_MachineGun",
+  "card": "WMCARD.09_chaingun",
+  "line": 124,
+  "gripstart": 162,
+  "gripend": null,
+  "hand": "off",
+  "type": "chaingun",
+  "prop": "WM_PropMachineGun",
+  "mesh": "models\\vanilla\\chainguns\\MachineGun\\machinegun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-18.717, -0.242, -6.641",
+   "supportat": "11.911, -0.266, -7.142",
+   "palm": "-25.458, -0.267, -9.341",
+   "rake": "23.7",
+   "seat": "-17.844, 0.163, -2.078"
+  },
+  "griplines": {
+   "triggerat": 164,
+   "supportat": 165,
+   "palm": 166,
+   "rake": 167,
+   "seat": 168
+  }
+ },
+ {
+  "cls": "WM_RotaryGun",
+  "card": "WMCARD.09_chaingun",
+  "line": 277,
+  "gripstart": 312,
+  "gripend": null,
+  "hand": "main",
+  "type": "chaingun",
+  "prop": "WM_PropRotaryGun",
+  "mesh": "models\\vanilla\\chainguns\\RotaryGun\\rotarygun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-29.988, -0.695, 6.387",
+   "supportat": "-12.017, 9.567, 7.924",
+   "palm": "-32.175, -0.715, 1.378",
+   "rake": "51.7",
+   "seat": "-34.919, -0.469, 5.145"
+  },
+  "griplines": {
+   "triggerat": 314,
+   "supportat": 315,
+   "palm": 316,
+   "rake": 317,
+   "seat": 318
+  }
+ },
+ {
+  "cls": "WM_RocketLauncher",
+  "card": "WMCARD.10_launcher",
+  "line": 23,
+  "gripstart": 46,
+  "gripend": null,
+  "hand": "main",
+  "type": "launcher",
+  "prop": "WM_PropRocketLauncher",
+  "mesh": "models\\vanilla\\launchers\\RPG\\rpg_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "19.140, 3.250, -14.068",
+   "supportat": "45.000, 3.288, -4.017",
+   "palm": "13.067, 3.225, -17.303",
+   "rake": "29.4",
+   "seat": "17.218, 3.250, -9.802"
+  },
+  "griplines": {
+   "triggerat": 48,
+   "supportat": 49,
+   "palm": 50,
+   "rake": 51,
+   "seat": 52
+  }
+ },
+ {
+  "cls": "WM_RPG",
+  "card": "WMCARD.10_launcher",
+  "line": 129,
+  "gripstart": 174,
+  "gripend": null,
+  "hand": "off",
+  "type": "launcher",
+  "prop": "WM_PropRPG",
+  "mesh": "models\\vanilla\\launchers\\RPG\\rpg_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "19.140, 3.250, -14.068",
+   "supportat": "45.271, 3.289, -4.017",
+   "palm": "13.067, 3.225, -17.303",
+   "rake": "29.4",
+   "seat": "18.518, -3.250, -6.790"
+  },
+  "griplines": {
+   "triggerat": 176,
+   "supportat": 177,
+   "palm": 178,
+   "rake": 179,
+   "seat": 180
+  }
+ },
+ {
+  "cls": "WM_RotaryLauncher",
+  "card": "WMCARD.10_launcher",
+  "line": 259,
+  "gripstart": 282,
+  "gripend": null,
+  "hand": "off",
+  "type": "launcher",
+  "prop": "WM_PropRotaryLauncher",
+  "mesh": "models\\vanilla\\launchers\\RotaryLauncher\\rotarylauncher_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-23.913, -0.352, 7.318",
+   "supportat": "-6.196, 9.636, 9.146",
+   "palm": "-26.189, -0.372, 2.153",
+   "rake": "52.8",
+   "seat": "-26.574, 0.125, 12.612"
+  },
+  "griplines": {
+   "triggerat": 284,
+   "supportat": 285,
+   "palm": 286,
+   "rake": 287,
+   "seat": 288
+  }
+ },
+ {
+  "cls": "WM_BFG",
+  "card": "WMCARD.11_bfg",
+  "line": 21,
+  "gripstart": 35,
+  "gripend": null,
+  "hand": "main",
+  "type": "bfg",
+  "prop": "WM_PropBFG",
+  "mesh": "models\\vanilla\\bfg\\BFGHeavy\\bfgheavy_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-21.544, 0.085, -5.263",
+   "supportat": "23.560, 0.086, -6.443",
+   "palm": "-25.710, 0.053, -9.345",
+   "rake": "27.7",
+   "seat": "-21.970, 0.088, -3.427"
+  },
+  "griplines": {
+   "triggerat": 37,
+   "supportat": 38,
+   "palm": 39,
+   "rake": 40,
+   "seat": 41
+  }
+ },
+ {
+  "cls": "WM_BFGHeavy",
+  "card": "WMCARD.11_bfg",
+  "line": 51,
+  "gripstart": 85,
+  "gripend": null,
+  "hand": "off",
+  "type": "bfg",
+  "prop": "WM_PropBFGHeavy",
+  "mesh": "models\\vanilla\\bfg\\BFGHeavy\\bfgheavy_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-21.544, 0.085, -5.263",
+   "supportat": "24.340, 0.086, -6.438",
+   "palm": "-25.710, 0.053, -9.345",
+   "rake": "27.7",
+   "seat": "-20.670, -0.068, -0.427"
+  },
+  "griplines": {
+   "triggerat": 87,
+   "supportat": 88,
+   "palm": 89,
+   "rake": 90,
+   "seat": 91
+  }
+ },
+ {
+  "cls": "WM_BFGRifle",
+  "card": "WMCARD.11_bfg",
+  "line": 140,
+  "gripstart": 171,
+  "gripend": null,
+  "hand": "main",
+  "type": "bfg",
+  "prop": "WM_PropBFGRifle",
+  "mesh": "models\\vanilla\\bfg\\BFGRifle\\bfgrifle_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-21.560, 0.084, -4.831",
+   "supportat": "13.230, 0.086, -5.903",
+   "palm": "-25.369, 0.054, -8.535",
+   "rake": "32.1",
+   "seat": "-27.638, 0.078, -1.549"
+  },
+  "griplines": {
+   "triggerat": 173,
+   "supportat": 174,
+   "palm": 175,
+   "rake": 176,
+   "seat": 177
+  }
+ },
+ {
+  "cls": "WM_Unmaker",
+  "card": "WMCARD.11_bfg",
+  "line": 245,
+  "gripstart": 278,
+  "gripend": null,
+  "hand": "main",
+  "type": "bfg",
+  "prop": "WM_PropUnmaker",
+  "mesh": "models\\vanilla\\unmaker\\Unmaker\\unmaker_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-21.657, 0.016, -6.540",
+   "supportat": "9.480, 0.016, -6.469",
+   "palm": "-28.558, -0.009, -9.866",
+   "rake": "15.0",
+   "seat": "-28.016, 0.016, -5.156"
+  },
+  "griplines": {
+   "triggerat": 280,
+   "supportat": 281,
+   "palm": 282,
+   "rake": 283,
+   "seat": 284
+  }
+ },
+ {
+  "cls": "WM_Chainsaw",
+  "card": "WMCARD.12_chainsaw",
+  "line": 17,
+  "gripstart": 52,
+  "gripend": null,
+  "hand": "main",
+  "type": "chainsaw",
+  "prop": "WM_PropChainsaw",
+  "mesh": "models\\vanilla\\chainsaws\\Chainsaw\\chainsaw_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.459,
+   0.459,
+   0.459
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "0.4590 0.4590 0.4590",
+  "cm_per_unit": 1.3499,
+  "grip": {
+   "triggerat": "-11.849, -0.002, 1.156",
+   "supportat": "-1.503, -0.889, 9.887",
+   "palm": "-16.523, 1.930, 4.650",
+   "rake": "80.0",
+   "seat": "-12.319, -0.002, 11.136"
+  },
+  "griplines": {
+   "triggerat": 54,
+   "supportat": 55,
+   "palm": 56,
+   "rake": 57,
+   "seat": 58
+  }
+ },
+ {
+  "cls": "WM_ChainsawHeavy",
+  "card": "WMCARD.12_chainsaw",
+  "line": 137,
+  "gripstart": 166,
+  "gripend": null,
+  "hand": "off",
+  "type": "chainsaw",
+  "prop": "WM_PropChainsawHeavy",
+  "mesh": "models\\vanilla\\chainsaws\\ChainsawHeavy\\chainsaw_heavy_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "10.428, 3.664, -1.039",
+   "supportat": "29.019, 23.905, -11.269",
+   "palm": "6.636, 3.662, -2.799",
+   "rake": "45.9",
+   "seat": "11.300, 3.660, 4.644"
+  },
+  "griplines": {
+   "triggerat": 168,
+   "supportat": 169,
+   "palm": 170,
+   "rake": 171,
+   "seat": 172
+  }
+ },
+ {
+  "cls": "WM_LongbarChainsaw",
+  "card": "WMCARD.12_chainsaw",
+  "line": 222,
+  "gripstart": 250,
+  "gripend": null,
+  "hand": "main",
+  "type": "chainsaw",
+  "prop": "WM_PropLongbarChainsaw",
+  "mesh": "models\\vanilla\\chainsaws\\LongbarChainsaw\\longbarchainsaw_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-40.430, -2.531, -0.475",
+   "supportat": "-12.343, 3.383, 16.099",
+   "palm": "-42.284, -2.327, -5.146",
+   "rake": "80.0",
+   "seat": "-40.247, -2.531, -0.424"
+  },
+  "griplines": {
+   "triggerat": 252,
+   "supportat": 253,
+   "palm": 254,
+   "rake": 255,
+   "seat": 256
+  }
+ },
+ {
+  "cls": "WM_Flamer",
+  "card": "WMCARD.13_flamethrower",
+  "line": 20,
+  "gripstart": 61,
+  "gripend": null,
+  "hand": "main",
+  "type": "flamethrower",
+  "prop": "WM_PropFlamer",
+  "mesh": "models\\vanilla\\flamers\\Flamer\\flamer_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.374,
+   0.374,
+   0.374
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3740 0.3740 0.3740",
+  "cm_per_unit": 1.0999,
+  "grip": {
+   "triggerat": "-30.862, -0.462, -8.788",
+   "supportat": "5.582, -0.418, -4.926",
+   "palm": "-36.418, -0.501, -11.321",
+   "rake": "23.6",
+   "seat": "-29.818, -0.462, -8.746"
+  },
+  "griplines": {
+   "triggerat": 63,
+   "supportat": 64,
+   "palm": 65,
+   "rake": 66,
+   "seat": 67
+  }
+ },
+ {
+  "cls": "WM_Flamethrower",
+  "card": "WMCARD.13_flamethrower",
+  "line": 124,
+  "gripstart": 154,
+  "gripend": null,
+  "hand": "off",
+  "type": "flamethrower",
+  "prop": "WM_PropFlamethrower",
+  "mesh": "models\\vanilla\\flamers\\Flamethrower2\\flamethrower2_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-28.430, -0.458, 0.445",
+   "supportat": "0.151, -0.459, -6.187",
+   "palm": "-30.186, -0.483, 5.836",
+   "rake": "75.2",
+   "seat": "-24.790, -0.460, 7.092"
+  },
+  "griplines": {
+   "triggerat": 156,
+   "supportat": 157,
+   "palm": 158,
+   "rake": 159,
+   "seat": 160
+  }
+ },
+ {
+  "cls": "WM_AssaultShotgun",
+  "card": "WMCARD.14_magazine_shotgun",
+  "line": 29,
+  "gripstart": 75,
+  "gripend": null,
+  "hand": "main",
+  "type": "shotgun",
+  "prop": "WM_PropAssaultShotgun",
+  "mesh": "models\\vanilla\\shotguns\\AssaultShotgunGH\\assaultshotgun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "plus\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "triggerat": "-21.315, 0.047, -4.289",
+   "supportat": "9.510, 0.022, -3.405",
+   "palm": "-27.143, 0.022, -1.604",
+   "rake": "73.2",
+   "seat": "-26.156, 0.047, -1.013"
+  },
+  "griplines": {
+   "triggerat": 77,
+   "supportat": 78,
+   "palm": 79,
+   "rake": 80,
+   "seat": 81
+  }
+ },
+ {
+  "cls": "RS_VRGrenade",
+  "card": "WMCARD.grenade",
+  "line": 48,
+  "gripstart": 96,
+  "gripend": null,
+  "hand": "main",
+  "type": "grenade",
+  "prop": "RS_VRGrenadeHeldMain",
+  "mesh": "models\\vanilla\\grenades\\grenade_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.1919,
+   0.1919,
+   0.1919
+  ],
+  "mdef": "MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "0.1919 0.1919 0.1919",
+  "cm_per_unit": 0.5644,
+  "grip": {
+   "triggerat": "-0.055, 8.213, -15.401",
+   "supportat": "-0.430, 0.695, -0.008",
+   "palm": "-0.430, 0.695, -0.008",
+   "rake": "0.0",
+   "seat": "-0.055, -0.017, 0.770"
+  },
+  "griplines": {
+   "triggerat": 98,
+   "supportat": 99,
+   "palm": 100,
+   "rake": 101,
+   "seat": 102
+  }
+ },
+ {
+  "cls": "BD_Pistol",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 3,
+  "gripstart": 31,
+  "gripend": null,
+  "hand": "main",
+  "type": "pistol",
+  "prop": "BD_PropPistol",
+  "mesh": "bd22\\models\\bd22\\pistol_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-4.504, -0.032, -5.208",
+   "rake": "16.5",
+   "supportat": "-1.768, -0.032, -6.398",
+   "triggerat": "2.085, 0.070, -2.018",
+   "seat": "-1.154, 0.070, 2.748"
+  },
+  "griplines": {
+   "palm": 38,
+   "rake": 39,
+   "supportat": 40,
+   "triggerat": 41,
+   "seat": 42
+  }
+ },
+ {
+  "cls": "BD_Revolver",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 84,
+  "gripstart": 108,
+  "gripend": null,
+  "hand": "main",
+  "type": "revolver",
+  "prop": "BD_PropRevolver",
+  "mesh": "bd22\\models\\bd22\\revolver_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-11.190, -0.104, -7.209",
+   "rake": "23.7",
+   "supportat": "-8.626, -0.104, -8.734",
+   "triggerat": "-2.827, 0.039, -5.580",
+   "seat": "-7.254, 0.039, 1.548"
+  },
+  "griplines": {
+   "palm": 115,
+   "rake": 116,
+   "supportat": 117,
+   "triggerat": 118,
+   "seat": 119
+  }
+ },
+ {
+  "cls": "BD_Shotgun",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 173,
+  "gripstart": 202,
+  "gripend": null,
+  "hand": "main",
+  "type": "shotgun",
+  "prop": "BD_PropShotgun",
+  "mesh": "bd22\\models\\bd22\\shotgun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-29.972, 0.044, -1.814",
+   "rake": "62.4",
+   "supportat": "10.100, 0.059, -0.688",
+   "triggerat": "-23.711, 0.175, -3.962",
+   "seat": "-23.854, 0.175, 7.548"
+  },
+  "griplines": {
+   "palm": 205,
+   "rake": 206,
+   "supportat": 207,
+   "triggerat": 208,
+   "seat": 209
+  }
+ },
+ {
+  "cls": "BD_SSG",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 255,
+  "gripstart": 278,
+  "gripend": null,
+  "hand": "main",
+  "type": "breakaction",
+  "prop": "BD_PropSSG",
+  "mesh": "bd22\\models\\bd22\\ssg_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-5.000, -0.066, -0.358",
+   "rake": "75.9",
+   "supportat": "15.800, -0.117, 1.096",
+   "triggerat": "1.640, 1.245, -2.964",
+   "seat": "-6.854, -0.053, 6.348"
+  },
+  "griplines": {
+   "palm": 281,
+   "rake": 282,
+   "supportat": 283,
+   "triggerat": 284,
+   "seat": 285
+  }
+ },
+ {
+  "cls": "BD_MP40",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 337,
+  "gripstart": 365,
+  "gripend": null,
+  "hand": "main",
+  "type": "smg",
+  "prop": "BD_PropMP40",
+  "mesh": "bd22\\models\\bd22\\mp40_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-20.632, -0.184, -6.932",
+   "rake": "35.2",
+   "supportat": "12.227, -0.189, -6.141",
+   "triggerat": "-14.553, -0.120, -5.099",
+   "seat": "-13.854, -0.120, 0.348"
+  },
+  "griplines": {
+   "palm": 368,
+   "rake": 369,
+   "supportat": 370,
+   "triggerat": 371,
+   "seat": 372
+  }
+ },
+ {
+  "cls": "BD_M79",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 454,
+  "gripstart": 477,
+  "gripend": null,
+  "hand": "main",
+  "type": "launcher",
+  "prop": "BD_PropM79",
+  "mesh": "bd22\\models\\bd22\\m79_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-14.769, 0.022, -2.299",
+   "rake": "71.8",
+   "supportat": "16.535, 0.047, -1.403",
+   "triggerat": "-8.699, 0.114, -4.988",
+   "seat": "-10.354, 0.114, 6.948"
+  },
+  "griplines": {
+   "palm": 480,
+   "rake": 481,
+   "supportat": 482,
+   "triggerat": 483,
+   "seat": 484
+  }
+ },
+ {
+  "cls": "BD_FlameCannon",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 543,
+  "gripstart": 576,
+  "gripend": null,
+  "hand": "main",
+  "type": "flamethrower",
+  "prop": "BD_PropFlameCannon",
+  "mesh": "bd22\\models\\bd22\\flamecannon_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "12.027, -2.030, -0.720",
+   "supportat": "3.138, -0.848, -9.643",
+   "triggerat": "15.515, -2.191, -0.770",
+   "seat": "-11.354, -1.930, 3.348"
+  },
+  "griplines": {
+   "palm": 579,
+   "supportat": 580,
+   "triggerat": 581,
+   "seat": 583
+  }
+ },
+ {
+  "cls": "BD_Hellish",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 596,
+  "gripstart": 629,
+  "gripend": null,
+  "hand": "main",
+  "type": "launcher",
+  "prop": "BD_PropHellish",
+  "mesh": "bd22\\models\\bd22\\hellish_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-1.651, 0.216, -16.290",
+   "rake": "70.3",
+   "supportat": "33.934, -0.736, -2.792",
+   "triggerat": "3.380, -0.680, -15.511",
+   "seat": "-9.354, -0.680, -12.252"
+  },
+  "griplines": {
+   "palm": 632,
+   "rake": 633,
+   "supportat": 634,
+   "triggerat": 635,
+   "seat": 637
+  }
+ },
+ {
+  "cls": "BD_Buzzsaw",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 650,
+  "gripstart": 682,
+  "gripend": null,
+  "hand": "main",
+  "type": "chaingun",
+  "prop": "BD_PropBuzzsaw",
+  "mesh": "bd22\\models\\bd22\\buzzsaw_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-20.082, -1.150, -10.702",
+   "rake": "27.8",
+   "supportat": "27.440, -3.142, -3.855",
+   "triggerat": "-13.330, -1.117, -8.614",
+   "seat": "-18.354, -1.031, -0.252"
+  },
+  "griplines": {
+   "palm": 685,
+   "rake": 686,
+   "supportat": 687,
+   "triggerat": 688,
+   "seat": 690
+  }
+ },
+ {
+  "cls": "BD_Axe",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 729,
+  "gripstart": 746,
+  "gripend": null,
+  "hand": "main",
+  "type": "melee",
+  "prop": "BD_PropAxe",
+  "mesh": "bd22\\models\\bd22\\axe_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.51,
+   0.51,
+   0.51
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.5100 0.5100 0.5100",
+  "cm_per_unit": 1.4999,
+  "grip": {
+   "palm": "-15.778, -0.048, -16.224",
+   "rake": "36.6",
+   "supportat": "1.471, -0.051, 3.211",
+   "triggerat": "-20.503, -0.031, -27.310",
+   "seat": "-17.406, -0.031, -21.225"
+  },
+  "griplines": {
+   "palm": 749,
+   "rake": 750,
+   "supportat": 751,
+   "triggerat": 752,
+   "seat": 754
+  }
+ },
+ {
+  "cls": "BD_Dragonslayer",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 767,
+  "gripstart": 784,
+  "gripend": null,
+  "hand": "main",
+  "type": "melee",
+  "prop": "BD_PropDragonslayer",
+  "mesh": "bd22\\models\\bd22\\dragonslayer_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-4.074, 2.193, -10.897",
+   "rake": "19.8",
+   "supportat": "-9.551, 2.185, -25.733",
+   "triggerat": "-3.377, 2.203, -9.334",
+   "seat": "-4.125, 2.203, -3.131"
+  },
+  "griplines": {
+   "palm": 787,
+   "rake": 788,
+   "supportat": 789,
+   "triggerat": 790,
+   "seat": 792
+  }
+ },
+ {
+  "cls": "BD_Chainsaw",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 805,
+  "gripstart": 822,
+  "gripend": null,
+  "hand": "main",
+  "type": "melee",
+  "prop": "BD_PropChainsaw",
+  "mesh": "bd22\\models\\bd22\\chainsaw_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.51,
+   0.51,
+   0.51
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.5100 0.5100 0.5100",
+  "cm_per_unit": 1.4999,
+  "grip": {
+   "palm": "-44.608, 1.452, -0.414",
+   "rake": "80.0",
+   "supportat": "-16.484, 5.216, 16.350",
+   "triggerat": "-42.165, 1.313, 1.358",
+   "seat": "-20.903, 1.313, 16.632"
+  },
+  "griplines": {
+   "palm": 825,
+   "rake": 826,
+   "supportat": 827,
+   "triggerat": 828,
+   "seat": 829
+  }
+ },
+ {
+  "cls": "BD_AssaultShotgun",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 842,
+  "gripstart": 874,
+  "gripend": null,
+  "hand": "main",
+  "type": "shotgun",
+  "prop": "BD_PropAssaultShotgun",
+  "mesh": "bd22\\models\\bd22\\assaultshotgun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-27.143, 0.022, -1.604",
+   "rake": "73.2",
+   "supportat": "13.708, 0.022, -3.273",
+   "triggerat": "-21.760, 0.093, -3.715",
+   "seat": "-17.114, 0.093, 5.412"
+  },
+  "griplines": {
+   "palm": 877,
+   "rake": 878,
+   "supportat": 879,
+   "triggerat": 880,
+   "seat": 881
+  }
+ },
+ {
+  "cls": "BD_BFG",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 939,
+  "gripstart": 972,
+  "gripend": null,
+  "hand": "main",
+  "type": "bfg",
+  "prop": "BD_PropBFG",
+  "mesh": "bd22\\models\\bd22\\bfg_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-25.673, 0.053, -9.258",
+   "rake": "31.9",
+   "supportat": "30.660, 0.086, -6.403",
+   "triggerat": "-21.510, 0.150, -5.015",
+   "seat": "-20.854, 0.150, -0.252"
+  },
+  "griplines": {
+   "palm": 975,
+   "rake": 976,
+   "supportat": 977,
+   "triggerat": 978,
+   "seat": 979
+  }
+ },
+ {
+  "cls": "BD_BFG10k",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1008,
+  "gripstart": 1041,
+  "gripend": null,
+  "hand": "main",
+  "type": "bfg",
+  "prop": "BD_PropBFG10k",
+  "mesh": "bd22\\models\\bd22\\bfg10k_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-28.154, 0.053, -9.453",
+   "rake": "32.0",
+   "supportat": "17.840, 0.086, -6.562",
+   "triggerat": "-24.194, 0.150, -5.232",
+   "seat": "-27.354, 0.150, -0.252"
+  },
+  "griplines": {
+   "palm": 1044,
+   "rake": 1045,
+   "supportat": 1046,
+   "triggerat": 1047,
+   "seat": 1049
+  }
+ },
+ {
+  "cls": "BD_SMG",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1089,
+  "gripstart": 1123,
+  "gripend": null,
+  "hand": "main",
+  "type": "smg",
+  "prop": "BD_PropSMG",
+  "mesh": "bd22\\models\\bd22\\smg_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-11.534, -0.181, -2.058",
+   "rake": "22.1",
+   "supportat": "17.251, 0.375, 0.874",
+   "triggerat": "-5.778, -0.156, 1.393",
+   "seat": "-7.854, -0.086, 5.748"
+  },
+  "griplines": {
+   "palm": 1126,
+   "rake": 1127,
+   "supportat": 1128,
+   "triggerat": 1129,
+   "seat": 1130
+  }
+ },
+ {
+  "cls": "BD_Flamethrower",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1227,
+  "gripstart": 1265,
+  "gripend": null,
+  "hand": "main",
+  "type": "flamethrower",
+  "prop": "BD_PropFlamethrower",
+  "mesh": "bd22\\models\\bd22\\flamethrower_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-30.186, -0.483, 5.836",
+   "rake": "75.2",
+   "supportat": "0.478, -0.453, -6.470",
+   "triggerat": "-27.972, -0.458, 0.118",
+   "seat": "-23.354, -0.469, 18.948"
+  },
+  "griplines": {
+   "palm": 1268,
+   "rake": 1269,
+   "supportat": 1270,
+   "triggerat": 1271,
+   "seat": 1273
+  }
+ },
+ {
+  "cls": "BD_Grenade",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1312,
+  "gripstart": 1330,
+  "gripend": null,
+  "hand": "main",
+  "type": "melee",
+  "prop": "BD_PropGrenade",
+  "mesh": "bd22\\models\\bd22\\grenade_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "0.430, 0.367, -2.752",
+   "rake": "0.0",
+   "supportat": "0.430, 0.367, -2.752",
+   "triggerat": "-1.183, -0.297, 0.393",
+   "seat": "0.953, -0.297, 1.444"
+  },
+  "griplines": {
+   "palm": 1333,
+   "rake": 1334,
+   "supportat": 1335,
+   "triggerat": 1336,
+   "seat": 1338
+  }
+ },
+ {
+  "cls": "BD_Machinegun",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1367,
+  "gripstart": 1394,
+  "gripend": null,
+  "hand": "main",
+  "type": "chaingun",
+  "prop": "BD_PropMachinegun",
+  "mesh": "bd22\\models\\bd22\\machinegun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-25.484, -0.267, -9.278",
+   "rake": "23.2",
+   "supportat": "14.585, -0.266, -7.173",
+   "triggerat": "-19.308, -0.313, -6.156",
+   "seat": "-21.654, -0.171, 0.948"
+  },
+  "griplines": {
+   "palm": 1397,
+   "rake": 1398,
+   "supportat": 1399,
+   "triggerat": 1400,
+   "seat": 1402
+  }
+ },
+ {
+  "cls": "BD_Minigun",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1506,
+  "gripstart": 1537,
+  "gripend": null,
+  "hand": "main",
+  "type": "chaingun",
+  "prop": "BD_PropMinigun",
+  "mesh": "bd22\\models\\bd22\\minigun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-43.264, -0.498, 1.522",
+   "rake": "25.9",
+   "supportat": "-7.266, 24.373, 5.404",
+   "triggerat": "-37.098, -0.484, 4.002",
+   "seat": "-38.854, -0.103, 12.948"
+  },
+  "griplines": {
+   "palm": 1540,
+   "rake": 1541,
+   "supportat": 1554,
+   "triggerat": 1555,
+   "seat": 1556
+  }
+ },
+ {
+  "cls": "BD_Plasma",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1606,
+  "gripstart": 1644,
+  "gripend": null,
+  "hand": "main",
+  "type": "plasma",
+  "prop": "BD_PropPlasma",
+  "mesh": "bd22\\models\\bd22\\plasma_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-33.214, 0.452, -7.346",
+   "rake": "30.0",
+   "supportat": "8.750, 0.506, -8.592",
+   "triggerat": "-27.836, 0.607, -4.242",
+   "seat": "-28.004, 0.607, -2.484"
+  },
+  "griplines": {
+   "palm": 1647,
+   "rake": 1648,
+   "supportat": 1649,
+   "triggerat": 1650,
+   "seat": 1651
+  }
+ },
+ {
+  "cls": "BD_RPG",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1695,
+  "gripstart": 1732,
+  "gripend": null,
+  "hand": "main",
+  "type": "launcher",
+  "prop": "BD_PropRPG",
+  "mesh": "bd22\\models\\bd22\\rpg_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "13.045, 3.225, -17.293",
+   "rake": "29.4",
+   "supportat": "46.600, 3.297, -4.017",
+   "triggerat": "19.140, 3.250, -14.068",
+   "seat": "23.646, 3.306, -8.652"
+  },
+  "griplines": {
+   "palm": 1735,
+   "rake": 1736,
+   "supportat": 1737,
+   "triggerat": 1738,
+   "seat": 1740
+  }
+ },
+ {
+  "cls": "BD_Railgun",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1869,
+  "gripstart": 1907,
+  "gripend": null,
+  "hand": "main",
+  "type": "plasma",
+  "prop": "BD_PropRailgun",
+  "mesh": "bd22\\models\\bd22\\railgun_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-25.262, -0.130, -9.440",
+   "rake": "29.5",
+   "supportat": "22.040, -0.094, -9.532",
+   "triggerat": "-18.637, -0.092, -7.447",
+   "seat": "-23.344, -0.042, -4.536"
+  },
+  "griplines": {
+   "palm": 1910,
+   "rake": 1911,
+   "supportat": 1912,
+   "triggerat": 1913,
+   "seat": 1914
+  }
+ },
+ {
+  "cls": "BD_Rifle",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 1953,
+  "gripstart": 1981,
+  "gripend": null,
+  "hand": "main",
+  "type": "rifle",
+  "prop": "BD_PropRifle",
+  "mesh": "bd22\\models\\bd22\\rifle_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-13.426, 0.108, -10.131",
+   "rake": "33.0",
+   "supportat": "18.482, 0.141, -1.064",
+   "triggerat": "-7.745, 0.205, -7.981",
+   "seat": "-10.054, 0.205, -0.252"
+  },
+  "griplines": {
+   "palm": 1984,
+   "rake": 1985,
+   "supportat": 1986,
+   "triggerat": 1987,
+   "seat": 1988
+  }
+ },
+ {
+  "cls": "BD_Unmaker",
+  "card": "bd22\\WMCARD.bd22",
+  "line": 2071,
+  "gripstart": 2109,
+  "gripend": null,
+  "hand": "main",
+  "type": "bfg",
+  "prop": "BD_PropUnmaker",
+  "mesh": "bd22\\models\\bd22\\unmaker_wm.md3",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   -0.34,
+   0.34,
+   0.34
+  ],
+  "mdef": "bd22\\MODELDEF.txt",
+  "hidden": [],
+  "csv_frame": "0",
+  "csv_scale": "-0.3400 0.3400 0.3400",
+  "cm_per_unit": 0.9999,
+  "grip": {
+   "palm": "-28.558, -0.009, -9.866",
+   "rake": "15.0",
+   "supportat": "6.959, 0.006, -7.162",
+   "triggerat": "-21.508, 0.083, -7.139",
+   "seat": "-19.354, 0.083, -6.252"
+  },
+  "griplines": {
+   "palm": 2112,
+   "rake": 2113,
+   "supportat": 2114,
+   "triggerat": 2115,
+   "seat": 2117
+  }
+ },
+ {
+  "cls": "WM_BreachGlock",
+  "card": "RS_Modern\\WMCARD.breach",
+  "line": 17,
+  "gripstart": 69,
+  "gripend": null,
+  "hand": "main",
+  "type": "pistol",
+  "prop": "WM_PropBreachGlock",
+  "mesh": "RS_Modern\\models\\breach\\glock\\glockrerig.iqm",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.3893,
+   0.3893,
+   0.3893
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "0",
+  "csv_scale": "0.3893 0.3893 0.3893",
+  "cm_per_unit": 1.1449,
+  "grip": {
+   "palm": "34.726, 5.808, -10.521",
+   "rake": "23.7",
+   "supportat": "36.966, 5.808, -11.853",
+   "triggerat": "39.470, 5.801, -7.904"
+  },
+  "griplines": {
+   "palm": 71,
+   "rake": 72,
+   "supportat": 73,
+   "triggerat": 74
+  }
+ },
+ {
+  "cls": "WM_BreachGlockS",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 17,
+  "gripstart": 58,
+  "gripend": null,
+  "hand": "main",
+  "type": "pistol",
+  "prop": "WM_PropBreachGlockS",
+  "mesh": "RS_Modern\\models\\breach\\glocksil\\glocksil.iqm",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.3893,
+   0.3893,
+   0.3893
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "0",
+  "csv_scale": "0.3893 0.3893 0.3893",
+  "cm_per_unit": 1.1449,
+  "grip": {
+   "palm": "34.742, 5.733, -10.494",
+   "rake": "23.9",
+   "supportat": "36.977, 5.733, -11.834",
+   "triggerat": "39.502, 5.801, -7.897"
+  },
+  "griplines": {
+   "palm": 60,
+   "rake": 61,
+   "supportat": 62,
+   "triggerat": 63
+  }
+ },
+ {
+  "cls": "WM_BreachKimber",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 118,
+  "gripstart": 159,
+  "gripend": null,
+  "hand": "off",
+  "type": "pistol",
+  "prop": "WM_PropBreachKimber",
+  "mesh": "RS_Modern\\models\\breach\\kimber\\kimber.iqm",
+  "mesh_ok": true,
+  "frame": 0,
+  "scale": [
+   0.3893,
+   0.3893,
+   0.3893
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "0",
+  "csv_scale": "0.3893 0.3893 0.3893",
+  "cm_per_unit": 1.1449,
+  "grip": {
+   "palm": "33.882, 5.713, -10.864",
+   "rake": "17.6",
+   "supportat": "36.251, 5.713, -11.950",
+   "triggerat": "38.644, 5.801, -7.745"
+  },
+  "griplines": {
+   "palm": 161,
+   "rake": 162,
+   "supportat": 163,
+   "triggerat": 164
+  }
+ },
+ {
+  "cls": "WM_BreachMK18",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 208,
+  "gripstart": 251,
+  "gripend": null,
+  "hand": "main",
+  "type": "rifle",
+  "prop": "WM_PropBreachMK18",
+  "mesh": "RS_Modern\\models\\breach\\mk18\\mk18nosil.iqm",
+  "mesh_ok": true,
+  "frame": 25,
+  "scale": [
+   0.3893,
+   0.3893,
+   0.3893
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "25",
+  "csv_scale": "0.3893 0.3893 0.3893",
+  "cm_per_unit": 1.1449,
+  "grip": {
+   "palm": "14.525, 4.991, -14.140",
+   "rake": "29.3",
+   "supportat": "41.525, 4.610, -10.868",
+   "triggerat": "19.569, 5.088, -11.662"
+  },
+  "griplines": {
+   "palm": 253,
+   "rake": 254,
+   "supportat": 255,
+   "triggerat": 256
+  }
+ },
+ {
+  "cls": "WM_BreachMK18S",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 342,
+  "gripstart": 385,
+  "gripend": null,
+  "hand": "main",
+  "type": "rifle",
+  "prop": "WM_PropBreachMK18S",
+  "mesh": "RS_Modern\\models\\breach\\mk18\\mk18nosil.iqm",
+  "mesh_ok": true,
+  "frame": 25,
+  "scale": [
+   0.3893,
+   0.3893,
+   0.3893
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "25",
+  "csv_scale": "0.3893 0.3893 0.3893",
+  "cm_per_unit": 1.1449,
+  "grip": {
+   "palm": "14.525, 4.991, -14.140",
+   "rake": "29.3",
+   "supportat": "41.518, 4.630, -10.904",
+   "triggerat": "19.620, 5.088, -11.815"
+  },
+  "griplines": {
+   "palm": 387,
+   "rake": 388,
+   "supportat": 389,
+   "triggerat": 390
+  }
+ },
+ {
+  "cls": "WM_BreachHK416S",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 470,
+  "gripstart": 513,
+  "gripend": null,
+  "hand": "main",
+  "type": "rifle",
+  "prop": "WM_PropBreachHK416S",
+  "mesh": "RS_Modern\\models\\breach\\hk416\\hk416.iqm",
+  "mesh_ok": true,
+  "frame": 25,
+  "scale": [
+   0.3893,
+   0.3893,
+   0.3893
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "25",
+  "csv_scale": "0.3893 0.3893 0.3893",
+  "cm_per_unit": 1.1449,
+  "grip": {
+   "palm": "16.454, 5.141, -14.271",
+   "rake": "35.4",
+   "supportat": "39.947, 5.045, -11.347",
+   "triggerat": "21.072, 5.088, -11.469"
+  },
+  "griplines": {
+   "palm": 515,
+   "rake": 516,
+   "supportat": 517,
+   "triggerat": 518
+  }
+ },
+ {
+  "cls": "WM_BreachMCX",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 599,
+  "gripstart": 642,
+  "gripend": null,
+  "hand": "main",
+  "type": "rifle",
+  "prop": "WM_PropBreachMCX",
+  "mesh": "RS_Modern\\models\\breach\\mcx\\mcxrig.iqm",
+  "mesh_ok": true,
+  "frame": 25,
+  "scale": [
+   0.3893,
+   0.3893,
+   0.3893
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "25",
+  "csv_scale": "0.3893 0.3893 0.3893",
+  "cm_per_unit": 1.1449,
+  "grip": {
+   "palm": "16.904, 5.180, -13.995",
+   "rake": "26.8",
+   "supportat": "39.946, 4.955, -11.454",
+   "triggerat": "21.339, 5.088, -11.536"
+  },
+  "griplines": {
+   "palm": 644,
+   "rake": 645,
+   "supportat": 646,
+   "triggerat": 647
+  }
+ },
+ {
+  "cls": "WM_BreachG36C",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 727,
+  "gripstart": 770,
+  "gripend": null,
+  "hand": "main",
+  "type": "rifle",
+  "prop": "WM_PropBreachG36C",
+  "mesh": "RS_Modern\\models\\breach\\g36\\g36rerig.iqm",
+  "mesh_ok": true,
+  "frame": 25,
+  "scale": [
+   0.3893,
+   0.3893,
+   0.3893
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "25",
+  "csv_scale": "0.3893 0.3893 0.3893",
+  "cm_per_unit": 1.1449,
+  "grip": {
+   "palm": "15.783, 5.412, -13.798",
+   "rake": "27.2",
+   "supportat": "40.220, 5.324, -12.524",
+   "triggerat": "20.459, 5.088, -11.361"
+  },
+  "griplines": {
+   "palm": 772,
+   "rake": 773,
+   "supportat": 774,
+   "triggerat": 775
+  }
+ },
+ {
+  "cls": "WM_BreachMP5",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 856,
+  "gripstart": 899,
+  "gripend": null,
+  "hand": "main",
+  "type": "smg",
+  "prop": "WM_PropBreachMP5",
+  "mesh": "RS_Modern\\models\\breach\\mp5\\mp5.iqm",
+  "mesh_ok": true,
+  "frame": 109,
+  "scale": [
+   0.7786,
+   0.7786,
+   0.7786
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "109",
+  "csv_scale": "0.7786 0.7786 0.7786",
+  "cm_per_unit": 2.2899,
+  "grip": {
+   "palm": "9.407, 3.429, -8.038",
+   "rake": "28.3",
+   "supportat": "20.410, 3.462, -3.709",
+   "triggerat": "9.712, 3.348, -10.731"
+  },
+  "griplines": {
+   "palm": 901,
+   "rake": 902,
+   "supportat": 903,
+   "triggerat": 904
+  }
+ },
+ {
+  "cls": "WM_BreachBenelli",
+  "card": "RS_Modern\\WMCARD.breach_set",
+  "line": 985,
+  "gripstart": 1021,
+  "gripend": null,
+  "hand": "main",
+  "type": "shotgun",
+  "prop": "WM_PropBreachBenelli",
+  "mesh": "RS_Modern\\models\\breach\\benelli\\benelli.iqm",
+  "mesh_ok": true,
+  "frame": 59,
+  "scale": [
+   0.8908,
+   0.8908,
+   0.8908
+  ],
+  "mdef": "RS_Modern\\MODELDEF.txt",
+  "hidden": [
+   "v_hands.bmp"
+  ],
+  "csv_frame": "59",
+  "csv_scale": "0.8908 0.8908 0.8908",
+  "cm_per_unit": 2.6198,
+  "grip": {
+   "palm": "7.103, 3.530, -6.881",
+   "rake": "18.5",
+   "supportat": "20.686, 2.805, -4.472",
+   "triggerat": "9.042, 3.470, -5.496"
+  },
+  "griplines": {
+   "palm": 1023,
+   "rake": 1024,
+   "supportat": 1025,
+   "triggerat": 1026
+  }
+ }
+]
