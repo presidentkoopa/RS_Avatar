@@ -49,6 +49,33 @@ def md3_load(path, frame=0, hide=()):
         off += oend
     return np.concatenate(T), np.concatenate(V)
 
+def iqm_load(path, frame=0, hide=()):
+    """An IQM gun skinned at `frame` (iqm.py's posed_positions), its own meshes, with the viewmodel's
+    hands (material v_hands*, v_arms*) and any listed hidden material or mesh dropped."""
+    from iqm import IQM
+    m = IQM(path)
+    d = m.data
+    h = struct.unpack_from("<27I", d, 16)
+    # version, filesize, flags, num_text, ofs_text, num_meshes, ofs_meshes, num_vertexarrays,
+    # num_vertexes, ofs_vertexarrays, num_triangles, ofs_triangles, ...
+    ntext, otext, nmesh, omesh, ntri, otri = h[3], h[4], h[5], h[6], h[10], h[11]
+    txt = d[otext:otext + ntext]
+    name = lambda o: txt[o:txt.index(b"\0", o)].decode("latin1").lower()
+    tris = np.frombuffer(d, "<u4", ntri * 3, otri).reshape(ntri, 3).astype(np.int64)
+    hide = [x.lower() for x in hide if x]
+    keep = []
+    for i in range(nmesh):
+        mn, mat, fv, nv, ft, nt = struct.unpack_from("<6I", d, omesh + i * 24)
+        a, b = name(mn), name(mat)
+        if b.startswith("v_hands") or b.startswith("v_arms") or any(x in a or x in b for x in hide):
+            continue
+        keep.append(tris[ft:ft + nt])
+    V = np.array(m.posed_positions(frame), float)   # frame 0 is a pose too, not the bind
+    return np.concatenate(keep), V
+
+def gun_load(path, frame=0, hide=()):
+    return iqm_load(path, frame, hide) if path.lower().endswith(".iqm") else md3_load(path, frame, hide)
+
 def vec(s): return np.array([float(x) for x in s.replace(",", " ").split()])
 
 def unit(v): return v / np.linalg.norm(v)
@@ -131,7 +158,7 @@ def main():
         # scale is a mirror the follow-hand path undoes on the way to the screen; carried into the
         # grip frame here it turns the palm normal over and puts the hand on the gun inside out.
         scale = np.abs(np.array(g["scale"], float))
-        GT, GV = md3_load(os.path.join(root, g["mesh"].replace("\\", "/")), int(g.get("frame") or 0), g.get("hidden") or [])
+        GT, GV = gun_load(os.path.join(root, g["mesh"].replace("\\", "/")), int(g.get("frame") or 0), g.get("hidden") or [])
         GVw = GV * scale
         palm_w = palm_m * scale
         roll = float(os.environ.get("ROLL_" + gname, os.environ.get("ROLL", "0")))

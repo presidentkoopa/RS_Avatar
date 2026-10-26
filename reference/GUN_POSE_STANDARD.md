@@ -1,7 +1,8 @@
 # What a gun mesh needs so an avatar hand can hold it
 
 The standard a new mesh must meet before it comes off the psprite layer into the world. Written
-2026-10-26 from the Vanilla VR set (36 guns and the grenade), which covers every grip type we have.
+2026-10-26 from the Vanilla VR set (36 guns and the grenade), which covers every grip type we have,
+and checked on RS Modern, the IQM set.
 Most of it is the rules the 2026-10-10 card pass already used (`E:\DOOMWork\tools\avatar_grip\README.md`),
 written down as a contract; what this pass added is marked **new**.
 
@@ -79,5 +80,15 @@ through the grip, the hand is not on top of the gun, and the left hand mirrors t
 | hand off the grip | RocketLauncher, RPG: the hand is in front of the rear grip -- `palm` wrong |
 | straight stocks, hand on top of the wrist | PumpDoom (rake 62), AssaultShotgun (73), SSG (44), DoubleBarrel (59): a stock grip rolls the hand under the wrist and probably closes on a shallower line than the card's rake. A ±60° roll alone does not fix it. **Open: the owner's call on how a stock wrist is held** -- that decides whether the standard gains a `roll` field or the rakes change |
 | to look at | RotaryGun, RotaryLauncher, Chaingun (handle on the body), Flamethrower2 (rake 75, nozzle grip), the three chainsaws (rear handle runs fore and aft; rake capped at 80) |
+
+## 8. RS Modern (IQM), 2026-10-26, c_doom_marine
+
+The only IQM set, real-world guns. The gun is skinned at the card's drawn frame and the viewmodel's own
+hands (material `v_hands*`) are dropped.
+
+| | guns |
+|---|---|
+| sits right | Glock, Kimber (left hand), MP5, Benelli, MK18, HK416, MCX, G36C |
+| not checked | GlockS: its mesh (`glocksil.iqm`) is in RS_VR_Weapons only |
 
 Sheets: RS_Avatar `reference/gun_fit/`.
