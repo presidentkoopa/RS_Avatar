@@ -25,6 +25,24 @@ authoring — it works with whatever `Weapon` classes are actually loaded.
   switch speed for holster actions only; ordinary weapon switching (number
   keys, the wheel) is untouched either way.
 
+## On your body (REMA)
+
+With the UZDXREMA engine and a REMA body worn, the hip pairs, the pectorals and
+the ammo pouch ride the **body itself** — its pelvis and chest — instead of
+hanging off the headset. Crouch, lean, sit or turn your hips under a still head
+and they go with you, sitting where you can see them on the model.
+
+- The first time you stand up straight with a body on, each holster is moved
+  onto the body from exactly where your headset table had it, so nothing jumps.
+- Offsets are kept as fractions of your eye height along the body's own
+  pelvis/chest frame, so they carry between bodies of different sizes.
+- Edit mode moves both at once; saved profiles keep both.
+- The head pair stays on the headset — beside your ears *is* head-relative.
+- `rs_holster_body` (menu: Placement → "Holsters ride the worn body") turns it
+  off and gives you the headset-only table, exactly as before. With no body
+  drawn it falls back to that table on its own.
+- `netevent rs-holster-debug` prints whether the body is driving them.
+
 ## Positioning
 
 Every anchor is adjustable in-headset — no config file editing, no

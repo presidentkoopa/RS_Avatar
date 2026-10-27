@@ -339,6 +339,40 @@ class RS_HolsterManager : EventHandler
 	// than read absolutely because only the CHANGE should move the body.
 	double lastTurnYaw[MAXPLAYERS];
 
+	// ---- [BODYANCHOR] 2026-10-27: the torso holsters ride the WORN BODY ----
+	//
+	// With a REMA body on, the hips, pectorals and pouch hang off the body's own
+	// pelvis and chest -- where you can see them -- instead of off the headset.
+	// Crouch, lean, sit, twist your hips under a still head: the holsters go with
+	// the body, which the headset table above cannot know about at all.
+	//
+	// THE FRAME IS BUILT FROM JOINT POSITIONS, never a joint's own axes: a bone's
+	// axes are whatever its rig's author left them, and differ body to body. Two
+	// joints mean the same thing on every rig:
+	//     pelvis frame  right = thigh_R - thigh_L,       up = pelvis -> chest
+	//     chest frame   right = upperarm_R - upperarm_L, up = chest -> neck
+	//     forward       up x right, checked against the body's heading
+	//
+	// OFFSETS ARE FRACTIONS OF CALIBRATED EYE HEIGHT along that frame, the unit the
+	// headset table already uses, so a holster keeps its place on a short body and
+	// a tall one. They are SEEDED from the headset table the first time you stand
+	// upright with a body on -- the holsters stay exactly where you tuned them --
+	// and from then on they ride the body. Edit mode drags both at once.
+	//
+	// The head pair (2, 3) stays on the headset: beside your ears IS head-relative.
+	//
+	// CONSOLE PLAYER ONLY, because VRAvatarTable.SocketWorld answers nobody else
+	// yet; every other player keeps the headset table, unchanged. Off with
+	// rs_holster_body, or whenever no body drew lately -- then it is the old table.
+	bool    bodyOk;
+	Vector3 bPelvis, bPF, bPR, bPU;
+	Vector3 bChest,  bCF, bCR, bCU;
+	double  bdF[HOLSTER_COUNT];
+	double  bdS[HOLSTER_COUNT];
+	double  bdU[HOLSTER_COUNT];
+	bool    bdSet[HOLSTER_COUNT];
+	bool    bodyFlipWarned;
+
 	const BODY_YAW_DEADZONE  = 50.0;  // degrees of free head turn
 	const BODY_YAW_FOLLOW    = 0.15;  // catch-up rate past the deadzone
 	const BODY_YAW_MAX_PITCH = 55.0;  // stop tracking beyond this head pitch
@@ -438,6 +472,7 @@ class RS_HolsterManager : EventHandler
 			}
 
 			updateBodyYaw(i, pawn);
+			updateBodyFrame(i, pawn);   // [BODYANCHOR] before anything reads an anchor
 			updateGrabs(i, pawn);
 			updateClaims(i, pawn); // also repositions props, via updateProps
 
@@ -830,6 +865,19 @@ class RS_HolsterManager : EventHandler
 		if (isHandAnchored(idx))
 			return handAnchorPos(pawn, idx);
 
+		// [BODYANCHOR] on the worn body when there is one and this holster rides it
+		if (bodyRides(i, idx) && bdSet[idx])
+		{
+			double e = eyeHeight[i];
+			return basisO(idx) + (basisF(idx) * (bdF[idx] * e)) + (basisR(idx) * (bdS[idx] * e)) + (basisU(idx) * (bdU[idx] * e));
+		}
+		return hmdAnchorPos(i, pawn, idx);
+	}
+
+	// The headset table's own answer, always -- what anchorPos was before the body
+	// anchors, kept whole because it is still the fallback and the seed.
+	private Vector3 hmdAnchorPos(int i, PlayerPawn pawn, int idx)
+	{
 		// bodyYaw, NOT HmdYaw: anchors hang off the torso's facing so they do
 		// not whip around when the head turns. ZScript's cos/sin take DEGREES.
 		double yaw = bodyYaw[i];
@@ -865,6 +913,147 @@ class RS_HolsterManager : EventHandler
 
 		double floorZ = pawn.HmdPos.Z - eyeHeight[i];
 		oFrac = (eyeHeight[i] != 0) ? ((world.Z - floorZ) / eyeHeight[i]) : 0.0;
+	}
+
+	// ---- [BODYANCHOR] ----------------------------------------------------
+
+	private bool bodyAnchorsOn() const
+	{
+		let cv = CVar.GetCVar("rs_holster_body", players[consoleplayer]);
+		return cv == null || cv.GetBool();
+	}
+
+	// The torso holsters the body carries: both hip pairs, the pectorals, the pouch.
+	private bool isBodyRidden(int idx) const
+	{
+		return idx == 0 || idx == 1 || idx == 6 || idx == 7
+			|| idx == 4 || idx == 5 || idx == AMMO_POUCH_IDX;
+	}
+
+	private bool onPelvis(int idx) const
+	{
+		return idx == 0 || idx == 1 || idx == 6 || idx == 7;
+	}
+
+	private bool bodyRides(int i, int idx) const
+	{
+		return bodyOk && i == consoleplayer && isBodyRidden(idx);
+	}
+
+	// The frame a ridden holster hangs on. Four getters rather than one function
+	// with four `out Vector3`s: every out parameter in this file is a double, and
+	// there is no way to test-compile here, so nothing new is asked of the compiler.
+	private Vector3 basisO(int idx) const { return onPelvis(idx) ? bPelvis : bChest; }
+	private Vector3 basisF(int idx) const { return onPelvis(idx) ? bPF : bCF; }
+	private Vector3 basisR(int idx) const { return onPelvis(idx) ? bPR : bCR; }
+	private Vector3 basisU(int idx) const { return onPelvis(idx) ? bPU : bCU; }
+
+	// Where the stored weapon's yaw is measured from: the frame it hangs on.
+	private double torsoYaw(int i, int idx)
+	{
+		if (bodyRides(i, idx))
+		{
+			Vector3 f = basisF(idx);
+			return atan2(f.y, f.x);
+		}
+		return bodyYaw[i];
+	}
+
+	// A joint of the worn body, in the world, ONLY if it came from the body's own
+	// drawn pose (provenance 2). 1 is the headset fallback -- right heading, wrong
+	// height -- and must never be mistaken for a hip.
+	private bool bodyJoint(int i, string role)
+	{
+		int src; Vector3 p, f, u;
+		[src, p, f, u] = VRAvatarTable.SocketWorld(i, role, (0, 0, 0));
+		jointAt = p;
+		return src == 2;
+	}
+	Vector3 jointAt;   // bodyJoint's answer; read straight after the call
+
+	// right from a side-to-side line, up from a bottom-to-top line made square to
+	// it. Answers in sqR/sqU, same reason as basisO and jointAt.
+	Vector3 sqR, sqU;
+	private bool squareFrame(Vector3 side, Vector3 upish)
+	{
+		double sl = side.Length();
+		if (sl < 0.001) return false;
+		sqR = side / sl;
+		Vector3 up = upish - (sqR * (upish dot sqR));
+		double ul = up.Length();
+		if (ul < 0.001) return false;
+		sqU = up / ul;
+		return true;
+	}
+
+	// Once per tic, before anything reads an anchor.
+	private void updateBodyFrame(int i, PlayerPawn pawn)
+	{
+		if (i != consoleplayer) return;
+		bodyOk = false;
+		if (!bodyAnchorsOn()) return;
+
+		if (!bodyJoint(i, "pelvis"))     return; Vector3 pel = jointAt;
+		if (!bodyJoint(i, "chest"))      return; Vector3 ch  = jointAt;
+		if (!bodyJoint(i, "neck"))       return; Vector3 nk  = jointAt;
+		if (!bodyJoint(i, "thigh_R"))    return; Vector3 thR = jointAt;
+		if (!bodyJoint(i, "thigh_L"))    return; Vector3 thL = jointAt;
+		if (!bodyJoint(i, "upperarm_R")) return; Vector3 uaR = jointAt;
+		if (!bodyJoint(i, "upperarm_L")) return; Vector3 uaL = jointAt;
+
+		if (!squareFrame(thR - thL, ch - pel)) return;
+		Vector3 pr = sqR;
+		Vector3 pu = sqU;
+		if (!squareFrame(uaR - uaL, nk - ch)) return;
+		Vector3 cr = sqR;
+		Vector3 cu = sqU;
+		Vector3 pf = pu cross pr;
+		Vector3 cf = cu cross cr;
+
+		// A body whose "right" is on its left faces backwards by this test. Refuse
+		// it rather than hang every holster behind the player, and say so once.
+		double hy = VRAvatarTable.BodyYaw();
+		Vector3 hf = (cos(hy), sin(hy), 0);
+		if ((pf dot hf) <= 0 || (cf dot hf) <= 0)
+		{
+			if (!bodyFlipWarned)
+			{
+				bodyFlipWarned = true;
+				Console.Printf("\cgRS_HOLSTER: the worn body's frame faces away from its heading (pelvis %.2f, chest %.2f) -- staying on the headset table", pf dot hf, cf dot hf);
+			}
+			return;
+		}
+
+		bPelvis = pel; bPF = pf; bPR = pr; bPU = pu;
+		bChest  = ch;  bCF = cf; bCR = cr; bCU = cu;
+		bodyOk = true;
+
+		// SEED from the headset table, only while he stands as tall as he was
+		// calibrated (within the 5% a person's posture wanders standing still) and
+		// looks no further than the neck allows -- the moment the table and the
+		// body agree on where his hips are. Until then the table is still used.
+		double eyeNow = pawn.HmdPos.Z - pawn.floorz;
+		if (eyeHeight[i] > 0 && eyeNow > eyeHeight[i] * 0.95 && abs(pawn.HmdPitch) < BODY_YAW_MAX_PITCH)
+		{
+			for (int h = 0; h < HOLSTER_COUNT; ++h)
+			{
+				if (!isBodyRidden(h) || bdSet[h]) continue;
+				worldToBodyRidden(i, h, hmdAnchorPos(i, pawn, h));
+				if (verboseDiag())
+					Console.Printf("RS_HOLSTER: holster %d now rides the body (%.3f fwd, %.3f side, %.3f up)", h, bdF[h], bdS[h], bdU[h]);
+			}
+		}
+	}
+
+	// The inverse of the body branch of anchorPos.
+	private void worldToBodyRidden(int i, int idx, Vector3 world)
+	{
+		if (!bodyRides(i, idx) || eyeHeight[i] <= 0) return;
+		Vector3 d = world - basisO(idx);
+		bdF[idx] = (d dot basisF(idx)) / eyeHeight[i];
+		bdS[idx] = (d dot basisR(idx)) / eyeHeight[i];
+		bdU[idx] = (d dot basisU(idx)) / eyeHeight[i];
+		bdSet[idx] = true;
 	}
 
 	// The live angle/pitch/roll every hand-anchored holster's basis is built
@@ -1016,11 +1205,12 @@ class RS_HolsterManager : EventHandler
 			else
 			{
 				worldToBody(i, pawn, pawn.AttackPos, edFwd[gm], edSide[gm], edFrac[gm]);
+				worldToBodyRidden(i, gm, pawn.AttackPos);   // [BODYANCHOR] both tables move together
 				edPitch[gm] = pawn.AttackPitch;
 				edRoll[gm]  = pawn.AttackRoll;
 				// yaw relative to the BODY, not the world, or the stored angle
 				// would only be right while facing the direction you set it in
-				edYaw[gm] = normalizeDeg(pawn.AttackAngle - bodyYaw[i]);
+				edYaw[gm] = normalizeDeg(pawn.AttackAngle - torsoYaw(i, gm));
 			}
 		}
 		if (go >= 0)
@@ -1033,9 +1223,10 @@ class RS_HolsterManager : EventHandler
 			// the same hand it's mounted on" has no meaningful answer to
 			// give it anyway.
 			worldToBody(i, pawn, pawn.OffhandPos, edFwd[go], edSide[go], edFrac[go]);
+			worldToBodyRidden(i, go, pawn.OffhandPos);   // [BODYANCHOR]
 			edPitch[go] = pawn.OffhandPitch;
 			edRoll[go]  = pawn.OffhandRoll;
-			edYaw[go] = normalizeDeg(pawn.OffhandAngle - bodyYaw[i]);
+			edYaw[go] = normalizeDeg(pawn.OffhandAngle - torsoYaw(i, go));
 		}
 	}
 
@@ -1083,6 +1274,13 @@ class RS_HolsterManager : EventHandler
 			level.JSONProfileSetDouble(key .. "pitch", edPitch[h]);
 			level.JSONProfileSetDouble(key .. "yaw",   edYaw[h]);
 			level.JSONProfileSetDouble(key .. "roll",  edRoll[h]);
+			// [BODYANCHOR] only once seeded; an unseeded holster reseeds on load
+			if (bdSet[h])
+			{
+				level.JSONProfileSetDouble(key .. "bfwd",  bdF[h]);
+				level.JSONProfileSetDouble(key .. "bside", bdS[h]);
+				level.JSONProfileSetDouble(key .. "bup",   bdU[h]);
+			}
 		}
 		if (level.JSONProfileSave(name))
 		{
@@ -1123,6 +1321,18 @@ class RS_HolsterManager : EventHandler
 			edPitch[h] = level.JSONProfileGetDouble(key .. "pitch", hsPitch);
 			edYaw[h]   = level.JSONProfileGetDouble(key .. "yaw",   hsYaw);
 			edRoll[h]  = level.JSONProfileGetDouble(key .. "roll",  hsRoll);
+
+			// [BODYANCHOR] a profile from before body anchors has none: those reseed
+			// from the table just loaded, the next time he stands up straight.
+			double notSet = -12345.0;
+			double bf = level.JSONProfileGetDouble(key .. "bfwd", notSet);
+			bdSet[h] = (bf != notSet);
+			if (bdSet[h])
+			{
+				bdF[h] = bf;
+				bdS[h] = level.JSONProfileGetDouble(key .. "bside", 0.0);
+				bdU[h] = level.JSONProfileGetDouble(key .. "bup",   0.0);
+			}
 		}
 		Console.Printf("\c[Gold]RS_HOLSTER: loaded profile \"%s\"", name);
 		if (name == "holster_seated" || name == "holster_standing")
@@ -1499,7 +1709,7 @@ class RS_HolsterManager : EventHandler
 			}
 			else
 			{
-				baseAngle = bodyYaw[i];
+				baseAngle = torsoYaw(i, h);   // [BODYANCHOR]
 				basePitch = 0.0;
 				baseRoll  = 0.0;
 			}
@@ -2303,6 +2513,8 @@ class RS_HolsterManager : EventHandler
 		{
 			edInit = false;
 			ensureEdit();
+			// [BODYANCHOR] and back off the body, to be reseeded from those defaults
+			for (int h = 0; h < HOLSTER_COUNT; ++h) bdSet[h] = false;
 			Console.Printf("RS_HOLSTER: offsets reset to the built-in defaults");
 			return;
 		}
@@ -2876,6 +3088,26 @@ class RS_HolsterManager : EventHandler
 		Console.Printf("pawn    %.1f, %.1f, %.1f   floor %.1f", pawn.pos.X, pawn.pos.Y, pawn.pos.Z, pawn.floorz);
 		Console.Printf("mainhnd %.1f, %.1f, %.1f", pawn.AttackPos.X, pawn.AttackPos.Y, pawn.AttackPos.Z);
 		Console.Printf("offhand %.1f, %.1f, %.1f", pawn.OffhandPos.X, pawn.OffhandPos.Y, pawn.OffhandPos.Z);
+		if (i == consoleplayer)
+		{
+			// Fresh, not last tic's: this is also the desk check, where nothing is
+			// calibrated and WorldTick never gets as far as building the frame.
+			updateBodyFrame(i, pawn);
+			if (bodyOk)
+			{
+				double hy = VRAvatarTable.BodyYaw();
+				Vector3 hf = (cos(hy), sin(hy), 0);
+				Console.Printf("body frame: pelvis %.1f above floor, chest %.1f above pelvis | pelvis fwd.heading %.3f, chest fwd.heading %.3f | pelvis-to-chest %.1f",
+					bPelvis.Z - pawn.floorz, bChest.Z - bPelvis.Z, bPF dot hf, bCF dot hf,
+					(bPelvis - bChest).Length());
+			}
+			Console.Printf("body anchors: %s   pelvis %.1f, %.1f, %.1f   chest %.1f, %.1f, %.1f",
+				!bodyAnchorsOn() ? "OFF (rs_holster_body)" : (bodyOk ? "on the worn body" : "no body drew -- headset table"),
+				bPelvis.X, bPelvis.Y, bPelvis.Z, bChest.X, bChest.Y, bChest.Z);
+			for (int b = 0; b < HOLSTER_COUNT; ++b)
+				if (isBodyRidden(b))
+					Console.Printf("  holster %d: %s  %.3f fwd %.3f side %.3f up (eye heights)", b, bdSet[b] ? "seeded" : "not seeded yet", bdF[b], bdS[b], bdU[b]);
+		}
 
 		if (!calibrated[i])
 		{
@@ -2989,7 +3221,7 @@ class RS_HolsterManager : EventHandler
 		}
 		else
 		{
-			baseAngle = bodyYaw[i];
+			baseAngle = torsoYaw(i, h);   // [BODYANCHOR]
 			basePitch = 0.0;
 			baseRoll  = 0.0;
 		}

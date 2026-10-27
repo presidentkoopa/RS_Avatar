@@ -186,3 +186,9 @@ user bool rs_holster_pouch_glow = true;
 // NAMED _verbose, NOT _debug: KEYCONF binds an ALIAS called rs_holster_debug,
 // and a cvar sharing that name would collide in the console namespace.
 user bool rs_holster_verbose = false;
+
+// [BODYANCHOR] 2026-10-27. With a REMA body worn, the hip, pectoral and pouch
+// holsters ride the body's own pelvis and chest instead of the headset, seeded
+// from your tuned table the first time you stand up straight. Off = the old
+// headset-only table, exactly as before. Needs the UZDXREMA build with [SOCKETMAP].
+user bool rs_holster_body = true;

@@ -81,6 +81,9 @@ OptionMenu "RS_HolsterPlacement"
 
 	StaticText "Placement", "Gold"
 	Option "How many holsters",         "rs_holster_active_count", "RS_HolsterActiveCount"
+	Option "Holsters ride the worn body", "rs_holster_body", "OnOff"
+	StaticText "Hips, chest and pouch follow your REMA body when one", "DarkGray"
+	StaticText "is worn. Off: placed from the headset, as before.", "DarkGray"
 	Option "Chest ammo pouch (for RS_Reload)", "rs_holster_pouch_enabled", "OnOff"
 	// Filed here under the pouch's own on/off rather than over in Appearance
 	// with the other marker-look rows, because it is meaningless without the
