@@ -30,6 +30,10 @@ OptionMenu "RSA_AvatarOptions"
 	StaticText ""
 	Option "Body", "vr_avatar", "RSA_BodyList"
 	Option "Mirror", "vr_mirror", "OnOff"
+	Slider "  Mirror width (metres)",  "vr_mirror_width",  0.5, 6.0, 0.25, 2
+	Slider "  Mirror height (metres)", "vr_mirror_height", 0.5, 4.0, 0.25, 2
+	Option "  Flip like a real mirror", "vr_mirror_flip", "OnOff"
+	StaticText "  Size changes apply the next time it goes up.", "DarkGray"
 	StaticText "Bindable under Controls, DoomXR Body. Worth binding:", "DarkGray"
 	StaticText "the game pauses while this menu is open, so the body", "DarkGray"
 	StaticText "stops moving exactly when you came here to look at it.", "DarkGray"
@@ -66,18 +70,20 @@ OptionMenu "RSA_AvatarOptions"
 
 	StaticText "Helmet", gold
 	Option "Wear the helmet", "vr_avatar_helmet", "OnOff"
-
-	StaticText "Your own body", gold
-	Option "See your own body", "vr_avatar_ownbody", "RSAOwnBody"
-	StaticText "  Needs vr_body on. Off shows arms only, as before.", darkgray
-	Option "Where the neck collapses to", "vr_body_hide_point", "RSAHidePoint"
-	StaticText "  Chest pulls the seam down into you; Own leaves a stump.", darkgray
+	Option "Helmet replaces the body's head", "vr_avatar_headless", "OnOff"
+	StaticText "  On: every body is headless and wears this helmet, in the", darkgray
+	StaticText "  mirror and to other players too.", darkgray
 	StaticText "  Worn on the head and turns with it. You cannot see it --", darkgray
 	StaticText "  it fades out close to your eyes -- but a mirror can.", darkgray
 	Slider "  Gone by this distance from your eye", "rsa_helmet_eyefade_near", 0.0, 20.0, 0.5, 1
 	Slider "  Starts fading at",                    "rsa_helmet_eyefade_far",  2.0, 60.0, 1.0, 1
 	StaticText "  If you can see it in your own view, raise the second one.", darkgray
 	StaticText "  If the mirror cannot see it, lower them both.", darkgray
+	StaticText ""
+
+	StaticText "Your own body", gold
+	Option "See your own body", "vr_avatar_ownbody", "RSAOwnBody"
+	StaticText "  Your head and helmet are always hidden from your own eyes.", darkgray
 	StaticText ""
 
 	StaticText "Your own head", gold
@@ -118,8 +124,7 @@ AddOptionMenu "OptionsMenu"
 OptionValue "RSAOwnBody"
 {
 	0, "Arms only"
-	1, "Body when it is posed"
-	2, "Always"
+	1, "Whole body"
 }
 
 OptionValue "RSAHidePoint"

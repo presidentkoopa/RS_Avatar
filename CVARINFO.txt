@@ -112,6 +112,13 @@ user bool vr_avatar_colour = true;
 // the shader dissolves it per pixel where it is nearer than _far and it is gone
 // by _near, so a mirror across the room still sees it whole. See MODELDEF.
 user bool  vr_avatar_helmet = true;
+
+// HEADLESS: the body's own head (and any helmet sculpted onto it) is removed in
+// EVERY view -- mirror, spectator, co-op -- so the universal helmet above is the
+// only head anyone sees (owner, 2026-10-16). Read by the engine by name
+// (vr_avatar_pose.cpp AvatarHeadless). Off: the body keeps its own head for
+// everyone but you, and the two bodies whose head IS a helmet wear no second one.
+user bool  vr_avatar_headless = true;
 user float rsa_helmet_eyefade_near = 4.0;
 user float rsa_helmet_eyefade_far  = 14.0;
 
@@ -179,3 +186,17 @@ user float rsa_body_eyefade_far  = 0.0;
 // The engine declares these; they are repeated here so the menu can reach them
 // and so a reader of this package can see what it exposes.
 // ---------------------------------------------------------------------------
+
+// ------------------------------------------------------------- the mirror size
+// IN METRES, standing on the floor in front of you (owner, 2026-10-16: "a 3 meter x 2 meter
+// mirror in front of me the second I press that button"). Read by mirror.zs when the mirror
+// goes up. Here and not beside vr_mirror above the mark, because that block is generated.
+user float vr_mirror_width  = 3.0;     // metres across
+user float vr_mirror_height = 2.0;     // metres tall, bottom edge on the floor
+user bool  vr_mirror_flip   = true;    // left-right flipped like a real mirror; off = camera view
+
+// ------------------------------------------------------ the stock player sprite
+// While a body is worn, the pawn's own Doom sprite is drawn only when this is above 0. It is 0:
+// the world body is what you and anyone else sees (owner, 2026-10-16). Render only -- monsters
+// still see and fight the pawn. handler.zs sets the pawn's VisibleCVar to this name.
+user float rsa_pawn_sprite  = 0;

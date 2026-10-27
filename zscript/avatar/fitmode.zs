@@ -66,6 +66,7 @@ class RSA_FitMode : EventHandler
 	private int mMode;
 	private bool mWeaponMode;    // mMode == 1, kept for readability at the use sites
 	private int mBodyHeld;       // tics the trigger has been held in body mode
+	private bool mOffSent;       // [FITNET] the body fit asked every machine to finish
 	private string mWpnClass;    // the class being fitted, while in weapon mode
 	private int mField;          // 0 x, 1 y, 2 z, 3 pitch, 4 yaw, 5 roll
 	private bool mRightHand;
@@ -152,8 +153,11 @@ class RSA_FitMode : EventHandler
 
 	private void Finish()
 	{
+		mOffSent = false;
 		if (mPlayer < 0) return;
-		Save();
+		// [FITNET] Only the machine doing the fit has the numbers, and the cvars are its own.
+		// Every other machine saving here wrote ITS archived cvars with numbers it never had.
+		if (mPlayer == consoleplayer) Save();
 
 		if (playeringame[mPlayer] && players[mPlayer].mo != null)
 		{
@@ -428,7 +432,16 @@ class RSA_FitMode : EventHandler
 
 		Say(String.Format("\ccBody fit saved: %.2f m tall at the eyes, %.2f m across the arms.",
 			heightM, spanM));
-		Finish();
+		// [FITNET] FINISHED ON EVERY MACHINE, NOT JUST THIS ONE. This runs only where the
+		// controllers are, so calling Finish here restored invulnerability and targeting on
+		// this client alone: everyone else kept the pawn invulnerable and untargetable, which
+		// is a playsim desync. The off event reaches all of them, this one included.
+		if (!mOffSent)
+		{
+			mOffSent = true;
+			// A refused send would leave the pawn invulnerable for good: finish here instead.
+			if (!EventHandler.SendNetworkEvent("rsa_fit_off")) Finish();
+		}
 	}
 
 	//==========================================================================
@@ -448,6 +461,7 @@ class RSA_FitMode : EventHandler
 		// Only the machine holding the controllers can read them, and only that machine
 		// should be writing its own cvars. Every other client leaves this alone.
 		if (mPlayer != consoleplayer) return;
+		if (mOffSent) return;     // [FITNET] finishing; the off event is on its way
 
 		let pmo = players[mPlayer].mo;
 

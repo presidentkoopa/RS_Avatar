@@ -41,7 +41,11 @@ class RSA_MirrorCam : Actor
 	}
 }
 
-// The panel: one quad wearing the camera texture.
+// The panel: one quad wearing the camera texture (MODELDEF, models/mirror/mirror_unit.obj).
+//
+// PIST, LIKE EVERY OTHER MODEL IN THIS PACKAGE. It drew TRSO, a sprite RS_VRBody shipped and
+// this package never did, so the camera came up and the panel was never seen (2026-10-16).
+// PIST is an IWAD sprite: it exists with nothing but Doom loaded, and MODELDEF replaces it.
 class RSA_MirrorPanel : Actor
 {
 	Default
@@ -56,7 +60,7 @@ class RSA_MirrorPanel : Actor
 	States
 	{
 	Spawn:
-		TRSO A -1;
+		PIST A -1;
 		Stop;
 	}
 }
@@ -74,6 +78,11 @@ class RSA_MirrorHandler : EventHandler
 
 	private bool Wanted() const
 	{
+		// [MIRRORNET] SINGLE PLAYER ONLY. The panel and camera are playsim actors spawned from
+		// one machine's own cvar and consoleplayer, so in a netgame they existed on one machine
+		// and not the others -- a desync. The mirror is a fitting tool; it stays out of netgames
+		// until it can be drawn without spawning anything.
+		if (multiplayer) return false;
 		CVar c = CVar.FindCVar("vr_mirror");
 		return c != null && c.GetBool();
 	}
@@ -104,9 +113,19 @@ class RSA_MirrorHandler : EventHandler
 	{
 		double dist = clamp(Cvf("vr_mirror_dist", 96.0), 32.0, 400.0);
 		double yaw = pawn.angle;
+
+		// SIZED IN METRES, STANDING ON THE FLOOR (owner, 2026-10-16: "a 3 meter x 2 meter mirror
+		// in front of me the second I press that button"). The quad is one unit square, so the
+		// actor's Scale IS its size in model units, and model units are vr_vunits_per_meter to
+		// the metre in every axis. Map HEIGHT is the one stretched axis (level.pixelstretch), so
+		// placing its centre half a height above your feet divides by that.
+		double vu = Cvf("vr_vunits_per_meter", 34.0);
+		double wm = clamp(Cvf("vr_mirror_width", 3.0), 0.5, 10.0);
+		double hm = clamp(Cvf("vr_mirror_height", 2.0), 0.5, 10.0);
+		double stretch = level.pixelstretch > 0 ? level.pixelstretch : 1.2;
 		Vector3 at = (pawn.pos.X + cos(yaw) * dist,
 			pawn.pos.Y + sin(yaw) * dist,
-			pawn.pos.Z + Cvf("vr_mirror_up", 34.0));
+			pawn.pos.Z + hm * 0.5 * vu / stretch);
 
 		// THE CAMERA STANDS OFF THE PANEL, and this is not a detail.
 		//
@@ -132,6 +151,13 @@ class RSA_MirrorHandler : EventHandler
 		// moment it appears.
 		mPanel.angle = yaw + 180;
 		mCam.angle = yaw + 180;
+
+		// Width across, height up. NEGATIVE WIDTH FLIPS IT LEFT TO RIGHT, so it reads like a
+		// mirror -- your right hand on your right -- rather than like a camera feed. The quad is
+		// two-sided, so the flip cannot cull it. vr_mirror_flip off shows the camera's view.
+		CVar fl = CVar.FindCVar("vr_mirror_flip");
+		double side = (fl == null || fl.GetBool()) ? -1.0 : 1.0;
+		mPanel.Scale = (side * wm * vu, hm * vu);
 		TexMan.SetCameraToTexture(mCam, "RSMIRROR", clamp(Cvf("vr_mirror_fov", 70.0), 30.0, 140.0));
 
 		mOn = true;

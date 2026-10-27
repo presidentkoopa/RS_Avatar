@@ -3,8 +3,9 @@
 // A camera texture: the scene rendered from a viewpoint actor straight onto a model's skin.
 // That is the whole trick behind being able to look at yourself.
 //
-// 512 square. This renders the entire scene a second time, and in VR it is already being
-// drawn twice -- so it is a tool you switch on to check something and switch off again,
-// never something left running.
-cameratexture RSMIRROR 512 512
-	fit 512 512
+// 3:2, the shape of the 3 m x 2 m panel (vr_mirror_width / _height), so you are not squashed.
+// This renders the entire scene a second time, and in VR it is already being drawn twice --
+// so it is a tool you switch on to check something and switch off again, never something left
+// running.
+cameratexture RSMIRROR 768 512
+	fit 768 512

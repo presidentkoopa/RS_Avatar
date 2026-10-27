@@ -28,6 +28,8 @@ class RSA_Handler : EventHandler
 	private Actor mHidOn[MAXPLAYERS];
 	private bool  mHidWas[MAXPLAYERS];
 	private string mComplainedAbout[MAXPLAYERS];
+	// The pawn whose stock sprite is hidden while it wears a body, so it can be given back.
+	private Actor mPawnHidden[MAXPLAYERS];
 
 	override void WorldTick()
 	{
@@ -161,6 +163,24 @@ class RSA_Handler : EventHandler
 			// serialized and cleaned up when the pawn dies, so it needs nothing new.
 			av.target = pmo;
 
+			// THE STOCK PLAYER SPRITE GOES WHILE A BODY IS WORN (owner, 2026-10-16). It was drawn
+			// on top of the world body in the mirror -- and would be in co-op -- because only the
+			// wearer's own eyes ever skipped it.
+			//
+			// VisibleCVar, NOT bInvisible OR A RENDER STYLE. Both of those are read by the
+			// playsim: P_CheckSight cannot see an RF_INVISIBLE or invisibly-styled target, and
+			// A_Chase drops an RF_INVISIBLE one -- so hiding the pawn that way would stop
+			// monsters fighting him. VisibleCVar is read only by the renderer
+			// (hw_sprites.cpp), so the pawn still collides, is seen, chased and shot exactly as
+			// before. rsa_pawn_sprite above 0 draws it anyway. Given back in Retire.
+			if (mPawnHidden[i] != pmo)
+			{
+				if (mPawnHidden[i] != null && mPawnHidden[i].VisibleCVar == 'rsa_pawn_sprite')
+					mPawnHidden[i].VisibleCVar = 'None';
+				mPawnHidden[i] = pmo;
+			}
+			pmo.VisibleCVar = 'rsa_pawn_sprite';
+
 			// WHAT THE BODY SAYS ABOUT HOW YOU ARE DOING. See colour.zs -- the design is
 			// the owner's, out of RS_VRBody.
 			//
@@ -203,8 +223,18 @@ class RSA_Handler : EventHandler
 			// Deliberately NOT folded into `vr_avatar_helmet`: switching the universal
 			// helmet off must still leave these two wearing their own, and it does, because
 			// nothing is ever hidden on them.
-			if (mWornName[i] ~== "pechenko_doomslayer"
-			 || mWornName[i] ~== "lillwasa_doomguy")
+			//
+			// HEADLESS CHANGES THAT (owner, 2026-10-16: every body headless, wearing the one
+			// universal helmet). With vr_avatar_headless on, the ENGINE removes each body's own
+			// head by bone in every view (vr_avatar_pose.cpp [HEADLESS]) -- which works on these
+			// two as well, merged surface or not -- so they wear the universal helmet like
+			// everyone else. Only with it off do they keep their own and get no second one.
+			bool headless = true;
+			let chl = CVar.GetCVar("vr_avatar_headless", players[i]);
+			if (chl) headless = chl.GetBool();
+			if (!headless
+			 && (mWornName[i] ~== "pechenko_doomslayer"
+			  || mWornName[i] ~== "lillwasa_doomguy"))
 			{
 				wantHelmet = false;
 			}
@@ -261,6 +291,14 @@ class RSA_Handler : EventHandler
 		{
 			mAvatar[i].Destroy();
 			mAvatar[i] = null;
+		}
+		// No body, so the stock sprite is the only thing left to show: give it back. Only if
+		// it is still OUR gate -- another mod may have set its own since.
+		if (mPawnHidden[i] != null)
+		{
+			if (mPawnHidden[i].VisibleCVar == 'rsa_pawn_sprite')
+				mPawnHidden[i].VisibleCVar = 'None';
+			mPawnHidden[i] = null;
 		}
 		mWornName[i] = "";
 	}

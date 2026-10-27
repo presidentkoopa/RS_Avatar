@@ -79,6 +79,23 @@ Model RSA_PechenkoDoomslayer
 // line is deleted the next time the generator runs; it refuses rather than doing that
 // silently, but the only safe place for a hand-written block is down here.
 
+// ============================================================= the mirror ==
+//
+// One two-sided quad wearing RSMIRROR, the camera texture declared in ANIMDEFS. The skin is a
+// texture NAME, not a file: the camera texture is registered under it at load and the renderer
+// paints the scene into it. Sized in metres by mirror.zs through the actor's Scale.
+//
+// Until 2026-10-16 the panel had NO model and drew the sprite TRSO, which this package never
+// shipped -- so the mirror's camera came up every time and nothing was ever seen.
+Model RSA_MirrorPanel
+{
+	Path "models/mirror"
+	Model 0 "mirror_unit.obj"
+	Skin 0 "RSMIRROR"
+	Scale 1.0 1.0 1.0
+	FrameIndex PIST A 0 0
+}
+
 // ============================================================= the helmet ==
 //
 // Worn on the body's head bone (WornOnBody / WornOnBone, set in handler.zs). The three OBJs
