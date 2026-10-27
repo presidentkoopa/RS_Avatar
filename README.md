@@ -10,3 +10,11 @@ body models and `pack.py` packs the folder into `RS_Avatar.pk3`.
 
 It needs the UZDXREMA engine fork; the bone reads, forced model angles and body
 hooks it drives are not in stock GZDoom.
+
+## Holsters
+
+The body holsters live here too (merged from RS_Holsters on 2026-10-27, history and all):
+store and draw guns at your hips, chest and head, with the hips, chest and ammo pouch riding
+the worn body. See `HOLSTERS.md`. The ZScript is in `zscript/holsters/`, the lumps are the
+`*.holsters` files at the root, and the demo gif and notes are in `reference/holsters/`.
+Do not load an old `RS_Holsters` pk3 beside this one: every holster class is defined here now.

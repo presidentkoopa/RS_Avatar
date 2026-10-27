@@ -7,3 +7,6 @@ version "4.14"
 #include "zscript/avatar/handler.zs"
 #include "zscript/avatar/fitmode.zs"
 #include "zscript/avatar/mirror.zs"
+
+// Body holsters (merged from RS_Holsters, 2026-10-27). Lumps: *.holsters at the root.
+#include "zscript/holsters/holsters.zs"
