@@ -65,6 +65,10 @@ end
 
 body
   soleheight    6.388805
+  torsoside     9.361481
+  torsofront    8.213769
+  torsoback     10.397609
+  armradius     3.039246
 end
 
 joints
