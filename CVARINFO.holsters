@@ -1,0 +1,194 @@
+// Show a model of the stored weapon at each OCCUPIED body holster anchor.
+user bool rs_holster_props = true;
+
+// Show the wireframe marker at each holster anchor -- the ring or bracket that
+// tells you where the pocket is, and lights up when a hand is in range.
+//
+// SPLIT OUT 2026-08-26. This used to be part of rs_holster_props under a menu
+// row labelled "Show holster spheres", which was wrong twice: the default shape
+// is the bracket reticle, not a sphere, and switching it off never hid the
+// markers at all -- it hid the stored weapons and left the rings visible and
+// frozen where they last were, no longer following the player.
+//
+// Independent now, because that is the case actually worth having: once the
+// anchor positions are learned by feel the rings are clutter, while the weapons
+// parked in them are still worth seeing.
+user bool rs_holster_markers = true;
+
+// Holster prop appearance. Live-tunable because the right values are found by
+// looking at them in the headset, not by reasoning about model units.
+// A weapon's MODELDEF Scale is tuned for the HUD projection, so reusing it on
+// a world actor renders it enormous -- hence the shrink.
+user float rs_holster_prop_scale = 0.18;
+
+// Vestigial: the forearm/wrist rig this sized moved out to RS_HardPoints,
+// which declares its own. Kept declared because holsterPropScaleArm() is
+// still called from a branch that is now unreachable (see isHandAnchored
+// in RS_Holsters.zs) -- removing the cvar would leave that call reading a
+// null CVar, which it handles, but declaring it costs nothing and keeps
+// the two files honest with each other.
+user float rs_holster_prop_scale_arm = 0.08;
+
+// Fraction of a holster's own claim radius that a stored weapon's MEASURED
+// bounding radius (level.GetModelBoundsHint) gets scaled to fill, so a BFG
+// and a pistol read as "the same size in the ring" instead of both taking
+// the same flat multiplier regardless of how big either model actually is.
+// Only takes effect when the native finds real geometry to measure (every
+// weapon in this arsenal is an OBJ, which it does); rs_holster_prop_scale/
+// _arm above remain the exact fallback for anything it can't measure, same
+// as before this existed. Under 1.0 on purpose -- a weapon that exactly
+// touches the marker sphere's edge reads as clipping out of it, not as
+// filling it.
+user float rs_holster_prop_fill = 0.55;
+
+// The target radius (map units) rs_holster_prop_fill scales a measured model
+// TOWARD. Used to just be each holster's own claim radius (GetHolster's
+// hsRadius, ~3.0 for every torso holster) -- that value is sized for
+// grab/claim detection, not display, and reusing it capped every stored
+// model's visible size at ~3 units no matter where the fill slider sat.
+// Separated out so the fill slider actually has room to work.
+user float rs_holster_prop_visual_radius = 8.0;
+
+// Trim on top of each holster's own pitch/roll (RS_Holsters.zs, GetHolster).
+// Every weapon MODELDEF block carries USEACTORPITCH/USEACTORROLL (added by
+// Add-ModelDefPitchFlags.ps1), so these do real work now -- earlier they did
+// nothing at all, silently, because the renderer ignored both flags entirely.
+user float rs_holster_prop_pitch = 0.0;
+user float rs_holster_prop_roll  = 0.0;
+
+// Centring trim, on top of the AUTOMATIC correction (level.GetModelOffsetHint,
+// read per-weapon in RS_HolsterProp.ShowWeapon). Residual now, not the whole
+// mechanism -- a weapon's baked MODELDEF Offset is measured and cancelled
+// automatically; these three exist for whatever the automatic fix does not
+// fully resolve for a given model.
+user float rs_holster_prop_up   = 0.0;
+user float rs_holster_prop_fwd  = 0.0;
+user float rs_holster_prop_side = 0.0;
+
+// Yaw trim, plus the automatic mirror-flip and AngleOffset cancellation
+// (level.GetModelOrientationHint) applied ahead of it.
+user float rs_holster_prop_yaw = 0.0;
+
+// The store/draw confirm sound (RS_Holsters.zs doSwap).
+user bool rs_holster_sound = true;
+
+// Which sound plays: 0 = the mechanical clunk (rs_holster_fx_store, a
+// $random over three takes), 1 = the ready-to-fire cadence beep
+// (rs_holster_fx_ready).
+//
+// REWIRED 2026-08-26. This used to name rs_fx_holster / rs_allclear_ready
+// and the comment here claimed that was safe because "whichever loaded
+// weapon pack happens to define them supplies them". Nothing in this family
+// defines either -- only RS_Main does, and RS_Main is not part of it, nor a
+// declared dependency of this pk3. GZDoom resolves an undefined sound to
+// silence rather than to an error, so this entire setting selected between
+// two silences. The audio now ships in this pk3 under its own names (see
+// SNDINFO.txt), so both options actually sound.
+user int rs_holster_sound_style = 0;
+
+// Store/draw uses GZDoom's own CF_INSTANTWEAPSWITCH cheat flag (constants.zs),
+// set transiently around the MoveWeaponToHand call and restored right after
+// (RS_Holsters.zs, moveWeaponInstant) -- so ordinary weapon switching (number
+// keys, the wheel) is untouched, only a holster-triggered swap is instant.
+// Also what makes two-hand near-simultaneous store/draw work: with this on,
+// the whole lower-then-raise cycle resolves the same tic instead of over
+// ~16 tics, so there is no shared-PendingWeapon window for a second hand's
+// swap to collide with.
+user bool rs_holster_instant_switch = true;
+
+// Marker look. Shape reads at SetHot's next re-check (immediate, since
+// SetHot's guard watches this cvar too -- RS_HolsterProp.zs). Color is a
+// class choice, not a field, so a change respawns the marker the next tic
+// (RS_Holsters.zs updateProps) rather than tinting an existing one live.
+// 0 = bracket reticle, 1 = the original wireframe sphere.
+user int rs_holster_marker_shape = 0;
+// Cold (idle) marker color. 0 = default (untinted), 1 = blue, 2 = red,
+// 3 = gold, 4 = purple, 5 = orange, 6 = green, 7 = cyan, 8 = pink.
+user int rs_holster_marker_color = 0;
+// Hot (hand-in-range) marker color, same palette, independent cvar --
+// picking the same color for both used to be the only option there was,
+// and two states that look identical defeat the point of a color cue.
+// Defaults to 0/untinted, same as rs_holster_marker_color, so a fresh
+// install looks exactly as it did before this existed; the two only
+// diverge once you actually pick different values in the menu.
+user int rs_holster_marker_color_hot = 0;
+// Flat marker size multiplier, on top of the proximity-tighten Tick()
+// already does (RS_HolsterProp.zs). 1.0 is the authored unit-radius mesh
+// at MODELDEF's Scale 3.0 -- unchanged from before this cvar existed.
+user float rs_holster_marker_scale = 1.0;
+
+// How many of the 8 declared holsters are live: 2 = hip, 4 = +shoulder,
+// 6 = +pectoral, 8 = +second hip pair (RS_Holsters.zs, GetHolster/
+// activeCount). Snapped to the nearest of those four on read, so any other
+// value (a hand-edited ini, an old config) still resolves to something
+// sane rather than an in-between state nothing was ever tuned for.
+// Defaults to everything on -- the point of just having added the second
+// hip pair is seeing it, not opting into it separately.
+user int rs_holster_active_count = 8;
+
+// The chest ammo pouch (AMMO_POUCH_IDX, index 8 in RS_Holsters.zs), for
+// RS_Reload. Its own toggle rather than folded into rs_holster_active_count
+// above -- that cvar's tiers snap to exactly 2/4/6/8 and never reach 9, and
+// a pouch is a different kind of thing anyway (ammo, not a weapon slot).
+user bool rs_holster_pouch_enabled = true;
+
+// Ammo-driven pouch glow, ON by default. The pouch marker fades UP as the gun
+// in your hand runs low, and sits invisible while you are stocked.
+//
+// THE POUCH ONLY (AMMO_POUCH_IDX). The eight torso holsters are not touched by
+// this in either position -- the curve is being proven on one marker in a
+// headset before the idea is allowed to spread.
+//
+// The curve is deliberately non-linear (RS_Holsters.zs pouchAmmoCurve, which
+// carries the three data points it was specified from): 20% ammo left reads as
+// 20% visible, 10% as 50%, 1% as 90%. Quiet until it matters, then it shouts --
+// linear would leave it whispering at exactly the moment you need telling.
+//
+// It combines with the existing proximity fade rather than replacing it: a hand
+// reaching for the pouch lights it regardless of how full you are, so a stocked
+// pouch is still something you can find and aim at.
+//
+// OFF restores the marker to plain full brightness, which is exactly how it
+// looked before this existed -- not to invisible.
+user bool rs_holster_pouch_glow = true;
+
+// Developer instrumentation, OFF by default. Added 2026-08-26 alongside the
+// same switch in RS_HardPoints (rs_hardpoint_verbose) -- one gate per repo,
+// same meaning, so a tuning session turns both on together.
+//
+// Until this existed, a PERMANENT INSTRUMENTATION LAYER shipped switched on
+// in the default build. Two separate sources, both of them unconditional:
+//   - a seven-line prop-orientation dump one tic after EVERY store
+//     ("record as I play" -- a tuning session's want, not a player's);
+//   - a console line on every hand-enters/leaves-holster-range transition,
+//     across nine overlapping anchors.
+//
+// GATED, NOT DELETED. Each exists because a specific question is still open.
+//
+// STILL OPEN, NO LIVE PROBE FOR IT ANY MORE: RS_HolsterFlashlight used to be
+// this file's own diagnostic for one such question -- its pose printf
+// documented that OffhandPitch is stored negated, and was the lead on
+// whether the hand-anchored basis in RS_Holsters.zs shares that bug (the
+// same bug class RS_HardPoints.zs fixed on 2026-08-28: AttackPitch/
+// OffhandPitch read raw instead of negated). RS_HolsterFlashlight was
+// removed 2026-08-28 (its purpose -- testing arm/wrist mounts -- moved to
+// RS_HardPoints, and the mounts themselves are disabled pending player IK),
+// so that probe is gone too. The question it was investigating was never
+// answered -- worth checking RS_Holsters.zs's own hand-anchored basis
+// against the same negation bug directly, next time this file's pitch math
+// is touched.
+//
+// Deliberately NOT behind this gate: the range-entry HAPTIC (player
+// feedback, not instrumentation), the one-line store/draw confirmation,
+// every error line, and the MANUAL dump on netevent rs-holster-debug --
+// asking for that one is the whole gesture.
+//
+// NAMED _verbose, NOT _debug: KEYCONF binds an ALIAS called rs_holster_debug,
+// and a cvar sharing that name would collide in the console namespace.
+user bool rs_holster_verbose = false;
+
+// [BODYANCHOR] 2026-10-27. With a REMA body worn, the hip, pectoral and pouch
+// holsters ride the body's own pelvis and chest instead of the headset, seeded
+// from your tuned table the first time you stand up straight. Off = the old
+// headset-only table, exactly as before. Needs the UZDXREMA build with [SOCKETMAP].
+user bool rs_holster_body = true;
