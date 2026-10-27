@@ -1,4 +1,4 @@
-version "4.14"
+// Included from RS_Avatar's zscript.txt (version 4.14 there) since 2026-10-27.
 
 // Body-anchored holsters. Split out of RS_Main 2026-08-16 -- same author,
 // same engine (UZDXREMA/DoomXR), no genericization needed.
@@ -21,7 +21,7 @@ version "4.14"
 //     QuestZDoom proper -- and none of it is any specific weapon pack's,
 //     it is all engine-level.
 //
-// RS_HolsterManager must ALSO be in MAPINFO.txt's AddEventHandlers (it is).
+// RS_HolsterManager must ALSO be in AddEventHandlers -- MAPINFO.holsters does it.
 
-#include "zscript/systems/player/RS_HolsterProp.zs"
-#include "zscript/systems/player/RS_Holsters.zs"
+#include "zscript/holsters/RS_HolsterProp.zs"
+#include "zscript/holsters/RS_Holsters.zs"
