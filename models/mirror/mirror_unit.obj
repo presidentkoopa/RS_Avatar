@@ -1,0 +1,25 @@
+# RS_Avatar -- the mirror panel. A flat quad wearing the RSMIRROR camera texture.
+#
+# ONE UNIT SQUARE, centred on the actor's origin, so mirror.zs sizes it in METRES through the
+# actor's Scale (vr_mirror_width / vr_mirror_height x vr_vunits_per_meter). mirror_quad.obj
+# beside it is RS_VRBody's fixed 64 x 96 panel, kept as it came.
+#
+# Authored as x = 0, y = height, z = width: the loader takes file y as up and file z as across,
+# so it lands as an upright panel facing the actor's +X. Same layout and UVs as mirror_quad.obj.
+#
+# BOTH WINDINGS, so it is visible from either side and a negative Scale (the left-right flip
+# that makes it read as a mirror) cannot cull it.
+v 0 -0.5 -0.5
+v 0 -0.5  0.5
+v 0  0.5  0.5
+v 0  0.5 -0.5
+vt 0 1
+vt 1 1
+vt 1 0
+vt 0 0
+vn  1 0 0
+vn -1 0 0
+f 1/1/1 2/2/1 3/3/1
+f 1/1/1 3/3/1 4/4/1
+f 1/1/2 3/3/2 2/2/2
+f 1/1/2 4/4/2 3/3/2
