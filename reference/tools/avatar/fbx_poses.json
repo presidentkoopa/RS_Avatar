@@ -1,0 +1,408 @@
+{
+ "// raw": "FBX frames, each a whole hand (both = each hand from its own skeleton)",
+ "fbx_open": [
+  1,
+  "both"
+ ],
+ "fbx_relaxed": [
+  154,
+  "both"
+ ],
+ "fbx_halfcurl": [
+  193,
+  "both"
+ ],
+ "fbx_curl": [
+  206,
+  "both"
+ ],
+ "fbx_fist": [
+  319,
+  "both"
+ ],
+ "fbx_crossed": [
+  304,
+  "both"
+ ],
+ "fbx_twofinger_point": [
+  762,
+  "A"
+ ],
+ "fbx_fingergun": [
+  803,
+  "A"
+ ],
+ "fbx_wrap_half": [
+  820,
+  "B"
+ ],
+ "fbx_wrap_tight": [
+  837,
+  "B"
+ ],
+ "fbx_cup": [
+  985,
+  "B"
+ ],
+ "fbx_thumb_out": [
+  944,
+  "B"
+ ],
+ "fbx_twohand_gun": [
+  985,
+  "A"
+ ],
+ "fbx_twohand_support": [
+  985,
+  "B"
+ ],
+ "open": [
+  1,
+  "both"
+ ],
+ "fist": [
+  319,
+  "both"
+ ],
+ "// composed": "the names the engine looks up, each finger taken whole from one FBX pose above",
+ "gun_grip": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "a pistol-type handle: three fingers and the thumb closed round it (wrap_tight), the index resting on the trigger (wrap_half's index)"
+ },
+ "grip_pistol": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "a pistol-type handle: three fingers and the thumb closed round it (wrap_tight), the index resting on the trigger (wrap_half's index)"
+ },
+ "grip_pistol_fire": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "the same hand with the trigger pulled: the index as wrap_tight closes it"
+ },
+ "grip_shotgun": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "a pistol-type handle: three fingers and the thumb closed round it (wrap_tight), the index resting on the trigger (wrap_half's index)"
+ },
+ "grip_shotgun_fire": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "the same hand with the trigger pulled: the index as wrap_tight closes it"
+ },
+ "grip_ssg": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "a pistol-type handle: three fingers and the thumb closed round it (wrap_tight), the index resting on the trigger (wrap_half's index)"
+ },
+ "grip_ssg_fire": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "the same hand with the trigger pulled: the index as wrap_tight closes it"
+ },
+ "grip_rifle": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "a pistol-type handle: three fingers and the thumb closed round it (wrap_tight), the index resting on the trigger (wrap_half's index)"
+ },
+ "grip_rifle_fire": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "the same hand with the trigger pulled: the index as wrap_tight closes it"
+ },
+ "grip_rocket": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a thick handle (rocket, plasma, BFG): the hand closes only as far as wrap_half, index on the trigger"
+ },
+ "grip_rocket_fire": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "the same hand with the trigger pulled: the index as wrap_tight closes it"
+ },
+ "grip_plasma": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a thick handle (rocket, plasma, BFG): the hand closes only as far as wrap_half, index on the trigger"
+ },
+ "grip_plasma_fire": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "the same hand with the trigger pulled: the index as wrap_tight closes it"
+ },
+ "grip_bfg": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a thick handle (rocket, plasma, BFG): the hand closes only as far as wrap_half, index on the trigger"
+ },
+ "grip_bfg_fire": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "the same hand with the trigger pulled: the index as wrap_tight closes it"
+ },
+ "grip_saw": {
+  "fingers": {
+   "thumb": "fbx_fist",
+   "index": "fbx_fist",
+   "middle": "fbx_fist",
+   "ring": "fbx_fist",
+   "pinky": "fbx_fist"
+  },
+  "why": "a handlebar runs through the fist (the owner's rule: never a flat palm)"
+ },
+ "offhand_weapon_grip": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a support hand on a forend: wrapped, not clenched"
+ },
+ "melee_grip": {
+  "fingers": {
+   "thumb": "fbx_fist",
+   "index": "fbx_fist",
+   "middle": "fbx_fist",
+   "ring": "fbx_fist",
+   "pinky": "fbx_fist"
+  },
+  "why": "a melee handle: a closed fist"
+ },
+ "pointing": {
+  "fingers": {
+   "thumb": "fbx_fist",
+   "index": "fbx_fingergun",
+   "middle": "fbx_fist",
+   "ring": "fbx_fist",
+   "pinky": "fbx_fist"
+  },
+  "why": "the index straight (the finger gun's index), the rest closed. The FBX has no one-finger point of its own"
+ },
+ "hold_magazine": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a hand round a magazine body"
+ },
+ "hold_inserting": {
+  "fingers": {
+   "thumb": "fbx_relaxed",
+   "index": "fbx_relaxed",
+   "middle": "fbx_relaxed",
+   "ring": "fbx_relaxed",
+   "pinky": "fbx_relaxed"
+  },
+  "why": "the heel of the hand driving a magazine home, fingers relaxed"
+ },
+ "hold_round": {
+  "fingers": {
+   "thumb": "fbx_cup",
+   "index": "fbx_cup",
+   "middle": "fbx_cup",
+   "ring": "fbx_cup",
+   "pinky": "fbx_cup"
+  },
+  "why": "NO PINCH IN THE FBX: the nearest it has is the cup (index and middle folded at the middle joint, thumb in)"
+ },
+ "hold_shell": {
+  "fingers": {
+   "thumb": "fbx_cup",
+   "index": "fbx_cup",
+   "middle": "fbx_cup",
+   "ring": "fbx_cup",
+   "pinky": "fbx_cup"
+  },
+  "why": "NO PINCH IN THE FBX: the nearest it has is the cup (index and middle folded at the middle joint, thumb in)"
+ },
+ "hold_slide": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "a hand closed on a slide to rack it"
+ },
+ "hold_forend": {
+  "fingers": {
+   "thumb": "fbx_wrap_tight",
+   "index": "fbx_wrap_tight",
+   "middle": "fbx_wrap_tight",
+   "ring": "fbx_wrap_tight",
+   "pinky": "fbx_wrap_tight"
+  },
+  "why": "a hand wrapped round a pump"
+ },
+ "hold_foregrip": {
+  "fingers": {
+   "thumb": "fbx_fist",
+   "index": "fbx_fist",
+   "middle": "fbx_fist",
+   "ring": "fbx_fist",
+   "pinky": "fbx_fist"
+  },
+  "why": "a fist on a vertical foregrip"
+ },
+ "hold_support": {
+  "fingers": {
+   "thumb": "fbx_twohand_support",
+   "index": "fbx_twohand_support",
+   "middle": "fbx_twohand_support",
+   "ring": "fbx_twohand_support",
+   "pinky": "fbx_twohand_support"
+  },
+  "why": "the support hand of the FBX's own two-hand gun hold (frame 985, hand B): cupped round the gun hand"
+ },
+ "hold_support_shotgun": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a support hand round a forend, steadying rather than clenching"
+ },
+ "hold_support_ssg": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a support hand round a forend, steadying rather than clenching"
+ },
+ "hold_support_rifle": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a support hand round a forend, steadying rather than clenching"
+ },
+ "hold_support_plasma": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a support hand round a forend, steadying rather than clenching"
+ },
+ "hold_support_rocket": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a support hand under a tube: open enough for the thick body"
+ },
+ "hold_support_bfg": {
+  "fingers": {
+   "thumb": "fbx_wrap_half",
+   "index": "fbx_wrap_half",
+   "middle": "fbx_wrap_half",
+   "ring": "fbx_wrap_half",
+   "pinky": "fbx_wrap_half"
+  },
+  "why": "a support hand under a tube: open enough for the thick body"
+ },
+ "hold_support_saw": {
+  "fingers": {
+   "thumb": "fbx_fist",
+   "index": "fbx_fist",
+   "middle": "fbx_fist",
+   "ring": "fbx_fist",
+   "pinky": "fbx_fist"
+  },
+  "why": "a handlebar runs through the fist"
+ }
+}

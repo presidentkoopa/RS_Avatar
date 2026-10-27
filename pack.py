@@ -2,7 +2,8 @@
 
     python pack.py
 
-Everything in this folder goes in, except the pk3 itself and this script. Paths inside the
+Everything in this folder goes in, except the pk3 itself, this script, and reference/ (renders
+and notes for people, not the game). Paths inside the
 archive are exactly the paths on disk, because MODELDEF and the VRAVATAR lump both name
 files by that path -- rewriting one silently while packing would give the engine a path that
 does not resolve, and a missing model reports as "no model", not as "bad path".
@@ -22,7 +23,7 @@ def main():
     n = 0
     with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as z:
         for root, dirs, files in os.walk(HERE):
-            dirs[:] = [d for d in dirs if d not in ("__pycache__", ".git")]
+            dirs[:] = [d for d in dirs if d not in ("__pycache__", ".git") and not (root == HERE and d == "reference")]
             for f in sorted(files):
                 if f.lower().endswith(SKIP_EXT):
                     continue
