@@ -24,12 +24,6 @@ avatar doomslayer_default
 	data   "models/avatars/doomslayer_default/doomslayer_default.avatar"
 }
 
-avatar lillwasa_doomguy
-{
-	actor  "RSA_LillwasaDoomguy"
-	data   "models/avatars/lillwasa_doomguy/doomguy.avatar"
-}
-
 avatar marine_guy_classic
 {
 	actor  "RSA_MarineGuyClassic"

@@ -142,11 +142,19 @@ def camel(name):
     return "".join(p.capitalize() for p in name.split("_"))
 
 
+# RETIRED BY THE OWNER (2026-10-26): bodies whose folders stay on disk but are no longer offered.
+# By name, unlike the handrest rule below, because this is a choice and not a measurement.
+RETIRED = {"doomslayer_lowpoly", "lillwasa_doomguy"}
+
+
 def find_bodies():
     out = []
     if not os.path.isdir(AVATARS):
         return out
     for name in sorted(os.listdir(AVATARS)):
+        if name in RETIRED:
+            print("  skipped %-22s retired by the owner" % name)
+            continue
         d = os.path.join(AVATARS, name)
         if not os.path.isdir(d):
             continue
