@@ -2428,7 +2428,9 @@ class RS_HolsterManager : EventHandler
 
 	private bool instantSwitchEnabled() const
 	{
-		let cv = CVar.GetCVar("rs_holster_instant_switch", players[consoleplayer]);
+		// [NETPLAY] decides how a swap resolves (playsim), so in a netgame every machine reads
+		// the HOST's setting; this machine's own only in single player.
+		let cv = CVar.GetCVar("rs_holster_instant_switch", players[multiplayer ? Net_Arbitrator : consoleplayer]);
 		return (cv != null) ? cv.GetBool() : true;
 	}
 
@@ -2559,15 +2561,30 @@ class RS_HolsterManager : EventHandler
 		// happen to sit, not anything in this code. The real fix is the grip
 		// arbiter being built separately; DO NOT "tidy" this dispatch in the
 		// meantime, it will collide with that work.
+		// [NETPLAY 2026-10-31] WHICH HOLSTER THE HAND IS NEAR IS KNOWN ON ONE MACHINE: nearMain /
+		// nearOff come from the body frame, which only this machine builds for its own player
+		// (updateBodyFrame). The grab key's event reached every machine, but each applied it with
+		// its OWN near index -- the host swapped, the joiner did not (owner's PC, 09:00, tic 1438).
+		// So the machine that pressed answers its own event with the index, and THAT travels:
+		// rs-holster-swap:<idx> (arg 0 = off hand), applied by every machine alike.
+		if (evt.name.Left(16) == "rs-holster-swap:")
+		{
+			if (editMode[evt.player]) return;
+			int idx = evt.name.Mid(16).ToInt();
+			doSwap(evt.player, pawn, idx, evt.args[0] == 1);
+			return;
+		}
 		if (evt.name == "rs-holster-grab-main" || evt.name == "rs-vrhp-grab-main")
 		{
-			if (editMode[evt.player]) { toggleGrab(evt.player, true); }
-			else                      { doSwap(evt.player, pawn, nearMain[evt.player], false); }
+			if (editMode[evt.player]) { if (evt.player == consoleplayer) toggleGrab(evt.player, true); }
+			else if (evt.player == consoleplayer)
+				EventHandler.SendNetworkEvent(String.Format("rs-holster-swap:%d", nearMain[evt.player]), 0);
 		}
 		else if (evt.name == "rs-holster-grab-off" || evt.name == "rs-vrhp-grab-off")
 		{
-			if (editMode[evt.player]) { toggleGrab(evt.player, false); }
-			else                      { doSwap(evt.player, pawn, nearOff[evt.player], true); }
+			if (editMode[evt.player]) { if (evt.player == consoleplayer) toggleGrab(evt.player, false); }
+			else if (evt.player == consoleplayer)
+				EventHandler.SendNetworkEvent(String.Format("rs-holster-swap:%d", nearOff[evt.player]), 1);
 		}
 	}
 
