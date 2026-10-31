@@ -185,6 +185,18 @@ class RS_HolsterManager : EventHandler
 	// at the moment of the grip press, rather than re-testing a tic later.
 	int nearMain[MAXPLAYERS];
 	int nearOff[MAXPLAYERS];
+	// [NETPLAY 2026-10-31] WHICH HOLSTER A HAND IS NEAR IS DECIDED ON ONE MACHINE -- the player's
+	// own: the anchors come from its body frame (updateBodyFrame runs for consoleplayer only) and
+	// its holster profile on disk, so another machine measuring the same hand gets another
+	// answer. The owner's headset run run_094502: the joiner's copy of the host re-equipped a gun
+	// 27 tics after his respawn, his own copy did not. So in a netgame the proximity test runs
+	// for the local player only, its result travels as rs-holster-near:<main>:<off> when it
+	// changes, and EVERY machine -- the sender too -- reads nearMain/nearOff from what arrived.
+	int sentNearMain[MAXPLAYERS];   // the local test's last result (hysteresis + change detection)
+	int sentNearOff[MAXPLAYERS];
+	int netNearMain[MAXPLAYERS];    // what arrived, per player
+	int netNearOff[MAXPLAYERS];
+	bool nearInit[MAXPLAYERS];      // int arrays default to 0, a valid holster index
 
 	// Whether THIS mod currently holds EACH hand's GripClaim* for the ammo
 	// pouch (GRIPSUBJ_Pouch). Both hands, not just off -- the owner's own
@@ -428,6 +440,9 @@ class RS_HolsterManager : EventHandler
 					pendingDump[i] = -1;
 					nearMain[i] = -1;
 					nearOff[i] = -1;
+					sentNearMain[i] = -1; sentNearOff[i] = -1;
+					netNearMain[i] = -1;  netNearOff[i] = -1;
+					nearInit[i] = true;
 				}
 				continue; // no anchors, no claims, until calibration lands
 			}
@@ -645,6 +660,9 @@ class RS_HolsterManager : EventHandler
 		// a VALID index. See WorldTick's own note on the same trap.
 		nearMain[i] = -1;
 		nearOff[i] = -1;
+		sentNearMain[i] = -1; sentNearOff[i] = -1;
+		netNearMain[i] = -1;  netNearOff[i] = -1;
+		nearInit[i] = true;
 		pendingDump[i] = -1;
 
 		// The ammo-pouch backup pointers, nulled for the reason given in the
@@ -1382,13 +1400,23 @@ class RS_HolsterManager : EventHandler
 		// near the boundary flickers claimed/unclaimed many times a second --
 		// which is worse than not claiming at all, because grip's MEANING
 		// flips with it, and the player cannot tell what a press will do.
-		int prevMain = nearMain[i];
-		int prevOff  = nearOff[i];
+		if (!nearInit[i])
+		{
+			nearInit[i] = true;
+			sentNearMain[i] = -1; sentNearOff[i] = -1;
+			netNearMain[i] = -1;  netNearOff[i] = -1;
+		}
+		bool netMode = multiplayer;
+		bool measureHere = !netMode || i == consoleplayer;
+		int prevMain = netMode ? sentNearMain[i] : nearMain[i];
+		int prevOff  = netMode ? sentNearOff[i]  : nearOff[i];
 
 		bool mainClaimed = false;
 		bool offClaimed = false;
 		nearMain[i] = -1;
 		nearOff[i] = -1;
+		if (measureHere)
+		{
 
 		// Check the hysteresis-held holster FIRST, with ITS widened radius,
 		// before the low-to-high scan below ever runs. The scan latches
@@ -1468,6 +1496,22 @@ class RS_HolsterManager : EventHandler
 				nearOff[i] = h;
 			}
 		}
+		}
+		if (netMode)
+		{
+			if (measureHere && (nearMain[i] != sentNearMain[i] || nearOff[i] != sentNearOff[i]))
+			{
+				sentNearMain[i] = nearMain[i];
+				sentNearOff[i]  = nearOff[i];
+				EventHandler.SendNetworkEvent(String.Format("rs-holster-near:%d:%d", nearMain[i], nearOff[i]));
+			}
+			// The command is the truth, on the sender as well: a tic or two behind the hand,
+			// and the same on every machine.
+			nearMain[i] = netNearMain[i];
+			nearOff[i]  = netNearOff[i];
+			mainClaimed = nearMain[i] >= 0;
+			offClaimed  = nearOff[i] >= 0;
+		}
 
 		// Edge-logged rather than per-tic: this is the signal that the whole
 		// chain works, and it should be visible without being a spam source.
@@ -1485,13 +1529,13 @@ class RS_HolsterManager : EventHandler
 				Console.Printf("RS_HOLSTER: main hand %s holster range", mainClaimed ? "ENTERED" : "left");
 			// A short, light tap on ENTER only -- a real holster does not buzz
 			// your hand when you pull away from it, only when you find it.
-			if (mainClaimed) level.VRHaptic(0, 0.35, 25.0);
+			if (mainClaimed && i == consoleplayer) level.VRHaptic(0, 0.35, 25.0);
 		}
 		if (offClaimed != pawn.HolsterClaimOff)
 		{
 			if (verboseDiag())
 				Console.Printf("RS_HOLSTER: off hand %s holster range", offClaimed ? "ENTERED" : "left");
-			if (offClaimed) level.VRHaptic(1, 0.35, 25.0);
+			if (offClaimed && i == consoleplayer) level.VRHaptic(1, 0.35, 25.0);
 		}
 
 		pawn.HolsterClaimMain = mainClaimed;
@@ -2567,6 +2611,12 @@ class RS_HolsterManager : EventHandler
 		// its OWN near index -- the host swapped, the joiner did not (owner's PC, 09:00, tic 1438).
 		// So the machine that pressed answers its own event with the index, and THAT travels:
 		// rs-holster-swap:<idx> (arg 0 = off hand), applied by every machine alike.
+		if (evt.name.Left(16) == "rs-holster-near:")
+		{
+			Array<String> f; evt.name.Split(f, ":");
+			if (f.Size() >= 3) { netNearMain[evt.player] = f[1].ToInt(); netNearOff[evt.player] = f[2].ToInt(); }
+			return;
+		}
 		if (evt.name.Left(16) == "rs-holster-swap:")
 		{
 			if (editMode[evt.player]) return;
