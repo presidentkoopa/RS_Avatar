@@ -1749,7 +1749,7 @@ class RS_HolsterManager : EventHandler
 			}
 			if (markers[pi] == null)
 			{
-				markers[pi] = RS_HolsterMarker(Actor.Spawn(wantColorClass, at, NO_REPLACE));
+				markers[pi] = RS_HolsterMarker(Actor.SpawnClientSide(wantColorClass, at, NO_REPLACE));   // [NETPLAY] a look
 				if (markers[pi] != null && carryState)
 					markers[pi].SetFadeState(carryAlpha, carryVisible);
 			}
@@ -1807,7 +1807,7 @@ class RS_HolsterManager : EventHandler
 			// --- the stored weapon's model, when there is one ---
 			if (props[pi] == null)
 			{
-				props[pi] = RS_HolsterProp(Actor.Spawn("RS_HolsterProp", at, NO_REPLACE));
+				props[pi] = RS_HolsterProp(Actor.SpawnClientSide("RS_HolsterProp", at, NO_REPLACE));   // [NETPLAY] a look
 				if (props[pi] == null)
 					continue;
 			}

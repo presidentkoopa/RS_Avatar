@@ -29,6 +29,11 @@ class RS_HolsterMarker : Actor
 {
 	Default
 	{
+		// [NETPLAY 2026-10-31] A LOOK: the drawn sphere, this machine's only. Client-side so it
+		// is in no world hash, no save and no network ID; spawned with Actor.SpawnClientSide.
+		// Before this each machine spawned its own player's markers into the playsim, from
+		// its own calibration timing, and two machines disagreed from that tic on.
+		+CLIENTSIDE
 		+NOBLOCKMAP
 		+NOGRAVITY
 		+NOINTERACTION
@@ -343,6 +348,7 @@ class RS_HolsterProp : Actor
 {
 	Default
 	{
+		+CLIENTSIDE      // [NETPLAY] a look (the holstered gun's model); Actor.SpawnClientSide
 		+NOBLOCKMAP
 		+NOGRAVITY
 		+NOINTERACTION
