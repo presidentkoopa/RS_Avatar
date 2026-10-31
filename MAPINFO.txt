@@ -2,5 +2,5 @@
 // vr_avatar is empty.
 GameInfo
 {
-	AddEventHandlers = "RSA_Handler", "RSA_FitMode", "RSA_MirrorHandler"
+	AddEventHandlers = "RSAV_Handler", "RSA_FitMode", "RSA_MirrorHandler"
 }

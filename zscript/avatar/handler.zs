@@ -11,7 +11,7 @@
 //
 // So: this is a caretaker. It spawns, it follows, it removes.
 
-class RSA_Handler : EventHandler
+class RSAV_Handler : EventHandler
 {
 	// One per player, indexed by player number. Not serialized: an avatar is render-only
 	// state, and a loaded save spawns its own on the next tic.
