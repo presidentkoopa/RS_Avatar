@@ -8,6 +8,7 @@ version "4.14"
 #include "zscript/avatar/fitmode.zs"
 #include "zscript/avatar/mirror.zs"
 
-// The body holsters (owner, 2026-11-09): spots from VRSLOTS lumps, on the sim torso, decided in
-// the sim. RS_Holsters is retired to reference/retired_holsters/ (not packed, not loaded).
-#include "zscript/bodyholsters/bodyholsters.zs"
+// The body holsters (owner, 2026-11-09): the engine core is UZDXREMA p_vrgear.cpp (VRGear); the rig
+// is VRGEAR.txt; the rules, feel and look are here. Design: UZDXREMA docs/plans/BODY_HOLSTERS_DESIGN.md.
+// RS_Holsters and the first prototype are retired to reference/ (not packed, not loaded).
+#include "zscript/gear/gear.zs"

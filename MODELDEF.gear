@@ -1,0 +1,16 @@
+// The body holsters' shell (zscript/gear/gear.zs RAG_Shell): the bracket, radius 3 at Scale 1; the
+// actor's Scale sizes it to the mount's reach. Frame A idle, B a hand in it.
+// FLAGS BEFORE THE FrameIndex LINES: each FrameIndex snapshots the flags set so far.
+Model RAG_Shell
+{
+	Path "models"
+	Model 0 "rs_holster_bracket.obj"
+	Skin 0 "rs_wire_idle.png"
+	Model 1 "rs_holster_bracket.obj"
+	Skin 1 "rs_wire_hot.png"
+	Scale 3.0 3.0 3.0
+	USEACTORPITCH
+	USEACTORROLL
+	FrameIndex RSHM A 0 0
+	FrameIndex RSHM B 1 0
+}

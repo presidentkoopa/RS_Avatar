@@ -1,0 +1,57 @@
+// VRGEAR -- the body holster rig (engine: UZDXREMA src/playsim/p_vrgear.cpp; design:
+// docs/plans/BODY_HOLSTERS_DESIGN.md). Every loaded mod may add its own VRGEAR lump: later
+// definitions of the same name replace earlier ones, `remove <mount>` takes one away.
+//
+// Positions and reaches are FRACTIONS OF YOUR STANDING EYE HEIGHT, from the sim torso's pelvis or
+// chest, along its right (side), forward (fwd) and up. The mouth is the way a draw leaves.
+//
+// PHASE 1 (owner, 2026-11-09): hips and chest, any gun, push-in on. Shoulders are Phase 2.
+// No pouch or grenade loop until the weapons step.
+
+emptyhand Fist
+
+// ---- the mounts ----
+mount HipR   { pelvis at  0.125 0.02  0.00  radius 0.065 mouth 0 0 1          pushin on signature hipR }
+mount HipL   { pelvis at -0.125 0.02  0.00  radius 0.065 mouth 0 0 1          pushin on signature hipL }
+mount ChestR { chest  at  0.070 0.075 -0.01 radius 0.055 mouth -0.5 0.3 0.81  pushin on signature chestR }
+mount ChestL { chest  at -0.070 0.075 -0.01 radius 0.055 mouth  0.5 0.3 0.81  pushin on signature chestL }
+
+// ---- how far a gun travels out of its mouth before it is clear (fraction of eye height) ----
+kind gun  { clear 0.05 }
+kind long { clear 0.09 }
+
+// ---- Doom's weapons ----
+item Pistol         { kind gun  print pistol }
+item Chainsaw       { kind long print chainsaw }
+item Shotgun        { kind long print shotgun }
+item SuperShotgun   { kind long print supershotgun }
+item Chaingun       { kind long print chaingun }
+item RocketLauncher { kind long print rocket }
+item PlasmaRifle    { kind long print plasma }
+item BFG9000        { kind long print bfg }
+
+// ---- haptic signatures: pulse <intensity 0-1> <ms> <hz, 0 = runtime default> [gap <ms>] ----
+// Each mount: its own RHYTHM first (frequency may be ignored on some controllers), so you can tell
+// them apart blind.
+haptic hipR   { pulse 0.35 18 160 }
+haptic hipL   { pulse 0.35 18 160 gap 45 pulse 0.25 12 160 }
+haptic chestR { pulse 0.30 10 220 gap 25 pulse 0.30 10 220 }
+haptic chestL { pulse 0.30 10 220 gap 25 pulse 0.30 10 220 gap 25 pulse 0.30 10 220 }
+
+// Each gun: what is in the mount, felt when the hand arrives at a full one.
+haptic pistol       { pulse 0.30 14 260 }
+haptic shotgun      { pulse 0.45 22 110 gap 30 pulse 0.45 22 110 }
+haptic supershotgun { pulse 0.55 26 95 gap 25 pulse 0.55 26 95 gap 25 pulse 0.40 18 95 }
+haptic chaingun     { pulse 0.40 12 180 gap 15 pulse 0.40 12 180 gap 15 pulse 0.40 12 180 gap 15 pulse 0.40 12 180 }
+haptic rocket       { pulse 0.65 60 70 }
+haptic plasma       { pulse 0.35 40 300 gap 20 pulse 0.25 30 340 }
+haptic bfg          { pulse 0.80 90 55 gap 40 pulse 0.50 60 55 }
+haptic chainsaw     { pulse 0.50 15 140 gap 10 pulse 0.50 15 140 gap 10 pulse 0.50 15 140 }
+
+// The actions.
+haptic seat    { pulse 0.90 45 90 }                      // a solid thunk
+haptic drag    { pulse 0.20 70 120 }                     // the gun sliding out
+haptic snap    { pulse 0.75 16 240 }                     // clear
+haptic quick   { pulse 0.85 12 260 gap 18 pulse 0.85 12 260 }   // a clean quick-draw: the doubled crack
+haptic refuse  { pulse 0.55 60 80 gap 50 pulse 0.55 60 80 }     // the double buzz
+haptic free    { pulse 0.40 30 200 gap 40 pulse 0.60 30 150 }
