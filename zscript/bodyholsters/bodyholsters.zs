@@ -483,7 +483,7 @@ class RSBH_Ring : Actor
 		double k = radius / 3.0;   // the mesh is radius 3 at scale 1 (MODELDEF.bodyholsters)
 		Scale = (k, k);
 		Alpha = vis * 0.85;
-		SetState(ResolveState(hot ? "Hot" : "Idle"));
+		if (hot) SetStateLabel("Hot"); else SetStateLabel("Idle");
 	}
 
 	States
