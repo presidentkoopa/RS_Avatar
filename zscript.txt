@@ -8,5 +8,6 @@ version "4.14"
 #include "zscript/avatar/fitmode.zs"
 #include "zscript/avatar/mirror.zs"
 
-// Body holsters (merged from RS_Holsters, 2026-10-27). Lumps: *.holsters at the root.
-#include "zscript/holsters/holsters.zs"
+// The body holsters (owner, 2026-11-09): spots from VRSLOTS lumps, on the sim torso, decided in
+// the sim. RS_Holsters is retired to reference/retired_holsters/ (not packed, not loaded).
+#include "zscript/bodyholsters/bodyholsters.zs"

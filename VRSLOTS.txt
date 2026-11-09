@@ -1,0 +1,22 @@
+// VRSLOTS -- the holster spots on your body. Read by zscript/bodyholsters/.
+//
+// Every loaded mod may have its own VRSLOTS lump. All are read in load order; a later slot with
+// the same name replaces an earlier one, and `remove <name>` takes one away.
+//
+// slot <name> <anchor> <side> <fwd> <up> <radius> [blind]
+//   anchor   pelvis | chest. The sim's torso frame (VRTorso): the spot rides your body, turns
+//            with stick and room turns, and does not move when you look around or nod.
+//   side     + is your right. fwd + is in front of you. up + is up.
+//            side/fwd/up/radius are fractions of your standing eye height, so they scale with you.
+//   blind    a spot you cannot see (over the shoulders): always buzzes, and a grip still counts
+//            for a moment after the controller loses tracking.
+//
+// The owner's layout, 2026-11-09: six weapon spots. Positions are a starting point from adult
+// proportions (eye height 1.60 m).
+
+slot HipRight      pelvis  0.125  0.02   0.00   0.065
+slot HipLeft       pelvis -0.125  0.02   0.00   0.065
+slot ChestRight    chest   0.070  0.075 -0.01   0.055
+slot ChestLeft     chest  -0.070  0.075 -0.01   0.055
+slot ShoulderRight chest   0.110 -0.030  0.14   0.085  blind
+slot ShoulderLeft  chest  -0.110 -0.030  0.14   0.085  blind

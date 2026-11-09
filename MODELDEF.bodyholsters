@@ -1,0 +1,14 @@
+// The body holsters' ring (zscript/bodyholsters). The wire sphere is radius 3 at Scale 1; the
+// actor's own Scale sizes it to the spot's reach. Frame A idle, frame B a hand inside.
+// FLAGS BEFORE THE FrameIndex LINES: each FrameIndex snapshots the flags set so far.
+Model RSBH_Ring
+{
+	Path "models"
+	Model 0 "rs_wiresphere.obj"
+	Skin 0 "rs_wire_idle.png"
+	Model 1 "rs_wiresphere.obj"
+	Skin 1 "rs_wire_hot.png"
+	Scale 3.0 3.0 3.0
+	FrameIndex RSHM A 0 0
+	FrameIndex RSHM B 1 0
+}
