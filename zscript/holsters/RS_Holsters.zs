@@ -184,7 +184,14 @@ class RS_HolsterManager : EventHandler
 	// Which holster each hand is currently inside, -1 for none. Recorded
 	// during the claim pass so the swap acts on the holster the hand was in
 	// at the moment of the grip press, rather than re-testing a tic later.
+	int ctxPlayer;	// [HOLSTER2] the player this pass decides for; see ctxPlayerNum
 	int nearMain[MAXPLAYERS];
+	// [HOLSTER2] H2: the grip, read from the command in the sim (docs/plans/HOLSTER2_DESIGN.md).
+	// Per hand: tics the current claim has been held, tics the grip has been up, last tic's grip.
+	int  h2ClaimTicsMain[MAXPLAYERS], h2ClaimTicsOff[MAXPLAYERS];
+	int  h2LastClaimMain[MAXPLAYERS], h2LastClaimOff[MAXPLAYERS];
+	int  h2UpTicsMain[MAXPLAYERS],    h2UpTicsOff[MAXPLAYERS];
+	bool h2GripMain[MAXPLAYERS],      h2GripOff[MAXPLAYERS];
 	int nearOff[MAXPLAYERS];
 	// [NETPLAY 2026-10-31] WHICH HOLSTER A HAND IS NEAR IS DECIDED ON ONE MACHINE -- the player's
 	// own: the anchors come from its body frame (updateBodyFrame runs for consoleplayer only) and
@@ -421,6 +428,7 @@ class RS_HolsterManager : EventHandler
 				continue;
 
 			PlayerPawn pawn = players[i].mo;
+			ctxPlayer = i;   // [HOLSTER2]
 
 			if (!calibrated[i])
 			{
@@ -491,6 +499,7 @@ class RS_HolsterManager : EventHandler
 			updateBodyFrame(i, pawn);   // [BODYANCHOR] before anything reads an anchor
 			updateGrabs(i, pawn);
 			updateClaims(i, pawn); // also repositions props, via updateProps
+			if (holster2On()) updateGrips2(i, pawn);   // [HOLSTER2] the press, from the command
 
 			// Consume a dump queued by last tic's store, now that this tic's
 			// updateClaims has actually moved the prop into place.
@@ -885,6 +894,11 @@ class RS_HolsterManager : EventHandler
 		if (isHandAnchored(idx))
 			return handAnchorPos(pawn, idx);
 
+		// [HOLSTER2] H2: on the SIM's torso frame, the same on every machine.
+		Vector3 tAt;
+		if (torsoAnchorPos(i, idx, tAt))
+			return tAt;
+
 		// [BODYANCHOR] on the worn body when there is one and this holster rides it
 		if (bodyRides(i, idx) && bdSet[idx])
 		{
@@ -892,6 +906,86 @@ class RS_HolsterManager : EventHandler
 			return basisO(idx) + (basisF(idx) * (bdF[idx] * e)) + (basisR(idx) * (bdS[idx] * e)) + (basisU(idx) * (bdU[idx] * e));
 		}
 		return hmdAnchorPos(i, pawn, idx);
+	}
+
+	// [HOLSTER2] H2 (docs/plans/HOLSTER2_DESIGN.md, UZDXREMA). ON BY THE SERVER SETTING
+	// rs_holster2, because it changes what the game decides: every machine must follow the same
+	// rule, so it is not a per-player choice.
+	private bool holster2On() const
+	{
+		let cv = CVar.FindCVar('rs_holster2');
+		return cv != null && cv.GetBool();
+	}
+
+	// [HOLSTER2] THE TORSO TABLE. The headset table's numbers, unchanged -- hsFwd/hsSide from the
+	// eye along the facing, hsFrac of eye height -- but measured from the SIM'S TORSO
+	// (VRTorso, engine p_vrtorso.cpp) instead of the headset: its yaw instead of the head's,
+	// and the eye taken where it sits with the head LEVEL over the neck's pivot. So a turn of
+	// the head, a nod or a glance down moves nothing, a crouch lowers everything with the neck,
+	// and every machine places every player's holsters alike. 0.050 / 0.075 are p_vrtorso.cpp's
+	// kEyeAheadOfNeck / kEyeAboveNeck. The head pair (2, 3) stays on the headset: beside the
+	// ears IS head-relative. Hand-anchored gear never comes here.
+	private bool torsoAnchorPos(int i, int idx, out Vector3 at)
+	{
+		if (!holster2On() || isHandAnchored(idx) || idx == 2 || idx == 3) return false;
+		if (eyeHeight[i] <= 0) return false;
+		bool ok; double ty; Vector3 neck, chest, pelvis;
+		[ok, ty, neck, chest, pelvis] = VRTorso.Get(i);
+		if (!ok) return false;
+		double e = eyeHeight[i];
+		double fx = cos(ty), fy = sin(ty);
+		double rx = sin(ty), ry = -cos(ty);   // the torso's right
+		Vector3 eye = (neck.X + fx * 0.050 * e, neck.Y + fy * 0.050 * e, neck.Z + 0.075 * e);
+		at = (eye.X + edFwd[idx] * fx + edSide[idx] * rx,
+		      eye.Y + edFwd[idx] * fy + edSide[idx] * ry,
+		      eye.Z - e + e * edFrac[idx]);
+		return true;
+	}
+
+	// [HOLSTER2] A hand, from the hand LATCH (PlayerInfo.GetVRHand): what the sim itself acts on,
+	// the same on every machine. The old fields as a fallback for a player with no pose.
+	private Vector3 latchedHand(int i, PlayerPawn pawn, int hand)
+	{
+		int valid; Vector3 pos; double a, p, r;
+		[valid, pos, a, p, r] = players[i].GetVRHand(hand);
+		if (valid) return pos;
+		return hand == 0 ? pawn.AttackPos : pawn.OffhandPos;
+	}
+
+	// [HOLSTER2] THE GRIP, DECIDED IN THE SIM. The press comes from the command (GetVRHandInput),
+	// so every machine sees the same press on the same tic and swaps alike: no event from the
+	// player's machine telling the others what happened. Rules (Tactical Rig, RDRVR):
+	//   - the hand must have held this holster 3 tics, so a hand passing through does nothing;
+	//   - the grip must have been up 3 tics before, so a bounce is not a second press;
+	//   - grip only (owner, 2026-11-09). Edit mode keeps its own key.
+	// And while a hand is at a torso holster the torso is held still in the world
+	// (VRTorso.Freeze), so a reach never turns the body away from it.
+	private void updateGrips2(int i, PlayerPawn pawn)
+	{
+		for (int hand = 0; hand < 2; ++hand)
+		{
+			int g, t, bits, tx, ty;
+			[g, t, bits, tx, ty] = players[i].GetVRHandInput(hand);
+			bool grip = (bits & 2) != 0 || g >= 160;   // VRHB_GRIP, or most of the way in
+			int claim = hand == 0 ? nearMain[i] : nearOff[i];
+
+			int last = hand == 0 ? h2LastClaimMain[i] : h2LastClaimOff[i];
+			int held = hand == 0 ? h2ClaimTicsMain[i] : h2ClaimTicsOff[i];
+			held = (claim >= 0 && claim == last) ? held + 1 : (claim >= 0 ? 1 : 0);
+			int up = hand == 0 ? h2UpTicsMain[i] : h2UpTicsOff[i];
+			bool was = hand == 0 ? h2GripMain[i] : h2GripOff[i];
+
+			if (grip && !was && claim >= 0 && held >= 3 && up >= 3 && !editMode[i])
+				doSwap(i, pawn, claim, hand == 1);
+
+			up = grip ? 0 : min(up + 1, 1000);
+			if (hand == 0) { h2LastClaimMain[i] = claim; h2ClaimTicsMain[i] = held; h2UpTicsMain[i] = up; h2GripMain[i] = grip; }
+			else           { h2LastClaimOff[i]  = claim; h2ClaimTicsOff[i]  = held; h2UpTicsOff[i]  = up; h2GripOff[i]  = grip; }
+		}
+
+		bool atTorso = (nearMain[i] >= 0 && !isHandAnchored(nearMain[i]) && nearMain[i] != 2 && nearMain[i] != 3)
+		            || (nearOff[i]  >= 0 && !isHandAnchored(nearOff[i])  && nearOff[i]  != 2 && nearOff[i]  != 3);
+		if (atTorso) VRTorso.Freeze(i, 3);
 	}
 
 	// The headset table's own answer, always -- what anchorPos was before the body
@@ -1408,7 +1502,9 @@ class RS_HolsterManager : EventHandler
 			sentNearMain[i] = -1; sentNearOff[i] = -1;
 			netNearMain[i] = -1;  netNearOff[i] = -1;
 		}
-		bool netMode = multiplayer;
+		// [HOLSTER2] every machine measures every player from the latch: no near-event.
+		bool h2 = holster2On();
+		bool netMode = multiplayer && !h2;
 		bool measureHere = !netMode || i == consoleplayer;
 		int prevMain = netMode ? sentNearMain[i] : nearMain[i];
 		int prevOff  = netMode ? sentNearOff[i]  : nearOff[i];
@@ -1417,7 +1513,31 @@ class RS_HolsterManager : EventHandler
 		bool offClaimed = false;
 		nearMain[i] = -1;
 		nearOff[i] = -1;
-		if (measureHere)
+		if (measureHere && h2)
+		{
+			// [HOLSTER2] THE BEST HOLSTER WINS, NOT THE FIRST (QuakeVR vr_body.cpp): of every
+			// active holster, the one with the lowest distance / radius under 1. The one the hand
+			// already holds is measured against its widened radius, so it keeps the hand until
+			// the hand really leaves.
+			Vector3 mp = latchedHand(i, pawn, 0), op = latchedHand(i, pawn, 1);
+			double bestM = 1.0, bestO = 1.0;
+			for (int h = 0; h < HOLSTER_COUNT; ++h)
+			{
+				if (!holsterActive(h)) continue;
+				string hsName; double hsFwd, hsSide, hsFrac, hsRadius, hsPitch, hsYaw, hsRoll;
+				GetHolster(h, hsName, hsFwd, hsSide, hsFrac, hsRadius, hsPitch, hsYaw, hsRoll);
+				if (hsRadius <= 0) continue;
+				Vector3 a = anchorPos(i, pawn, h);
+				double rm = (mp - a).Length() / (h == prevMain ? hsRadius * CLAIM_HYSTERESIS : hsRadius);
+				if (rm < bestM) { bestM = rm; nearMain[i] = h; mainClaimed = true; }
+				if (!isHandAnchored(h))
+				{
+					double ro = (op - a).Length() / (h == prevOff ? hsRadius * CLAIM_HYSTERESIS : hsRadius);
+					if (ro < bestO) { bestO = ro; nearOff[i] = h; offClaimed = true; }
+				}
+			}
+		}
+		else if (measureHere)
 		{
 
 		// Check the hysteresis-held holster FIRST, with ITS widened radius,
@@ -2220,7 +2340,7 @@ class RS_HolsterManager : EventHandler
 	// cvar can be hand-edited in an ini to any int.
 	private int activeCount() const
 	{
-		let cv = CVar.GetCVar("rs_holster_active_count", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_active_count", players[ctxPlayerNum()]);
 		int n = (cv != null) ? cv.GetInt() : HOLSTER_COUNT;
 		if (n <= 2) return 2;
 		if (n <= 4) return 4;
@@ -2251,9 +2371,18 @@ class RS_HolsterManager : EventHandler
 		return h < activeCount();
 	}
 
+	// [HOLSTER2] WHOSE SETTINGS. These two are the player's own (userinfo), and they decide what
+	// the sim does for HIM -- so they are read from the player being decided, not from whoever
+	// owns this machine, or two machines disagree about the same player. ctxPlayer is set at the
+	// top of each player's pass in WorldTick and for the sender in NetworkProcess.
+	private int ctxPlayerNum() const
+	{
+		return (ctxPlayer >= 0 && ctxPlayer < MAXPLAYERS) ? ctxPlayer : consoleplayer;
+	}
+
 	private bool pouchEnabled() const
 	{
-		let cv = CVar.GetCVar("rs_holster_pouch_enabled", players[consoleplayer]);
+		let cv = CVar.GetCVar("rs_holster_pouch_enabled", players[ctxPlayerNum()]);
 		return (cv != null) ? cv.GetBool() : true;
 	}
 
@@ -2515,6 +2644,7 @@ class RS_HolsterManager : EventHandler
 	override void NetworkProcess(ConsoleEvent evt)
 	{
 		if (evt.player < 0) return;
+		ctxPlayer = evt.player;   // [HOLSTER2]
 		PlayerPawn pawn = players[evt.player].mo;
 		if (!pawn) return;
 
@@ -2613,6 +2743,14 @@ class RS_HolsterManager : EventHandler
 		// its OWN near index -- the host swapped, the joiner did not (owner's PC, 09:00, tic 1438).
 		// So the machine that pressed answers its own event with the index, and THAT travels:
 		// rs-holster-swap:<idx> (arg 0 = off hand), applied by every machine alike.
+		// [HOLSTER2] The sim reads the grip itself; the old per-machine near index and the swap
+		// it sent are not used, and acting on them as well would swap twice.
+		if (holster2On() && (evt.name.Left(16) == "rs-holster-near:" || evt.name.Left(16) == "rs-holster-swap:"))
+			return;
+		if (holster2On() && !editMode[evt.player]
+			&& (evt.name == "rs-holster-grab-main" || evt.name == "rs-vrhp-grab-main"
+			 || evt.name == "rs-holster-grab-off"  || evt.name == "rs-vrhp-grab-off"))
+			return;
 		if (evt.name.Left(16) == "rs-holster-near:")
 		{
 			Array<String> f; evt.name.Split(f, ":");

@@ -192,3 +192,10 @@ user bool rs_holster_verbose = false;
 // from your tuned table the first time you stand up straight. Off = the old
 // headset-only table, exactly as before. Needs the UZDXREMA build with [SOCKETMAP].
 user bool rs_holster_body = true;
+
+// [HOLSTER2] Holster 2, phase H2 (UZDXREMA docs/plans/HOLSTER2_DESIGN.md). The holsters hang on
+// the sim's torso frame (VRTorso), the best-fitting holster wins, and the grip press is read from
+// the command in the sim, so every machine decides the same thing on the same tic and no event
+// travels. A SERVER setting because it changes what the game decides: one rule for everyone.
+// Off: the old headset table, first match, and the near/swap events. Owner, 2026-11-09: grip only.
+server bool rs_holster2 = true;
