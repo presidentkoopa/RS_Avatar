@@ -116,6 +116,19 @@ OptionMenu "RSA_AvatarOptions"
 	Option "Draw the avatar's joints", "vr_avatar_debug", "OnOff"
 	StaticText ""
 
+	// [RECORDER] Worklist B8 waits on recordings of the owner squatting, kneeling and on slopes
+	// (owner, 2026-11-09: "Yes, add a recorder"). The engine's recorder (vr_bodyinfer_record,
+	// vr_bodyinfer_record.cpp) was console-only; a headset cannot type. Pick one, do the move a
+	// few times, then Stop. Each name is its own file, so a second take of one replaces only it.
+	StaticText "Record your body (for tuning)", gold
+	StaticText "  Pick one, do it a few times slowly, then Stop recording.", darkgray
+	Command "Record: squat",          "vr_bodyinfer_record start squat"
+	Command "Record: kneel",          "vr_bodyinfer_record start kneel"
+	Command "Record: on a slope",     "vr_bodyinfer_record start slope"
+	Command "Record: anything else",  "vr_bodyinfer_record start other"
+	Command "Stop recording",         "vr_bodyinfer_record stop"
+	StaticText ""
+
 	StaticText "Your measurements", gold
 	StaticText "Set by the body fit. Zero means never fitted.", darkgray
 	Option "Use the virtual controller (desk testing)", "vr_rig_fake", "OnOff"
