@@ -84,6 +84,12 @@ OptionMenu "RSA_AvatarOptions"
 	StaticText "Your own body", gold
 	Option "See your own body", "vr_avatar_ownbody", "RSAOwnBody"
 	StaticText "  Your head and helmet are always hidden from your own eyes.", darkgray
+	Option "Torso fades looking down", "rsa_body_lookdown_fade", "OnOff"
+	StaticText "  Only your own eyes: mirrors and other players see you whole.", darkgray
+	Slider "  Starts at (degrees down)",      "rsa_body_lookdown_start", 0.0, 45.0, 1.0, 0
+	Slider "  Thinnest at (degrees down)",    "rsa_body_lookdown_end",   5.0, 70.0, 1.0, 0
+	Slider "  How solid at its thinnest",     "rsa_body_lookdown_keep",  0.0, 1.0, 0.01, 2
+	Slider "  Reaches this far from your eye", "rsa_body_lookdown_far",  10.0, 60.0, 1.0, 0
 	StaticText ""
 
 	StaticText "Your own head", gold

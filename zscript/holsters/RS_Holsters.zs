@@ -179,6 +179,7 @@ class RS_HolsterManager : EventHandler
 	double eyeHeight[MAXPLAYERS];
 	bool   calibrated[MAXPLAYERS];
 	int    spawnTries[MAXPLAYERS];
+	int    zeroPoseTics[MAXPLAYERS];	// [CALWAIT] tics waited for a first head pose
 
 	// Which holster each hand is currently inside, -1 for none. Recorded
 	// during the claim pass so the swap acts on the holster the hand was in
@@ -747,6 +748,17 @@ class RS_HolsterManager : EventHandler
 	// written a pose at least once.
 	private void tryCalibrate(int i, PlayerPawn pawn)
 	{
+		// [CALWAIT] NO HEAD POSE YET IS NOT A BAD READING, so it does not spend a try (owner's
+		// headset, 2026-11-09: the headset had not sent a pose in the first second of the map,
+		// the 35 tries ran out, and the fallback eye height left the holsters on a guess that
+		// never seeded onto the body). Wait for the headset as long as it takes; say so once
+		// after ten seconds of nothing, which on a desk with no headset is the truth.
+		if (pawn.HmdPos.Length() == 0)
+		{
+			if (++zeroPoseTics[i] == 350)
+				Console.Printf("\cgRS_HOLSTER: no head pose from the headset yet -- holsters wait for it.");
+			return;
+		}
 		spawnTries[i]++;
 		if (spawnTries[i] > CALIBRATE_MAX_TRIES)
 		{
@@ -756,17 +768,6 @@ class RS_HolsterManager : EventHandler
 			eyeHeight[i] = pawn.Height * 0.9;
 			calibrated[i] = true;
 			Console.Printf("RS_HOLSTER: calibration timed out, using fallback eye height %.1f", eyeHeight[i]);
-			return;
-		}
-
-		// A zero HmdPos means the VR backend has not written a head pose into
-		// the field yet -- distinct from "the player is standing somewhere
-		// implausible". Called out separately because it is the failure that
-		// looks identical to "nothing is happening" from the outside.
-		if (pawn.HmdPos.Length() == 0)
-		{
-			if (spawnTries[i] == CALIBRATE_MAX_TRIES)
-				Console.Printf("\cgRS_HOLSTER: HmdPos is zero -- engine is not writing head pose. Holsters cannot work.");
 			return;
 		}
 
@@ -792,6 +793,7 @@ class RS_HolsterManager : EventHandler
 			return;
 		calibrated[playerNum] = false;
 		spawnTries[playerNum] = 0;
+		zeroPoseTics[playerNum] = 0;
 	}
 
 	// Seed the live offsets from the default table, once.

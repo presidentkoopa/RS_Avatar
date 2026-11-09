@@ -164,6 +164,20 @@ user float rsa_helmet_eyefade_far  = 14.0;
 user float rsa_body_eyefade_near = 0.0;
 user float rsa_body_eyefade_far  = 0.0;
 
+// [LOOKDOWNFADE] YOUR TORSO THINS AS YOU LOOK DOWN (owner, 2026-11-09: "this big torso makes it
+// hard to see anything when i look down"; he picked a fade over hiding or moving it).
+// Engine: models.cpp ModelLookDownFade. Only your own body through your own eyes; mirrors and
+// other players always see it whole. Defaults are the curve he tuned for RSQ Tactical Rig's
+// torso on 10-27 (vest.zs): solid looking ahead, thinning from 12 degrees down, thinnest by
+// 32, never below 0.53 of its pixels. Unlike the Rig's, only what is within _far map units of
+// the eye thins (chest, belly, hips: the pelvis sits about 25 below the eye); legs stay solid.
+// A hand held near the chest thins with it. Vulkan only, like the eye fade.
+user bool  rsa_body_lookdown_fade  = true;
+user float rsa_body_lookdown_start = 12.0;
+user float rsa_body_lookdown_end   = 32.0;
+user float rsa_body_lookdown_keep  = 0.53;
+user float rsa_body_lookdown_far   = 30.0;
+
 // ---------------------------------------------------------------------------
 // [OWNBODY] WHAT THE WEARER SEES OF HIMSELF, once the whole body is posed.
 // WholeBodyIK step 9.
