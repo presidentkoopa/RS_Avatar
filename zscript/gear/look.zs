@@ -149,7 +149,7 @@ class RAG_Look : EventHandler
 
 	// D2 (TacticalRig SNDINFO.txt:2-8; rig.zs:1133, 1266, 1275): local, on the presser's machine only.
 	// VRGear.SoundOf gives the sound's NAME from the lump's `sound` row ("" if there is no row).
-	private void Play(PlayerPawn pawn, Name which)
+	private void PlaySnd(PlayerPawn pawn, Name which)
 	{
 		String snd = VRGear.SoundOf(which);
 		if (snd == "") return;
@@ -199,21 +199,21 @@ class RAG_Look : EventHandler
 				break;
 			case VRGear.EV_STORED:                        // rig.zs:871, 1921
 				Feel('store', fh);
-				Play(pawn, 'store');
+				PlaySnd(pawn, 'store');
 				break;
 			case VRGear.EV_DRAWN:                         // rig.zs:870, 1957
 				Feel('draw', fh);
-				Play(pawn, 'draw');
+				PlaySnd(pawn, 'draw');
 				break;
 			case VRGear.EV_SWAPPED:                       // rig.zs:1908-1921: the store pulse, both sounds
 				Feel('store', fh);
-				Play(pawn, 'draw');
-				Play(pawn, 'store');
+				PlaySnd(pawn, 'draw');
+				PlaySnd(pawn, 'store');
 				break;
 			case VRGear.EV_WENT_HOME:                     // rig.zs:1862-1880: the store; the draw sound too if a gun came out
 				Feel('store', fh);
-				if (VRGear.DrawTic(me, 0) == level.maptime || VRGear.DrawTic(me, 1) == level.maptime) Play(pawn, 'draw');
-				Play(pawn, 'store');
+				if (VRGear.DrawTic(me, 0) == level.maptime || VRGear.DrawTic(me, 1) == level.maptime) PlaySnd(pawn, 'draw');
+				PlaySnd(pawn, 'store');
 				break;
 			case VRGear.EV_ASSIGNED:                      // D5 (rig.zs:843, 905-906): the ring flashes bright
 				ShowRule(spot, RULE_ASSIGN);
@@ -224,7 +224,7 @@ class RAG_Look : EventHandler
 				break;
 			case VRGear.EV_REFUSED:                       // D1, D4 (rig.zs:850-859, 873-879): double pulse, use-fail, red
 				Feel('refuse', fh);
-				Play(pawn, 'refuse');
+				PlaySnd(pawn, 'refuse');
 				// [REVIEW W2] red only when a GUN may not enter (rig.zs:850-859). An empty hand at an empty holster and
 				// "no grenades" get the double pulse and the sound only (rig.zs:2752, 2870, 2886-2890).
 				if (arg == 1 || arg == 2 || arg == 5) ShowRule(spot, RULE_REFUSE);
