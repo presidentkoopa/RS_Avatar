@@ -1,0 +1,7 @@
+// VRHANDFIT -- how a body's hands are drawn to fit what they hold (engine: VRAvatar_FingerLength, [FINGERLEN]).
+// fingers "<avatar name>" <length>    every finger bone drawn that much longer along its own length, 1 = as modelled
+//
+// doomslayer_default: its fingers are about as long as a real hand's and about twice as thick, so at the guns'
+// 0.90 (VRGUNFIT) they did not come round a grip. 1.25 does, in tools/avatar/grasp_preview.py (FINGERLEN) on
+// the shotgun, pistol, rifle and double-barrel. Owner, 2026-11-12.
+fingers "doomslayer_default" 1.25
