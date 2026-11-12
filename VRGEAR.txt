@@ -1,123 +1,76 @@
-// VRGEAR -- the body holster rig (engine: UZDXREMA src/playsim/p_vrgear.cpp; design:
-// docs/plans/BODY_HOLSTERS_DESIGN.md). Every loaded mod may add its own VRGEAR lump: later
-// definitions of the same name replace earlier ones, `remove <mount>` takes one away.
+// VRGEAR -- the body holsters' table (first build, 2026-11-12).
 //
-// Positions and reaches are FRACTIONS OF YOUR STANDING EYE HEIGHT, from the sim torso's pelvis or
-// chest, along its right (side), forward (fwd) and up. The mouth is the way a draw leaves.
+// Read by the ENGINE (UZDXREMA src/playsim/p_vrgear.cpp). The grammar and the eight spots are fixed
+// by UZDXREMA docs/plans/holsters/GEAR_CONTRACT.md, section 4. Every loaded mod may add its own
+// VRGEAR lump: a later definition of the same name replaces an earlier one, `remove <Spot>` takes
+// one away.
 //
-// PHASE 1 (owner, 2026-11-09): hips and chest, any gun, push-in on. Shoulders are Phase 2.
-// No pouch or grenade loop until the weapons step.
+// Nothing here is RSQ TacticalRig's pk3: that mod is not loaded. Its NUMBERS are used, because the
+// owner's TacticalRig is the floor (docs/plans/holsters/TACTICALRIG_FLOOR.md). "rig.zs" below is
+// rsq_ubqseries/TacticalRig/zscript/rsqtr/rig.zs.
 //
-// SEATED (owner, 2026-11-12: he plays seated). `seated at <side> <fwd> <up>` in a mount is where it
-// is while that player is seated; a mount without it stays where `at` puts it. The SIM decides
-// seated, the same on every machine: the eye under 40 map units above the floor for 70 tics running
-// is seated, over 43 for 70 tics running is standing again.
-// `seated at` is NOT measured like `at`. The torso's pelvis is a standing body's, and the standing
-// eye height is the tallest eye seen, so both are wrong for someone who has only ever sat and wrong
-// the other way for someone who stood once. A seated mount hangs from the torso's NECK (it follows
-// the head either way), along the torso's right, forward and up, in fractions of the STANDING eye
-// height his seated eye stands for (seated eye / 0.753; the standing eye itself if that is taller).
-// The radius is sized by the same height while seated.
-// The hips' seated numbers are TacticalRig's seated table (rig.zs SDF/SDL/SDU: 0.27 m forward of the
-// eyes, 0.12 m out, 0.67 m under them: the front of the lap) converted: 34 map units a metre across,
-// 28.33 up, a 45.9-unit standing eye, the neck 0.05 behind and 0.075 under the eyes.
-// The chests' are where `at` puts them on a standing body, said from the neck.
-//
-// HIPS ON THE BODY'S SURFACE, BIGGER ZONES (rig report E.1, 2026-11-12): standing hips out from
-// 0.125 to 0.14 and forward from 0.02 to 0.05 (they sat inside the avatar's hip); hip radius 0.065
-// to 0.09, chest radius 0.055 to 0.075.
+// UNITS: metres forward, left, up from the body anchor, in the torso's frame, for a 1.62 m eye
+// (rig.zs:42,398). The engine scales them to the player (contract section 1).
+//   at       standing position            seated   used instead while that player is seated
+//   radius   the sphere a hand must be in  side     body | main | off (off: +left is toward the off hand)
+//   rule     holster (a gun), summon (the grenade), zone (the pouch: no action of its own)
+//   grace    tics a press still counts after the hand left (the shoulders, rig.zs:2263-2290)
+//   reach    the pouch eases toward the off hand (rig.zs:342-374)
+//   holds    summon: weapon class, ammo class; the first weapon class that exists wins (rig.zs:1207-1233)
+//   hang     how a stored gun hangs: yaw from the body's heading, pitch nose-down, roll (rig.zs:3605-3620)
+//   length   how long a stored gun is drawn, metres (0.25 default; 0.70 on the back; TacticalRig CVARINFO.txt:13,15)
+//   show     a stored gun is drawn this far behind the spot and this share of its length below it (rig.zs:3625-3635)
 
-// What an empty hand holds: Doom's Fist; Brutal Doom 22 VR's Melee_Attacks (main) and RSQ_Hands (off).
-// The first is the one a mod is handed when it asks for "the" empty hand.
+// ---- the eight spots (positions and radii: rig.zs:86-89; seated: rig.zs:120-122) ----
+spot HipL      { type gun  at  0.00  0.18 -0.70  seated 0.27  0.12 -0.67  radius 0.14  hang   0 80 -10 }
+spot HipR      { type gun  at  0.00 -0.18 -0.70  seated 0.27 -0.12 -0.67  radius 0.14  hang   0 80  10 }
+spot ChestL    { type gun  at  0.10  0.12 -0.46                           radius 0.11  hang   0 70  35 }
+spot ChestR    { type gun  at  0.10 -0.12 -0.46                           radius 0.11  hang   0 70 -35 }
+spot ShoulderL { type gun  at -0.08  0.18 -0.10                           radius 0.14  grace 10  hang -90 65 0  length 0.70  show 0.12 0.31 }
+spot ShoulderR { type gun  at -0.08 -0.18 -0.10                           radius 0.14  grace 10  hang  90 65 0  length 0.70  show 0.12 0.31 }
+spot Grenades  { type item at  0.12  0.00 -0.62  seated 0.13  0.00 -0.59  radius 0.08  rule summon
+                 holds HandGrenades GrenadeAmmo  holds RSQGN_Grenade RSQGN_Ammo }
+spot Pouch     { type item at  0.22  0.18 -0.64  seated 0.32  0.02 -0.55  radius 0.11  side off  rule zone  reach 0.035 0.06 0.005 }
+
+// ---- what an empty hand holds ----
+// Doom's Fist; Brutal Doom 22's Melee_Attacks (main hand); the BD22 VR pack's RSQ_Hands (off hand).
+// A subclass counts. The rules (zscript/gear/gear.zs, EmptyMain / OffEmptyName) pick from this list:
+// for the off hand, the first class here that is an off-hand weapon by default (RSQ_Hands).
 emptyhand Fist Melee_Attacks RSQ_Hands
 
-// ---- the mounts ----
-// OFF 2026-11-12 (RSQ TacticalRig itself is loaded instead; see MAPINFO.txt): mount HipR   { pelvis at  0.140 0.05  0.00  seated at  0.089 0.250 -0.339 radius 0.090 mouth 0 0 1          pushin on signature hipR }
-// OFF 2026-11-12 (RSQ TacticalRig itself is loaded instead; see MAPINFO.txt): mount HipL   { pelvis at -0.140 0.05  0.00  seated at -0.089 0.250 -0.339 radius 0.090 mouth 0 0 1          pushin on signature hipL }
-// OFF 2026-11-12 (RSQ TacticalRig itself is loaded instead; see MAPINFO.txt): mount ChestR { chest  at  0.070 0.075 -0.01 seated at  0.070 0.075 -0.160 radius 0.075 mouth -0.5 0.3 0.81  pushin on signature chestR }
-// OFF 2026-11-12 (RSQ TacticalRig itself is loaded instead; see MAPINFO.txt): mount ChestL { chest  at -0.070 0.075 -0.01 seated at -0.070 0.075 -0.160 radius 0.075 mouth  0.5 0.3 0.81  pushin on signature chestL }
+// ---- the BD22 VR pack's off-hand copies ----
+// The off hand holds RSQ_Off_<gun>, a second class for the same gun. `as` files it as its gun, so a
+// gun has one holster whichever hand's version is held (rig.zs:1536-1544, MainOf). The twelve pairs
+// are the pack's own table (RS_Brutal22WeaponsQ 2.0.4e, src/zscript/rsq/dualtable.zs:7-16).
+item RSQ_Off_BrutalPistol   { as BrutalPistol }
+item RSQ_Off_Revolver       { as Revolver }
+item RSQ_Off_BrutalSMG      { as BrutalSMG }
+item RSQ_Off_MP40           { as MP40 }
+item RSQ_Off_Rifle          { as Rifle }
+item RSQ_Off_Plasma_Gun     { as Plasma_Gun }
+item RSQ_Off_Shot_Gun       { as Shot_Gun }
+item RSQ_Off_SSG            { as SSG }
+item RSQ_Off_AssaultShotgun { as AssaultShotgun }
+item RSQ_Off_RailGun        { as RailGun }
+item RSQ_Off_BrutalRevolver { as BrutalRevolver }
+item RSQ_Off_BrutalAxe      { as BrutalAxe }
 
-// ---- how far a gun travels out of its mouth before it is clear (fraction of eye height) ----
-kind gun  { clear 0.05 }
-kind long { clear 0.09 }
+// ---- things with a home of their own: never in a gun holster (rig.zs:823-829) ----
+// TacticalRig's own list, nothing added (rig.zs:823-829). BD's HandGrenades is not in it: as in TacticalRig,
+// a grenade in the hand may be stored in an empty gun holster.
+ownhome rsqff_ rsqgn_ rsq_grenade rsqtr_cigweapon rsqtr_zippoweapon rsqwp_whipweapon ubqs_saber ssq_
 
-// ---- Doom's weapons ----
-item Pistol         { kind gun  print pistol }
-item Chainsaw       { kind long print chainsaw }
-item Shotgun        { kind long print shotgun }
-item SuperShotgun   { kind long print supershotgun }
-item Chaingun       { kind long print chaingun }
-item RocketLauncher { kind long print rocket }
-item PlasmaRifle    { kind long print plasma }
-item BFG9000        { kind long print bfg }
+// ---- what you feel: pulse <strength 0-1> <tics> [gap <tics>] ----
+feel enter  { pulse 0.18 3 }                      // a hand enters a ring (rig.zs:866-867)
+feel store  { pulse 0.55 5 }                      // a gun goes in (rig.zs:871)
+feel draw   { pulse 0.65 6 }                      // a gun comes out (rig.zs:870)
+feel refuse { pulse 0.30 3 gap 4 pulse 0.30 3 }   // the only double pulse (TacticalRig body.zs:782-789)
 
-// ---- Brutal Doom 22 VR's weapons (the classes of VRGUNFIT.rsq): pistols and revolvers are `gun`, the rest `long` ----
-item BrutalPistol           { kind gun  print pistol }
-item BrutalRevolver         { kind gun  print pistol }
-item Revolver               { kind gun  print pistol }
-item AssaultShotgun         { kind long print shotgun }
-item BFG10k                 { kind long print bfg }
-item BIG_FUCKING_GUN        { kind long print bfg }
-item BrutalAxe              { kind long print chainsaw }
-item BrutalSMG              { kind long print chaingun }
-item Chain_saw              { kind long print chainsaw }
-item DSweap                 { kind long }
-item Devastator             { kind long print rocket }
-item Flamethrower2          { kind long }
-item GrenadeLauncher        { kind long print rocket }
-item HellishMissileLauncher { kind long print rocket }
-item IncendiaryLauncher     { kind long print rocket }
-item MG42                   { kind long print chaingun }
-item MP40                   { kind long print chaingun }
-item Machinegun             { kind long print chaingun }
-item Minigun                { kind long print chaingun }
-item NukeLauncher           { kind long print rocket }
-item Plasma_Gun             { kind long print plasma }
-item RailGun                { kind long print plasma }
-item Rifle                  { kind long print chaingun }
-item Rocket_Launcher        { kind long print rocket }
-item SSG                    { kind long print supershotgun }
-item Shot_Gun               { kind long print shotgun }
-item Sniper                 { kind long }
-item Unmaker                { kind long print bfg }
-
-// ---- BD22 VR's off-hand copies: the off hand holds RSQ_Off_<gun>, a second class for the same gun.
-// `as` files it as its gun, so the gun has one home whichever hand's version is held.
-item RSQ_Off_BrutalPistol   { kind gun  print pistol       as BrutalPistol }
-item RSQ_Off_BrutalRevolver { kind gun  print pistol       as BrutalRevolver }
-item RSQ_Off_Revolver       { kind gun  print pistol       as Revolver }
-item RSQ_Off_AssaultShotgun { kind long print shotgun      as AssaultShotgun }
-item RSQ_Off_BrutalAxe      { kind long print chainsaw     as BrutalAxe }
-item RSQ_Off_BrutalSMG      { kind long print chaingun     as BrutalSMG }
-item RSQ_Off_MP40           { kind long print chaingun     as MP40 }
-item RSQ_Off_Plasma_Gun     { kind long print plasma       as Plasma_Gun }
-item RSQ_Off_RailGun        { kind long print plasma       as RailGun }
-item RSQ_Off_Rifle          { kind long print chaingun     as Rifle }
-item RSQ_Off_SSG            { kind long print supershotgun as SSG }
-item RSQ_Off_Shot_Gun       { kind long print shotgun      as Shot_Gun }
-
-// ---- haptic signatures: pulse <intensity 0-1> <ms> <hz, 0 = runtime default> [gap <ms>] ----
-// Each mount: its own RHYTHM first (frequency may be ignored on some controllers), so you can tell
-// them apart blind.
-haptic hipR   { pulse 0.35 18 160 }
-haptic hipL   { pulse 0.35 18 160 gap 45 pulse 0.25 12 160 }
-haptic chestR { pulse 0.30 10 220 gap 25 pulse 0.30 10 220 }
-haptic chestL { pulse 0.30 10 220 gap 25 pulse 0.30 10 220 gap 25 pulse 0.30 10 220 }
-
-// Each gun: what is in the mount, felt when the hand arrives at a full one.
-haptic pistol       { pulse 0.30 14 260 }
-haptic shotgun      { pulse 0.45 22 110 gap 30 pulse 0.45 22 110 }
-haptic supershotgun { pulse 0.55 26 95 gap 25 pulse 0.55 26 95 gap 25 pulse 0.40 18 95 }
-haptic chaingun     { pulse 0.40 12 180 gap 15 pulse 0.40 12 180 gap 15 pulse 0.40 12 180 gap 15 pulse 0.40 12 180 }
-haptic rocket       { pulse 0.65 60 70 }
-haptic plasma       { pulse 0.35 40 300 gap 20 pulse 0.25 30 340 }
-haptic bfg          { pulse 0.80 90 55 gap 40 pulse 0.50 60 55 }
-haptic chainsaw     { pulse 0.50 15 140 gap 10 pulse 0.50 15 140 gap 10 pulse 0.50 15 140 }
-
-// The actions.
-haptic seat    { pulse 0.90 45 90 }                      // a solid thunk
-haptic drag    { pulse 0.20 70 120 }                     // the gun sliding out
-haptic snap    { pulse 0.75 16 240 }                     // clear
-haptic quick   { pulse 0.85 12 260 gap 18 pulse 0.85 12 260 }   // a clean quick-draw: the doubled crack
-haptic refuse  { pulse 0.55 60 80 gap 50 pulse 0.55 60 80 }     // the double buzz
-haptic free    { pulse 0.40 30 200 gap 40 pulse 0.60 30 150 }
+// ---- what you hear (SNDINFO.txt) ----
+// store: the three holster clunks RS_Avatar already shipped; they are the same files as TacticalRig's
+//        rsqtr/holster (sounds/rsqtr/rthols1-3.ogg, identical bytes).
+// draw:  TacticalRig's rsqtr/draw (sounds/rsqtr/rtdraw.ogg), the owner's, copied in as RSHODRAW.
+// refuse: Doom's own use-fail sound (rig.zs:877).
+sound store  rs_holster_fx_store
+sound draw   rs_holster_fx_draw
+sound refuse *usefail

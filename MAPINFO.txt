@@ -1,14 +1,18 @@
-// The body holsters (RAG_*, zscript/gear) and the distance grab (RAB_*, zscript/grab) each register
-// three handlers, in this order: rules (every player, every machine), feel, look (this machine only).
-// The avatar caretaker. One handler, always on; it does nothing at all while
-// vr_avatar is empty.
+// The avatar caretaker (RSAV_Handler: one handler, always on; it does nothing at all while vr_avatar
+// is empty), the fit mode and the mirror.
+//
+// THE BODY HOLSTERS (2026-11-12, first build: six gun holsters, the ammo pouch, the grenade spot).
+// Two handlers, IN THIS ORDER (UZDXREMA docs/plans/holsters/GEAR_CONTRACT.md, section 8):
+//   RAG_Rules  zscript/gear/gear.zs   what a press does. Every player, every machine, in command order.
+//   RAG_Look   zscript/gear/look.zs   rings, stored guns, lights, pulses, sounds. This machine only.
+// RAG_Look must stay AFTER RAG_Rules: in one tic it shows what the rules just did.
+// The spots come from VRGEAR.txt; the engine (p_vrgear) decides where they are and when a press counts.
+// RSQ TacticalRig's pk3 is NOT loaded and must not be: two holster systems on one body would both
+// answer the grip.
+//
+// THE DISTANCE GRAB: RAB_Rules / RAB_Feel / RAB_Look (zscript/grab) are NOT registered here. That is
+// the grab lane's decision, not changed by the holster build.
 GameInfo
 {
-	AddEventHandlers = "RSAV_Handler", "RSA_FitMode", "RSA_MirrorHandler"
+	AddEventHandlers = "RSAV_Handler", "RSA_FitMode", "RSA_MirrorHandler", "RAG_Rules", "RAG_Look"
 }
-
-// 2026-11-12: RAB_Rules / RAB_Feel / RAB_Look (zscript/grab, an imitation of RSQ DistanceGrab) are NOT registered.
-// The owner wants RSQ DistanceGrab itself; it is loaded as its own pk3 (UZDXREMA tools/avatar/build_dg_rema.py).
-// 2026-11-12: RAG_Rules / RAG_Feel / RAG_Look (the engine holsters' scripts and the rings and stored guns built on
-// them) are NOT registered either, and VRGEAR.txt has no mounts: the owner wants RSQ TacticalRig itself, loaded as its
-// own pk3. Two holster systems on one body would fight over the grip.

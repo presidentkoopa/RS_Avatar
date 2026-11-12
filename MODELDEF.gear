@@ -1,10 +1,17 @@
-// The body holsters' drawing (zscript/gear/gear.zs). Draw only.
+// The body holsters' drawing (zscript/gear/look.zs). Draw only; nothing in the game's rules reads it.
+// Shapes and colours are RSQ TacticalRig's (its MODELDEF.txt:47-62,140-155; rig.zs:2957-2984):
+// a gun holster is a wire SPHERE, an item spot a wire DIAMOND, so they are told apart by shape.
 //
-// RAG_Shell: the ring, a wire sphere of radius 1 at Scale 1 (three rings, seen from any side); the
-// actor's Scale is the mount's reach in map units. One model slot per colour, one frame each:
-//   A blue (idle)   B green (a hand in it)   C red (refused)   D white (freed)   E bright green (a first seat)
+// One model slot per colour, one sprite frame each:
+//   A blue (a gun holster, idle)      B green (a hand inside; also the "now this gun's" flash)
+//   C red (that press was refused)    D white (the holster was freed)
+//   E magenta (an item spot, idle)
 // FLAGS BEFORE THE FrameIndex LINES: each FrameIndex snapshots the flags set so far.
 // DONTCULLBACKFACES: an additive model is culled from one side without it.
+
+// RAG_Shell: a gun holster's marker. A wire sphere of radius 1 at Scale 1 (three rings); the
+// actor's Scale is the spot's radius in map units. rs_wiresphere.obj is the same file as
+// TacticalRig's rtwire.obj; rs_wire_idle / rs_wire_hot are its rtwireid / rtwireht.
 Model RAG_Shell
 {
 	Path "models"
@@ -17,7 +24,7 @@ Model RAG_Shell
 	Model 3 "rs_wiresphere.obj"
 	Skin 3 "rag_wire_white.png"
 	Model 4 "rs_wiresphere.obj"
-	Skin 4 "rag_wire_seat.png"
+	Skin 4 "rag_wire_util.png"
 	Scale 1.0 1.0 1.0
 	DONTCULLBACKFACES
 	FrameIndex RAGS A 0 0
@@ -27,20 +34,74 @@ Model RAG_Shell
 	FrameIndex RAGS E 4 0
 }
 
-// RAG_Light: the ammo light of a stored gun, a solid ball of radius 1 at Scale 1.
+// RAG_Diamond: an item spot's marker (the grenade spot, the ammo pouch). A wire octahedron, corners
+// at radius 1 (rag_wirediamond.obj = TacticalRig's models/rsqtr/rtwoct.obj). Same frames and skins.
+Model RAG_Diamond
+{
+	Path "models"
+	Model 0 "rag_wirediamond.obj"
+	Skin 0 "rs_wire_idle.png"
+	Model 1 "rag_wirediamond.obj"
+	Skin 1 "rs_wire_hot.png"
+	Model 2 "rag_wirediamond.obj"
+	Skin 2 "rag_wire_red.png"
+	Model 3 "rag_wirediamond.obj"
+	Skin 3 "rag_wire_white.png"
+	Model 4 "rag_wirediamond.obj"
+	Skin 4 "rag_wire_util.png"
+	Scale 1.0 1.0 1.0
+	DONTCULLBACKFACES
+	FrameIndex RAGS A 0 0
+	FrameIndex RAGS B 1 0
+	FrameIndex RAGS C 2 0
+	FrameIndex RAGS D 3 0
+	FrameIndex RAGS E 4 0
+}
+
+// RAG_Light: the ammo light. The small wire sphere TacticalRig uses (its RSQTR_AmmoPip, MODELDEF.txt:5-16).
 //   A green (half a magazine or more)   B yellow (low, or empty with reserve)   C red (nothing)
 Model RAG_Light
 {
 	Path "models"
-	Model 0 "rag_light.obj"
-	Skin 0 "rag_wire_seat.png"
-	Model 1 "rag_light.obj"
+	Model 0 "rs_wiresphere.obj"
+	Skin 0 "rs_wire_hot.png"
+	Model 1 "rs_wiresphere.obj"
 	Skin 1 "rag_wire_yellow.png"
-	Model 2 "rag_light.obj"
+	Model 2 "rs_wiresphere.obj"
 	Skin 2 "rag_wire_red.png"
 	Scale 1.0 1.0 1.0
 	DONTCULLBACKFACES
 	FrameIndex RAGS A 0 0
 	FrameIndex RAGS B 1 0
 	FrameIndex RAGS C 2 0
+}
+
+// RAG_Pouch: the ammo pouch on the belt (TacticalRig's RSQTR_PouchShow, MODELDEF.txt:448-458;
+// rag_pouch.md3 / .png = its models/rsqtr/rtpouch.md3 / .png). Map units at Scale 1 (5 x 8 x 10 cm),
+// centred, X out from the belt.
+Model RAG_Pouch
+{
+	Path "models"
+	Model 0 "rag_pouch.md3"
+	Skin 0 "rag_pouch.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+	FrameIndex RAGN A 0 0
+}
+
+// RAG_Nade: the grenade at the buckle (TacticalRig's RSQTR_NadeShow, MODELDEF.txt:421-430). A carrier
+// only: the wire sphere with an invisible skin. The actor swaps in the weapon pack's own grenade mesh
+// by path (A_ChangeModel: models/bd/Grenade/nade.md3 from the BD22 VR pack). Frame 2 of that mesh
+// (ring and spoon on), its body centred on the actor: Offset = -(28.53, -0.02, -1.28).
+Model RAG_Nade
+{
+	Path "models"
+	Model 0 "rs_wiresphere.obj"
+	Skin 0 "shared/invisible.png"
+	Scale 1.0 1.0 1.0
+	Offset -28.53 0.02 1.28
+	NoInterpolation
+	FrameIndex RAGN A 0 2
 }

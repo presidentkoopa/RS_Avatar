@@ -24,13 +24,15 @@ Sprite "RSHMB0", 32, 32
 	Patch "rshmb0", 0, 0
 }
 
-// The body holsters' ring and ammo light (RAG_Shell, RAG_Light; MODELDEF.gear) and the distance
-// grab's marker (RAB_Mark; MODELDEF.grab). The models are what is drawn; these give each sprite
-// frame a MODELDEF line names something to be bound to, as RSHM above.
+// The body holsters' markers, ammo light, pouch and grenade (RAG_Shell, RAG_Diamond, RAG_Light,
+// RAG_Pouch, RAG_Nade; MODELDEF.gear) and the distance grab's marker (RAB_Mark; MODELDEF.grab).
+// The models are what is drawn; these give each sprite frame a MODELDEF line names something to be
+// bound to, as RSHM above. RAGS A-E: the markers' five colours. RAGN A: the pouch and the grenade.
 Sprite "RAGSA0", 32, 32 { Offset 16, 16 XScale 10.6 YScale 10.6 Patch "rshma0", 0, 0 }
 Sprite "RAGSB0", 32, 32 { Offset 16, 16 XScale 10.6 YScale 10.6 Patch "rshmb0", 0, 0 }
 Sprite "RAGSC0", 32, 32 { Offset 16, 16 XScale 10.6 YScale 10.6 Patch "rshma0", 0, 0 }
 Sprite "RAGSD0", 32, 32 { Offset 16, 16 XScale 10.6 YScale 10.6 Patch "rshma0", 0, 0 }
 Sprite "RAGSE0", 32, 32 { Offset 16, 16 XScale 10.6 YScale 10.6 Patch "rshmb0", 0, 0 }
+Sprite "RAGNA0", 32, 32 { Offset 16, 16 XScale 10.6 YScale 10.6 Patch "rshma0", 0, 0 }
 Sprite "RABMA0", 32, 32 { Offset 16, 16 XScale 10.6 YScale 10.6 Patch "rshma0", 0, 0 }
 Sprite "RABMB0", 32, 32 { Offset 16, 16 XScale 10.6 YScale 10.6 Patch "rshmb0", 0, 0 }

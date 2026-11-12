@@ -13,10 +13,10 @@ hooks it drives are not in stock GZDoom.
 
 ## Body holsters
 
-The body holsters live here too: guns stored on your hips and chest, on the body you see.
-See `HOLSTERS.md`. The engine core is UZDXREMA's `p_vrgear.cpp`; this repo holds the rig
-(`VRGEAR.txt`), the rules, feel and look (`zscript/gear/gear.zs`) and the shell model
-(`MODELDEF.gear`).
+The body holsters live here too: six gun holsters (hips, chest, shoulders), an ammo pouch and a
+grenade spot. See `HOLSTERS.md`. The engine core is UZDXREMA's `p_vrtorso.cpp` and `p_vrgear.cpp`;
+this repo holds the table (`VRGEAR.txt`), the rules (`zscript/gear/gear.zs`), what you see, feel
+and hear (`zscript/gear/look.zs`, `MODELDEF.gear`, `RAGFIT.txt`).
 
 The older RS_Holsters system (merged here on 2026-10-27) was retired on 2026-11-09. Its files are
 in `reference/retired_holsters/`; they are not packed and not loaded. Do not load an old

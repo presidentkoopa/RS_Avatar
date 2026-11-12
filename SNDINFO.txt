@@ -30,7 +30,14 @@ $random rs_holster_fx_store {
 rs_holster_fx_store1	RSHOHOL1
 rs_holster_fx_store2	RSHOHOL2
 rs_holster_fx_store3	RSHOHOL3
-$volume rs_holster_fx_store 0.7
+// (2026-11-12: the "$volume rs_holster_fx_store 0.7" line that stood here is gone. It was set for the
+// retired RS_Holsters. The body holsters play this at TacticalRig's own loudness, 0.8, rig.zs:1921.)
+
+// The DRAW cue (2026-11-12, the body holsters: VRGEAR.txt `sound draw`). RSQ TacticalRig's
+// "rsqtr/draw" (its sounds/rsqtr/rtdraw.ogg; its CREDITS.txt: the owner's, from his RS_CombatFX
+// library), copied in as RSHODRAW. The STORE cue is rs_holster_fx_store above: RSHOHOL1-3 are the
+// same bytes as TacticalRig's rthols1-3.ogg.
+rs_holster_fx_draw	RSHODRAW
 
 // The alternate confirm style (rs_holster_sound_style 1): a short cadence
 // beep instead of a mechanical clunk.

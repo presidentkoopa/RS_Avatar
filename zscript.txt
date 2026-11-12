@@ -8,10 +8,14 @@ version "4.14"
 #include "zscript/avatar/fitmode.zs"
 #include "zscript/avatar/mirror.zs"
 
-// The body holsters (owner, 2026-11-09): the engine core is UZDXREMA p_vrgear.cpp (VRGear); the rig
-// is VRGEAR.txt; the rules, feel and look are here. Design: UZDXREMA docs/plans/BODY_HOLSTERS_DESIGN.md.
+// The body holsters (first build, 2026-11-12: six gun holsters, the ammo pouch, the grenade spot).
+// The engine (UZDXREMA p_vrtorso, p_vrgear; ZScript VRGear, VRTorso) decides where the spots are and when
+// a press counts; the table is VRGEAR.txt; gear.zs is the rules (RAG_Rules, and the service the BD22 VR
+// pack's reloads ask about the pouch); look.zs is what you see, feel and hear (RAG_Look and its actors).
+// The contract: UZDXREMA docs/plans/holsters/GEAR_CONTRACT.md. For the owner: HOLSTERS.md.
 // RS_Holsters and the first prototype are retired to reference/ (not packed, not loaded).
 #include "zscript/gear/gear.zs"
+#include "zscript/gear/look.zs"
 
 // The distance grab (owner, 2026-11-12): the engine core is UZDXREMA p_vrgrab.cpp (VRGrab); the
 // contract is UZDXREMA docs/plans/VRGRAB_API.md; the numbers are the VRGRAB and MASSDEF lumps.

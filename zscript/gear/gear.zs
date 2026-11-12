@@ -1,295 +1,427 @@
-// THE BODY HOLSTERS, RS_Avatar's half (engine core: UZDXREMA src/playsim/p_vrgear.cpp, ZScript
-// VRGear; design: docs/plans/BODY_HOLSTERS_DESIGN.md, Phase 1; the rig: VRGEAR.txt).
+// THE BODY HOLSTERS: THE RULES (first build, 2026-11-12).
 //
-// The engine decides, every tic, on every machine: where the mounts are, which one each hand is at
-// or heading for, what a grip press means, when a draw clears. This file does the three things the
-// engine leaves to the mod:
-//   RAG_Rules  what an action does to the inventory. Play scope, every machine, in order: the same
-//              inventory everywhere.
-//   RAG_Feel   the haptic signatures and the hum, for this machine's own player only.
-//   RAG_Look   the holster shells on your body and the guns in them. Client-side actors only.
-
-// ---------------------------------------------------------------- the rules
+// Three parts, one contract (UZDXREMA docs/plans/holsters/GEAR_CONTRACT.md):
+//   the SIM    the engine (p_vrtorso, p_vrgear). Every tic, for every player, on every machine, from the
+//              tic command alone: where each spot is, which spot each hand is in, when a grip or Use press
+//              counts. It queues ONE thing: "this hand pressed in this spot". It never touches the inventory.
+//   the RULES  this file. They take the presses off the queue and decide what each one means: store,
+//              draw, swap, go home, refuse. Play scope, every machine, players in index order.
+//   the LOOK   zscript/gear/look.zs. Rings, stored guns, lights, pulses, sounds. This machine only.
+//
+// The behaviour is RSQ TacticalRig's, ported rule for rule. Every rule below carries the line it comes
+// from: "rig.zs:N" is rsq_ubqseries/TacticalRig/zscript/rsqtr/rig.zs (commit 2ecc7c42), "Fxx" is the
+// item in docs/plans/holsters/TACTICALRIG_FLOOR.md.
+//
+// What is NOT TacticalRig's here, and why:
+//   - nothing reads consoleplayer or a cvar: TacticalRig decided on one machine and sent events
+//     (rig.zs:16-19); here every machine runs the same rules from the same queue.
+//   - contents and assignment are the engine's two saved records per player per spot (VRGear.Content,
+//     VRGear.Assigned), not handler fields (rig.zs:132-141).
+//   - classes are found through the VRGEAR lump (emptyhand, item..as, ownhome, holds), not by names in code.
 
 class RAG_Rules : EventHandler
 {
-	// Into a hand at once: the engine's dual-wield routing, with the raise skipped.
-	static void ToHand(PlayerPawn pawn, Weapon w, int hand)
+	// ---- the off-hand raise that waits for the main hand (rig.zs:142-143, QueueOff rig.zs:2013-2018) ----
+	// Sim state: written only here, in WorldTick, the same on every machine. Saved with the level's handlers.
+	Name offNext[MAXPLAYERS];
+	int offWait[MAXPLAYERS];
+
+	// =====================================================================================
+	// What is what
+	// =====================================================================================
+
+	static bool IsGunSpot(int spot)
 	{
-		if (pawn == null || w == null) return;
-		bool off = hand == 1;
-		w.bOffhandWeapon = off;
-		if (w.SisterWeapon != null) w.SisterWeapon.bOffhandWeapon = off;
-		bool was = (pawn.player.cheats & CF_INSTANTWEAPSWITCH) != 0;
-		pawn.player.cheats |= CF_INSTANTWEAPSWITCH;
-		pawn.MoveWeaponToHand(w, hand);
-		if (!was) pawn.player.cheats &= ~CF_INSTANTWEAPSWITCH;
-		if (pawn.player.PendingWeapon != WP_NOCHANGE) pawn.BringUpWeapon();
+		return VRGear.SpotType(spot) == VRGear.ST_GUN && VRGear.SpotRule(spot) == VRGear.RULE_HOLSTER;
 	}
 
-	// The empty hand to put in this hand. A pack can name several (VRGEAR `emptyhand`: Doom's Fist; BD22's
-	// Melee_Attacks and RSQ_Hands). One the player already carries is used first, in the lump's order, a
-	// weapon made for this hand before any other; only a player who carries none is given the first class
-	// that exists in this game.
-	static Weapon EmptyHandWeapon(PlayerPawn pawn, int hand)
+	// The weapon of that class the player carries, or null. A class that is not loaded is null, quietly.
+	static Weapon Owned(PlayerPawn pawn, Name cls)
 	{
-		Weapon other = hand == 0 ? Weapon(pawn.player.OffhandWeapon) : Weapon(pawn.player.ReadyWeapon);
-		Weapon spare = null;
+		if (pawn == null || cls == 'None') return null;
+		class<Weapon> wc = (class<Weapon>)(cls);
+		if (wc == null) return null;
+		return Weapon(pawn.FindInventory(wc));
+	}
+
+	// H1 (rig.zs:1469-1479): what is in gun holster `spot`: what was put there by hand, only while the
+	// player still owns that weapon. So after a death or a pistol start a holster reads empty until he has
+	// the gun again, "then it is back where you kept it" (N2, rig.zs:3716-3719).
+	static Name Held(int pnum, PlayerPawn pawn, int spot)
+	{
+		if (!IsGunSpot(spot)) return 'None';
+		Name c = VRGear.Content(pnum, spot);
+		if (c == 'None') return 'None';
+		return Owned(pawn, c) != null ? c : 'None';
+	}
+
+	// B1 (rig.zs:484-506, HeldAs): Brutal Doom's "Dual..." weapons are filed as the single gun they pair:
+	// the owned gun whose class name ends in the Dual's name minus "Dual" and a plural s, else the owned
+	// gun with the same SelectionOrder. An off-hand weapon keeps its own name here (rig.zs:488).
+	static Name HeldAs(PlayerPawn pawn, Weapon w)
+	{
+		if (w == null) return 'None';
+		Name cn = w.GetClassName();
+		if (w.bOffhandWeapon) return cn;
+		String low = cn;
+		low = low.MakeLower();
+		if (low.IndexOf("dual") != 0) return cn;
+		String stem = low.Mid(4);
+		if (stem.Length() > 1 && stem.Mid(stem.Length() - 1) == "s") stem = stem.Left(stem.Length() - 1);
+		Weapon bySel = null;
+		for (Inventory it = pawn.Inv; it != null; it = it.Inv)
+		{
+			Weapon o = Weapon(it);
+			if (o == null || o == w || o.bCheatNotWeapon || o.bOffhandWeapon) continue;
+			String ol = o.GetClassName();
+			ol = ol.MakeLower();
+			if (ol.IndexOf("dual") == 0) continue;
+			if (stem.Length() > 0 && ol.Length() >= stem.Length() && ol.Mid(ol.Length() - stem.Length()) == stem) return o.GetClassName();
+			if (bySel == null && o.SelectionOrder == w.SelectionOrder) bySel = o;
+		}
+		if (bySel != null) return bySel.GetClassName();
+		return cn;
+	}
+
+	// J1a (rig.zs:1973-2003, SingleOf): the single gun of Brutal Doom's combined two-gun weapon
+	// ("DualPistols" -> "BrutalPistol"), or 'None' if cls is not one. Found, not named: the parent of an
+	// off-hand copy the player owns whose name ends the same way, else a weapon class (not an off-hand
+	// one, not CHEATNOTWEAPON) whose name ends in the Dual name's stem.
+	static Name SingleOf(PlayerPawn pawn, Name cls)
+	{
+		String low = cls;
+		low = low.MakeLower();
+		if (low.IndexOf("dual") != 0) return 'None';
+		String stem = low.Mid(4);
+		if (stem.Length() > 1 && stem.Mid(stem.Length() - 1) == "s") stem = stem.Left(stem.Length() - 1);
+		if (stem.Length() < 3) return 'None';
+		for (Inventory it = pawn.Inv; it != null; it = it.Inv)
+		{
+			Weapon w = Weapon(it);
+			if (w == null || !w.bOffhandWeapon) continue;
+			class<Weapon> pc = (class<Weapon>)(w.GetParentClass());
+			if (pc == null) continue;
+			Name pn = pc.GetClassName();
+			String pl = pn;
+			pl = pl.MakeLower();
+			if (pl.IndexOf("dual") != 0 && pl.Length() >= stem.Length() && pl.Mid(pl.Length() - stem.Length()) == stem) return pn;
+		}
+		for (int i = 0; i < AllActorClasses.Size(); i++)
+		{
+			class<Weapon> c = (class<Weapon>)(AllActorClasses[i]);
+			if (c == null) continue;
+			let d = GetDefaultByType(c);
+			if (d == null || d.bOffhandWeapon || d.bCheatNotWeapon) continue;
+			Name cn = c.GetClassName();
+			String cl = cn;
+			cl = cl.MakeLower();
+			if (cl.IndexOf("dual") == 0 || cl.Length() < stem.Length() || cl.Mid(cl.Length() - stem.Length()) != stem) continue;
+			return cn;
+		}
+		return 'None';
+	}
+
+	// B3 (rig.zs:538-544, IsSeriesTool) and the saber (rig.zs:529-534): never an "empty hand".
+	static bool NeverEmptyHand(Weapon w)
+	{
+		String n = w.GetClassName();
+		n = n.MakeLower();
+		return n.IndexOf("rsqwp_") == 0 || n.IndexOf("ssq_") == 0 || n.IndexOf("rsqgr_") == 0
+			|| n.IndexOf("rsqgn_") == 0 || n.IndexOf("rsq_grenade") == 0 || n.IndexOf("ubqs_saber") == 0;
+	}
+
+	// B4 (rig.zs:624-647, EmptyHand): the weapon the MAIN hand holds when it holds nothing.
+	// First the VRGEAR lump's `emptyhand` list, in its order (it stands where TacticalRig's rsqtr_empty
+	// cvar stood, rig.zs:626-633: the rules read no cvar): a weapon of a listed class that the player
+	// carries and that is not an off-hand weapon. If the list gives none, TacticalRig's own search: the
+	// carried slot-1 weapon with the highest SelectionOrder (the fist rather than the chainsaw).
+	static Weapon EmptyMain(PlayerPawn pawn)
+	{
 		int n = VRGear.EmptyHandCount();
 		for (int i = 0; i < n; i++)
 		{
-			class<Inventory> cls = (class<Inventory>)(VRGear.EmptyHandAt(i));
-			if (cls == null) continue;
+			class<Weapon> wc = (class<Weapon>)(VRGear.EmptyHandAt(i));
+			if (wc == null) continue;
+			let d = GetDefaultByType(wc);
+			if (d == null || d.bOffhandWeapon) continue;
 			for (Inventory it = pawn.Inv; it != null; it = it.Inv)
 			{
-				let w = Weapon(it);
-				if (w == null || !(w is cls) || w == other) continue;
-				if (w.bOffhandWeapon == (hand == 1)) return w;
-				if (spare == null) spare = w;
+				Weapon w = Weapon(it);
+				if (w != null && w is wc && w != pawn.player.OffhandWeapon) return w;
 			}
 		}
-		if (spare != null) return spare;
-		// No empty hand to give this hand: give one.
+		Weapon best = null;
+		for (Inventory it = pawn.Inv; it != null; it = it.Inv)
+		{
+			Weapon w = Weapon(it);
+			if (w == null || w.bOffhandWeapon || NeverEmptyHand(w)) continue;
+			bool found; int slot, idx;
+			[found, slot, idx] = pawn.player.weapons.LocateWeapon(w.GetClass());
+			if (!found || slot != 1) continue;
+			if (best == null || w.SelectionOrder > best.SelectionOrder) best = w;
+		}
+		return best;
+	}
+
+	// H5 (rig.zs:2005-2011, OffEmptyName): what the OFF hand holds when it is empty: the weapon pack's own
+	// hands. TacticalRig names the class ("RSQ_Hands"); here it is the first class in the lump's
+	// `emptyhand` list that is loaded and is an off-hand weapon by default, which is that class with the
+	// BD22 VR pack and nothing with plain Doom.
+	static Name OffEmptyName()
+	{
+		int n = VRGear.EmptyHandCount();
 		for (int i = 0; i < n; i++)
 		{
-			class<Inventory> cls = (class<Inventory>)(VRGear.EmptyHandAt(i));
-			if (cls == null) continue;
-			pawn.GiveInventoryType(cls);
-			for (Inventory it = pawn.Inv; it != null; it = it.Inv)
-			{
-				let w = Weapon(it);
-				if (w != null && w is cls && w != other) return w;
-			}
+			Name en = VRGear.EmptyHandAt(i);
+			class<Weapon> wc = (class<Weapon>)(en);
+			if (wc == null) continue;
+			let d = GetDefaultByType(wc);
+			if (d != null && d.bOffhandWeapon) return en;
 		}
-		return null;
+		return 'None';
 	}
 
-	static Weapon HeldIn(PlayerPawn pawn, int hand)
+	// H4 (rig.zs:1521-1534, IsMovedGun): a gun the rig moves. A BD22 VR off-hand copy (the lump files it
+	// `as` its gun) counts; else only a weapon whose class is not an off-hand weapon by default. A thing
+	// with a home of its own (the saber, the whip, the cigarette: rig.zs:1523) is not a gun.
+	static bool IsMovedGun(Weapon w)
 	{
-		return hand == 0 ? Weapon(pawn.player.ReadyWeapon) : Weapon(pawn.player.OffhandWeapon);
-	}
-
-	override void WorldTick()
-	{
-		for (int i = 0; i < MAXPLAYERS; ++i)
-		{
-			if (!playeringame[i] || players[i].mo == null) continue;
-			PlayerPawn pawn = players[i].mo;
-			bool ok; int kind, hand, mount; bool quick;
-			for (int guard = 0; guard < 16; ++guard)
-			{
-				[ok, kind, hand, mount, quick] = VRGear.PopAction(i);
-				if (!ok) break;
-				Apply(i, pawn, kind, hand, mount, quick);
-			}
-		}
-	}
-
-	private void Apply(int pnum, PlayerPawn pawn, int kind, int hand, int mount, bool quick)
-	{
-		Name owner = VRGear.MountItem(pnum, mount);
-		Weapon stored = owner != 'None' ? Weapon(pawn.FindInventory((class<Inventory>)(owner))) : null;
-		Weapon held = HeldIn(pawn, hand);
-
-		switch (kind)
-		{
-		case VRGear.ACT_DRAW:
-			if (stored != null && stored != pawn.player.ReadyWeapon && stored != pawn.player.OffhandWeapon)
-			{
-				ToHand(pawn, stored, hand);
-				pawn.A_StartSound("rs_holster_fx_store", CHAN_AUTO, 0, 0.6);
-			}
-			break;
-
-		case VRGear.ACT_SEAT:
-		{
-			if (held == null) break;
-			let empty = EmptyHandWeapon(pawn, hand);
-			if (empty == null) break;
-			VRGear.SetMountItem(pnum, mount, held.GetClassName());   // this mount is now the gun's own
-			ToHand(pawn, empty, hand);
-			pawn.A_StartSound("rs_holster_fx_store", CHAN_AUTO);
-			break;
-		}
-
-		case VRGear.ACT_SWAP:
-			// That gun to this hand; yours is no longer in a hand, so it is home in its own mount.
-			if (stored != null) { ToHand(pawn, stored, hand); pawn.A_StartSound("rs_holster_fx_store", CHAN_AUTO); }
-			break;
-
-		case VRGear.ACT_FREE:
-			VRGear.SetMountItem(pnum, mount, 'None');
-			pawn.A_StartSound("misc/i_pkup", CHAN_AUTO, 0, 0.5);
-			break;
-		}
-	}
-}
-
-// ---------------------------------------------------------------- the feel (this machine's player)
-
-class RAG_Feel : EventHandler
-{
-	int lastSeq;
-	bool seqInit;
-	// Queued pulses: hand, tic to play, intensity, ms, hz.
-	Array<int> qHand, qTic, qMs, qHz;
-	Array<double> qInt;
-	double humWas[2];
-
-	private void Queue(int hand, Name pattern, int startTic)
-	{
-		int n = VRGear.PatternLength(pattern);
-		int at = startTic;
-		for (int i = 0; i < n; ++i)
-		{
-			bool ok; double inten; int ms, hz, gap;
-			[ok, inten, ms, hz, gap] = VRGear.PatternPulse(pattern, i);
-			if (!ok) break;
-			qHand.Push(hand); qTic.Push(at); qInt.Push(inten); qMs.Push(ms); qHz.Push(hz);
-			at += max(1, (ms + gap + 28) / 29);   // a tic is ~28.6 ms
-		}
-	}
-
-	override void WorldTick()
-	{
-		int me = consoleplayer;
-		if (me < 0 || me >= MAXPLAYERS || !playeringame[me]) return;
-		int now = level.maptime;
-
-		// New events since last tic.
-		int seq = VRGear.EventSeq(me);
-		if (!seqInit || seq < lastSeq) { lastSeq = seq; seqInit = true; }
-		for (; lastSeq < seq; ++lastSeq)
-		{
-			bool ok; int kind, hand, mount, tic; bool quick;
-			[ok, kind, hand, mount, quick, tic] = VRGear.Event(me, lastSeq);
-			if (!ok) continue;
-			Name item = VRGear.MountItem(me, mount);
-			switch (kind)
-			{
-			case VRGear.EV_ENTER:
-				Queue(hand, VRGear.MountSignature(mount), now);
-				// A full mount: the gun's own print right after the mount's.
-				if (item != 'None' && players[me].mo != null && players[me].mo.FindInventory((class<Inventory>)(item)) != null)
-					Queue(hand, VRGear.ItemPrint(item), now + 3);
-				break;
-			case VRGear.EV_RAIL:   Queue(hand, 'drag', now); break;
-			case VRGear.EV_CLEAR:  Queue(hand, quick ? 'quick' : 'snap', now); break;
-			case VRGear.EV_SEAT:
-			case VRGear.EV_SWAP:   Queue(hand, 'seat', now); break;
-			case VRGear.EV_REFUSE:
-				Queue(hand, 'refuse', now);
-				if (players[me].mo != null) players[me].mo.A_StartSound("*usefail", CHAN_AUTO, CHANF_LOCAL);
-				break;
-			case VRGear.EV_FREE:   Queue(hand, 'free', now); break;
-			}
-		}
-
-		// Play what is due.
-		for (int i = qTic.Size() - 1; i >= 0; --i)
-		{
-			if (qTic[i] > now) continue;
-			level.VRHapticEx(qHand[i], qInt[i], qMs[i], qHz[i], 1);
-			qHand.Delete(i); qTic.Delete(i); qInt.Delete(i); qMs.Delete(i); qHz.Delete(i);
-		}
-
-		// The hum: the mount a hand is heading for, stronger as it closes in. Nothing else hums.
-		for (int h = 0; h < 2; ++h)
-		{
-			int at, heading, rail; double close;
-			[at, heading, close, rail] = VRGear.HandState(me, h);
-			double hum = (heading >= 0 && at < 0 && rail < 0 && close > 0.25) ? 0.08 + 0.22 * (close - 0.25) / 0.75 : 0.0;
-			if (abs(hum - humWas[h]) > 0.02 || (hum == 0 && humWas[h] != 0))
-			{
-				level.VRHapticHold(h, hum, 140);
-				humWas[h] = hum;
-			}
-		}
-	}
-}
-
-// ---------------------------------------------------------------- the look (client-side only)
-//
-// WHAT YOU SEE (owner, 2026-11-12: "faintly always, bright near a hand"; UZDXREMA
-// docs/plans/research/tacticalrig_code_read_2026-11-12.md, E.1). Drawing only: nothing here is read
-// by the sim, so it may use this machine's own player (consoleplayer) freely.
-//   rings        your own mounts only. A wire sphere the size of the mount's reach.
-//   stored guns  every player's, as the model you hold, one size, hung as worn (the RAGFIT lump).
-//   ammo lights  every player's, one at each mount that stores a gun.
-//   teaching     the first-gun hint and the miss-three-times hint.
-
-class RAG_Look : EventHandler
-{
-	// ---- the ring's numbers (TacticalRig rig.zs:3084-3118, 2978; the floor is the owner's) ----
-	const RING_FLOOR   = 0.30;   // a ring a hand can use is never fainter than this
-	const RING_UNUSED  = 0.15;   // a ring no hand can use right now: still there, fainter
-	const RING_EDGE    = 0.35;   // a hand at the sphere's edge; falls to nothing at 2.5 radii
-	const RING_HEADING = 0.55;   // added, by closeness, for the mount the sim says the hand heads for
-	const RING_AT      = 0.90;   // a hand at the mount (green, and a size larger)
-	const RING_AT_SIZE = 1.15;
-	const RING_FAR     = 0.35;   // every usable ring but the nearest: this share of the hand's part
-	const RING_STOWED  = 0.40;   // a ring round a drawn gun, so the wire does not wash the gun out
-	const FLASH_TICS   = 35;     // red (refused), white (freed), bright green (a first seat)
-	const FLASH_FULL   = 8;      // tics at full before it fades
-	// ---- the stored gun (TacticalRig rig.zs:3417, Hang 3605-3620) ----
-	// every gun is drawn 0.185 of the eye height long (0.25 m at 1.35 m): RAG_Gun.GUN_SHARE
-	const NECK_TO_CHEST = 0.150; // the sim torso's own number (p_vrtorso.cpp): the eye height is read back from it
-	// ---- the ammo light (TacticalRig rig.zs:3340-3371, 2987) ----
-	const LIGHT_SIZE   = 0.26;   // of the mount's reach
-	const LIGHT_EMPTY  = 0.18;
-	const LIGHT_ALPHA  = 0.60;
-	const LIGHT_NEAR   = 0.90;   // with a hand near
-	const LIGHT_AHEAD  = 0.75;   // of the reach, toward the body's front, so the gun does not hide it
-	const PULSE_TICS   = 35;
-	// ---- the teaching (TacticalRig ghost.zs:27, rig.zs:2386-2516) ----
-	const HINT_HOLD    = 70;     // a gun in the main hand this long, and no gun ever seated
-	const MISS_WINDOW  = 210;    // three misses on one mount inside this
-	const MISS_SHOW    = 105;    // light that ring this long
-	const MISS_AGAIN   = 1050;   // not twice on one mount inside this
-	const MISS_MAX     = 3;      // hints a map
-
-	const LOOK_IDLE = 0;         // the ring's frames (MODELDEF.gear)
-	const LOOK_HOT = 1;
-	const LOOK_RED = 2;
-	const LOOK_WHITE = 3;
-	const LOOK_SEAT = 4;
-
-	transient Array<RAG_Shell> shells;   // per player per mount
-	transient Array<RAG_Gun> guns;
-	transient Array<RAG_Light> lights;
-	transient RAG_Fit fit;
-	transient bool fitLoaded;
-
-	// this machine's own player, per mount
-	transient Array<int> flashLook, flashTic, missCount, missFirst, hintUntil, hintLast;
-	transient Array<Name> ownerWas;
-	transient int lastSeq;
-	transient bool seqInit;
-	transient Array<int> seenKey;     // (tic, hand, kind, mount) already seen, so a replayed tic is not counted twice
-	transient int enteredAt[2];       // the mount + 1 each hand entered and has not acted in; 0 none
-	transient int hintsThisMap;
-	// kept with the game
-	bool seatedOnce;                  // a gun has been seated by hand
-	bool firstHintSaid;
-	int gunHeldTics;
-
-	static double Breath()
-	{
-		return 0.625 + 0.375 * cos(level.maptime * 360.0 / PULSE_TICS);
-	}
-
-	// Does this hand hold a gun (anything but the empty hand)?
-	static bool HoldsGun(PlayerPawn pawn, int hand)
-	{
-		Weapon w = RAG_Rules.HeldIn(pawn, hand);
 		if (w == null) return false;
-		return !VRGear.IsEmptyHand(w);
+		Name cn = w.GetClassName();
+		if (VRGear.OwnHome(cn)) return false;
+		if (VRGear.FiledAs(cn) != cn) return true;
+		let d = GetDefaultByType(w.GetClass());
+		return d != null && !d.bOffhandWeapon;
 	}
 
-	// A stored gun's ammo: 0 green (half a magazine or more), 1 yellow (low, or empty with rounds
-	// to reload), 2 red (nothing at all), -1 a gun with no ammo. A gun with a magazine counts its
-	// magazine. (TacticalRig rig.zs AmmoState.)
-	static int AmmoLook(Weapon w)
+	// What a hand holds (rig.zs:1720-1737, HandKind; H3 rig.zs:1511-1519, HoldsGun):
+	// HK_EMPTY its empty-hand weapon or nothing, HK_GUN a gun, HK_OTHER anything else.
+	// B5 (rig.zs:823-829): a thing with a home of its own is HK_OTHER, never a gun.
+	static int MainKind(PlayerPawn pawn)
+	{
+		Weapon w = pawn.player.ReadyWeapon;
+		if (w == null || VRGear.IsEmptyHand(w) || w == EmptyMain(pawn)) return VRGear.HK_EMPTY;
+		if (VRGear.OwnHome(w.GetClassName())) return VRGear.HK_OTHER;
+		return VRGear.HK_GUN;
+	}
+
+	static int OffKind(PlayerPawn pawn)
+	{
+		Weapon o = pawn.player.OffhandWeapon;
+		if (o == null || VRGear.IsEmptyHand(o)) return VRGear.HK_EMPTY;
+		Name on = o.GetClassName();
+		if (on == OffEmptyName()) return VRGear.HK_EMPTY;
+		return IsMovedGun(o) ? VRGear.HK_GUN : VRGear.HK_OTHER;
+	}
+
+	static int HandKind(PlayerPawn pawn, int hand)
+	{
+		return hand == 0 ? MainKind(pawn) : OffKind(pawn);
+	}
+
+	// The name the gun in that hand is filed under at a holster: the main hand's as HeldAs and, for Brutal
+	// Doom's two-gun weapon, its single gun if that class is loaded (rig.zs:887-892); the off hand's
+	// copy as its gun (rig.zs:894-897, MainOf rig.zs:1536-1544 = the lump's `item .. as`).
+	static Name FiledGun(PlayerPawn pawn, int hand)
+	{
+		if (hand == 1)
+		{
+			Weapon o = pawn.player.OffhandWeapon;
+			if (o == null) return 'None';
+			return VRGear.FiledAs(o.GetClassName());
+		}
+		Weapon w = pawn.player.ReadyWeapon;
+		if (w == null) return 'None';
+		Name cls = HeldAs(pawn, w);
+		Name single = SingleOf(pawn, cls);
+		if (single != 'None' && single != cls)
+		{
+			class<Weapon> sc = (class<Weapon>)(single);
+			if (sc != null) cls = single;
+		}
+		return VRGear.FiledAs(cls);
+	}
+
+	// =====================================================================================
+	// Assignment (B6, B7)
+	// =====================================================================================
+
+	// B7 (rig.zs:810-815, LockedTo): the gun holster cls is assigned to, or -1.
+	static int LockedTo(int pnum, Name cls)
+	{
+		if (cls == 'None') return -1;
+		int n = VRGear.SpotCount();
+		for (int r = 0; r < n; r++) if (VRGear.Assigned(pnum, r) == cls) return r;
+		return -1;
+	}
+
+	// B6 (rig.zs:830-837, MayEnter): may gun cls go into gun holster r by hand? Not a thing with its own
+	// home (B5); the holster is unassigned or this gun's; the holster is empty or already holds this gun.
+	static bool MayEnter(int pnum, PlayerPawn pawn, Name cls, int r)
+	{
+		if (VRGear.OwnHome(cls)) return false;
+		Name asg = VRGear.Assigned(pnum, r);
+		if (asg != 'None' && asg != cls) return false;
+		Name c = Held(pnum, pawn, r);
+		return c == 'None' || c == cls;
+	}
+
+	// D3 (rig.zs:882-901, WouldRefuse): the gun in that hand would be refused at gun holster r.
+	static bool WouldRefuse(int pnum, PlayerPawn pawn, int hand, int r)
+	{
+		Name cls = FiledGun(pawn, hand);
+		if (cls == 'None') return false;
+		return LockedTo(pnum, cls) < 0 && !MayEnter(pnum, pawn, cls, r);
+	}
+
+	// B7 (rig.zs:840-846, Assign): cls is assigned to gun holster r and to no other.
+	// Returns true when the holster had no owner before: the first time it becomes a gun's (EV_ASSIGNED).
+	private bool Assign(int pnum, Name cls, int r)
+	{
+		if (cls == 'None' || !IsGunSpot(r) || VRGear.OwnHome(cls)) return false;
+		bool first = VRGear.Assigned(pnum, r) == 'None';
+		int n = VRGear.SpotCount();
+		for (int j = 0; j < n; j++) if (VRGear.Assigned(pnum, j) == cls) VRGear.SetAssigned(pnum, j, 'None');
+		VRGear.SetAssigned(pnum, r, cls);
+		return first;
+	}
+
+	// "One gun, one place" (rig.zs:1895-1897): cls leaves every spot but `keep`.
+	private void ClearContentOf(int pnum, Name cls, int keep)
+	{
+		int n = VRGear.SpotCount();
+		for (int k = 0; k < n; k++)
+			if (k != keep && VRGear.Content(pnum, k) == cls) VRGear.SetContent(pnum, k, 'None');
+	}
+
+	// E4 (rig.zs:1169-1190, LockedHome): gun cls, held at gun holster r, is assigned to holster `home`
+	// (not r). cls goes into home; r's gun, if any and not cls, comes out to that hand; a gun that was
+	// sitting in home moves into r, "so no holstered gun is lost". Returns the gun that comes out, or null.
+	private Weapon LockedHome(int pnum, PlayerPawn pawn, Name cls, int r, int home)
+	{
+		Name atR = Held(pnum, pawn, r);
+		Name atHome = VRGear.Content(pnum, home);
+		Weapon outW = (atR != 'None' && atR != cls) ? Owned(pawn, atR) : null;
+		ClearContentOf(pnum, cls, -1);
+		VRGear.SetContent(pnum, home, cls);
+		VRGear.SetContent(pnum, r, (atHome != 'None' && atHome != cls) ? atHome : 'None');
+		return outW;
+	}
+
+	// =====================================================================================
+	// The hands
+	// =====================================================================================
+
+	// A weapon into the MAIN hand, the engine's own way: PendingWeapon (rig.zs:1866-1867, 1907-1908).
+	private void ToMain(PlayerPawn pawn, Weapon w)
+	{
+		if (IsMovedGun(w)) w.bOffhandWeapon = false;
+		pawn.player.PendingWeapon = w;
+	}
+
+	// The MAIN hand goes empty (rig.zs:1875-1876, 1915-1916). `was` is what it held.
+	private void MainEmpty(PlayerPawn pawn, Weapon was)
+	{
+		Weapon empty = EmptyMain(pawn);
+		if (empty != null && empty != was) pawn.player.PendingWeapon = empty;
+	}
+
+	// J3 (rig.zs:2013-2018, QueueOff): the weapon to raise into the OFF hand once the main hand has
+	// finished switching. One PendingWeapon is all the engine has, so the off hand's turn is queued.
+	private void QueueOff(int pnum, Name cls)
+	{
+		if (cls == 'None') return;
+		offNext[pnum] = cls;
+		offWait[pnum] = 70;
+	}
+
+	// H5 (rig.zs:1548-1556, EmptyOff): the OFF hand goes empty: the pack's hands if it has them, else nothing.
+	private void EmptyOff(int pnum, PlayerPawn pawn)
+	{
+		Name en = OffEmptyName();
+		if (en != 'None') { QueueOff(pnum, en); return; }
+		pawn.player.SetPsprite(PSP_OFFHANDWEAPON, null);
+		pawn.player.OffhandWeapon = null;
+	}
+
+	// J3 (rig.zs:2023-2080, TickPairs): every player, every tic. Once the main hand has finished switching,
+	// the queued weapon is raised into the off hand (an off-hand-flagged weapon raised through
+	// PendingWeapon goes to the off hand; the BD22 VR pack then swaps in the right version of the gun,
+	// its dual.zs "THE OFF-HAND RULE"). WHILE THE ENGINE IS STEADYING A TWO-HANDED GUN THE RAISE WAITS and
+	// the 70-tic timer does not run (rig.zs:2038-2071): the gun arrives when the grip is let go.
+	private void TickPairs()
+	{
+		for (int n = 0; n < MAXPLAYERS; n++)
+		{
+			if (offNext[n] == 'None') continue;
+			if (!playeringame[n] || players[n].mo == null || players[n].mo.health <= 0) { offNext[n] = 'None'; continue; }
+			PlayerInfo p = players[n];
+			if ((p.WeaponState & WF_TWOHANDSTABILIZED) != 0) continue;
+			offWait[n] = offWait[n] - 1;
+			if (offWait[n] <= 0) { offNext[n] = 'None'; continue; }
+			if (p.PendingWeapon != WP_NOCHANGE) continue;          // the main hand is still switching
+			class<Weapon> c = (class<Weapon>)(offNext[n]);
+			offNext[n] = 'None';
+			if (c == null) continue;
+			Weapon w = Weapon(p.mo.FindInventory(c));
+			if (w == null) { p.mo.GiveInventory(c, 1); w = Weapon(p.mo.FindInventory(c)); }
+			if (w != null && IsMovedGun(w) && w != p.ReadyWeapon) w.bOffhandWeapon = true;
+			if (w != null && p.OffhandWeapon != w) p.PendingWeapon = w;
+		}
+	}
+
+	// =====================================================================================
+	// The grenade spot (F1-F3) and the pouch (B11)
+	// =====================================================================================
+
+	// F2 (rig.zs:1207-1233, NadeWeapon): the hand grenade a summon spot hands out: the first `holds` row
+	// whose weapon class is loaded. -1: none. Looked up at run time, so a missing pk3 breaks nothing.
+	// (TacticalRig's yield to RSQ Grenade by two cvars, rig.zs:1219-1227, is not here: the rules read no
+	// cvar. The lump's row order decides.)
+	static int NadeRow(int spot)
+	{
+		int n = VRGear.SpotHoldCount(spot);
+		for (int i = 0; i < n; i++)
+		{
+			class<Weapon> wc = (class<Weapon>)(VRGear.SpotHoldWeapon(spot, i));
+			if (wc != null) return i;
+		}
+		return -1;
+	}
+
+	static Name NadeWeapon(int spot)
+	{
+		int row = NadeRow(spot);
+		return row >= 0 ? VRGear.SpotHoldWeapon(spot, row) : 'None';
+	}
+
+	static Name NadeAmmo(int spot)
+	{
+		int row = NadeRow(spot);
+		return row >= 0 ? VRGear.SpotHoldAmmo(spot, row) : 'None';
+	}
+
+	// rig.zs:1241-1246 (Grenades): how many the player carries.
+	static int Grenades(PlayerPawn pawn, int spot)
+	{
+		class<Inventory> ac = (class<Inventory>)(NadeAmmo(spot));
+		return ac != null ? pawn.CountInv(ac) : 0;
+	}
+
+	// rig.zs:3573-3581 (NadeInHand): the grenade is in a hand, or on its way into one.
+	static bool NadeInHand(PlayerPawn pawn, int spot)
+	{
+		class<Weapon> wc = (class<Weapon>)(NadeWeapon(spot));
+		if (wc == null) return false;
+		PlayerInfo p = pawn.player;
+		if (p.ReadyWeapon != null && p.ReadyWeapon is wc) return true;
+		if (p.OffhandWeapon != null && p.OffhandWeapon is wc) return true;
+		return p.PendingWeapon != WP_NOCHANGE && p.PendingWeapon != null && p.PendingWeapon is wc;
+	}
+
+	// M9 (rig.zs:2962-2973, AmmoState): a stored gun's ammo. 0 half a magazine or more, 1 low or empty with
+	// rounds to reload, 2 nothing at all, -1 a gun with no ammo. A gun with a magazine counts its magazine.
+	static int AmmoState(Weapon w)
 	{
 		if (w == null || w.Ammo1 == null) return -1;
 		bool mag = w.Ammo2 != null && w.Ammo2 != w.Ammo1;
@@ -301,558 +433,445 @@ class RAG_Look : EventHandler
 		return have * 2 >= cap ? 0 : 1;
 	}
 
-	// How bright one hand makes one ring, before "nearest" is counted.
-	private static double HandPart(Vector3 handPos, Vector3 mountPos, double reach, bool heading, double closeness)
+	// M18 (rig.zs:3517-3525, ReserveState): the RESERVE of a gun, what a reload takes: 0 two magazines or
+	// more (no magazine: a quarter of the carry), 1 less, 2 none, -1 a gun with no ammo.
+	static int ReserveState(Weapon w)
 	{
-		double d = (handPos - mountPos).Length();
-		double part = 0;
-		if (d <= reach) part = RING_EDGE;
-		else if (d < 2.5 * reach) part = RING_EDGE * (1.0 - (d - reach) / (1.5 * reach));
-		if (heading) part = max(part, RING_EDGE + RING_HEADING * closeness);
-		return part;
+		if (w == null || w.Ammo1 == null) return -1;
+		bool mag = w.Ammo2 != null && w.Ammo2 != w.Ammo1;
+		int have = w.Ammo1.Amount;
+		int need = mag ? 2 * max(1, w.Ammo2.MaxAmount) : max(1, w.Ammo1.MaxAmount / 4);
+		if (have <= 0) return 2;
+		return have >= need ? 0 : 1;
 	}
 
-	private void Flash(int mount, int look, int now)
+	// B11 (rig.zs:609-612, PouchOn): the pouch exists while the weapon pack with the hand reloads is loaded:
+	// TacticalRig tests for that pack's hands class; so does this (OffEmptyName).
+	static bool PouchLive()
 	{
-		flashLook[mount] = look;
-		flashTic[mount] = now;
+		return OffEmptyName() != 'None';
 	}
 
-	private void Missed(int mount, int now)
+	// rig.zs:2314: the pouch "holds something" while the gun in the main hand has reserve.
+	static bool PouchHolds(PlayerPawn pawn)
 	{
-		if (missCount[mount] == 0 || now - missFirst[mount] > MISS_WINDOW)
+		int st = ReserveState(pawn.player.ReadyWeapon);
+		return st == 0 || st == 1;
+	}
+
+	// The two bits the sim reads next tic (contract section 5; SpotHolds rig.zs:2297-2316, RegionLive
+	// rig.zs:2713-2723).
+	static bool SpotLiveNow(PlayerPawn pawn, int spot)
+	{
+		int rule = VRGear.SpotRule(spot);
+		if (rule == VRGear.RULE_SUMMON) return NadeRow(spot) >= 0;      // the pack has a hand grenade (rig.zs:2716)
+		if (rule == VRGear.RULE_ZONE) return PouchLive();
+		return true;                                                    // gun holsters always (rig.zs:2721)
+	}
+
+	static bool SpotHoldsNow(int pnum, PlayerPawn pawn, int spot)
+	{
+		int rule = VRGear.SpotRule(spot);
+		if (rule == VRGear.RULE_SUMMON) return Grenades(pawn, spot) > 0 && !NadeInHand(pawn, spot);   // rig.zs:2300
+		if (rule == VRGear.RULE_ZONE) return PouchHolds(pawn);                                        // rig.zs:2314
+		return Held(pnum, pawn, spot) != 'None';                                                      // rig.zs:2299
+	}
+
+	// M6 (rig.zs:3129-3196, HandActs): would a press by hand h at spot r do something now? Press's own
+	// tests, in Press's order. A refusal is not "doing something". The look uses it for ring brightness.
+	static bool HandActs(int pnum, PlayerPawn pawn, int h, int r)
+	{
+		if (!VRGear.SpotLive(pnum, r)) return false;
+		int rule = VRGear.SpotRule(r);
+		if (rule == VRGear.RULE_SUMMON)
 		{
-			missCount[mount] = 1;
-			missFirst[mount] = now;
+			Name wn = NadeWeapon(r);
+			Weapon rw = pawn.player.ReadyWeapon;
+			bool inHand = wn != 'None' && rw != null && rw.GetClassName() == wn;
+			return inHand || Grenades(pawn, r) > 0;                      // rig.zs:3142-3147
+		}
+		if (rule == VRGear.RULE_ZONE) return PouchHolds(pawn);           // rig.zs:3151-3153
+		if (!IsGunSpot(r)) return false;
+		int kind = HandKind(pawn, h);
+		if (kind == VRGear.HK_GUN) return !WouldRefuse(pnum, pawn, h, r);   // rig.zs:3185
+		Weapon inHandW = h == 0 ? pawn.player.ReadyWeapon : pawn.player.OffhandWeapon;
+		if (kind == VRGear.HK_OTHER && inHandW != null && VRGear.OwnHome(inHandW.GetClassName())) return false;
+		if (Held(pnum, pawn, r) != 'None') return true;                  // a draw (rig.zs:3186)
+		return kind == VRGear.HK_EMPTY && VRGear.Assigned(pnum, r) != 'None';   // free by hand (rig.zs:3188)
+	}
+
+	// =====================================================================================
+	// The result events. Exactly one outcome per press (contract section 6; L9 rig.zs:2850-2856).
+	// =====================================================================================
+
+	// D4 (rig.zs:850-859, Refused): the refusal names the gun to show: the one the holster is assigned
+	// to, else the one in it. why: 1 another gun's, 2 full, 3 empty holster + empty hand, 4 no grenades,
+	// 5 a thing with its own home, 6 other.
+	private void PostRefuse(int pnum, PlayerPawn pawn, int hand, int r, int why)
+	{
+		Name owner = 'None';
+		if (IsGunSpot(r))
+		{
+			owner = VRGear.Assigned(pnum, r);
+			if (owner == 'None') owner = Held(pnum, pawn, r);
+		}
+		VRGear.Post(pnum, VRGear.EV_REFUSED, hand, r, owner, why);
+	}
+
+	// A gun that failed MayEnter: which of its three reasons (rig.zs:830-837).
+	private void RefuseGun(int pnum, PlayerPawn pawn, int hand, int r, Name cls)
+	{
+		Name asg = VRGear.Assigned(pnum, r);
+		int why = 2;
+		if (VRGear.OwnHome(cls)) why = 5;
+		else if (asg != 'None' && asg != cls) why = 1;
+		PostRefuse(pnum, pawn, hand, r, why);
+	}
+
+	// =====================================================================================
+	// Holster and draw, the main hand (J1, J2)
+	// =====================================================================================
+
+	// J1 (rig.zs:1826-1922, Holster): the main hand's gun onto gun holster r.
+	private void HolsterMain(int pnum, PlayerPawn pawn, int r)
+	{
+		PlayerInfo p = pawn.player;
+		Weapon w = p.ReadyWeapon;
+		if (w == null) { PostRefuse(pnum, pawn, 0, r, 6); return; }
+		Name cls = HeldAs(pawn, w);
+		// J1a (rig.zs:1835-1857): Brutal Doom's combined two-gun weapon goes in as ONE single gun. The single
+		// is given if missing, with no ammo of its own, as Brutal Doom's own switch to single gives it.
+		Name single = SingleOf(pawn, cls);
+		if (single != 'None' && single != cls)
+		{
+			class<Weapon> sc = (class<Weapon>)(single);
+			if (sc != null && pawn.FindInventory(sc) == null)
+			{
+				Weapon g = Weapon(Actor.Spawn(sc, pawn.Pos, NO_REPLACE));
+				if (g != null)
+				{
+					g.AmmoGive1 = 0;
+					g.AmmoGive2 = 0;
+					if (!g.CallTryPickup(pawn)) g.Destroy();
+				}
+			}
+			if (sc != null && pawn.FindInventory(sc) != null) cls = single;
+		}
+		cls = VRGear.FiledAs(cls);
+		int home = LockedTo(pnum, cls);
+		// J1c (rig.zs:1861): a gun with no home enters only a holster MayEnter allows. Refused first,
+		// before anything is stored (L9).
+		if (home < 0 && !MayEnter(pnum, pawn, cls, r)) { RefuseGun(pnum, pawn, 0, r, cls); return; }
+		// J1d, E4 (rig.zs:1862-1880): a gun with a home elsewhere goes home; r's gun comes to the hand.
+		if (home >= 0 && home != r)
+		{
+			Weapon outGun = LockedHome(pnum, pawn, cls, r, home);
+			if (outGun != null && outGun != w)
+			{
+				ToMain(pawn, outGun);
+				VRGear.SetDraw(pnum, 0, outGun.GetClassName());         // C4 (rig.zs:1868-1869)
+			}
+			else MainEmpty(pawn, w);
+			VRGear.Post(pnum, VRGear.EV_WENT_HOME, 0, r, cls, home);
 			return;
 		}
-		missCount[mount] = missCount[mount] + 1;
-		if (missCount[mount] < 3) return;
-		missCount[mount] = 0;
-		if (hintsThisMap >= MISS_MAX) return;
-		if (hintLast[mount] != 0 && now - hintLast[mount] < MISS_AGAIN) return;
-		hintsThisMap++;
-		hintLast[mount] = now;
-		hintUntil[mount] = now + MISS_SHOW;
-		Console.Printf("Grip inside the ring.");
-	}
-
-	// This machine's player's holster events: the ring flashes and the misses.
-	private void ReadEvents(int me, int n, int now)
-	{
-		int seq = VRGear.EventSeq(me);
-		if (!seqInit || seq < lastSeq) { lastSeq = seq; seqInit = true; }
-		for (; lastSeq < seq; ++lastSeq)
+		// J1f (rig.zs:1887-1921): "one gun, one place": it leaves wherever else it was; stored; assigned;
+		// what was there comes out to the hand (a swap), else the hand goes empty. "The off hand is never
+		// touched here" (rig.zs:1903-1904).
+		Name was = Held(pnum, pawn, r);
+		Weapon incoming = null;
+		if (was != 'None' && was != cls) incoming = Owned(pawn, was);
+		ClearContentOf(pnum, cls, r);
+		VRGear.SetContent(pnum, r, cls);
+		bool first = Assign(pnum, cls, r);
+		if (incoming != null)
 		{
-			bool ok; int kind, hand, mount, tic; bool quick;
-			[ok, kind, hand, mount, quick, tic] = VRGear.Event(me, lastSeq);
-			if (!ok) continue;
-			if (mount < 0 || mount >= n || hand < 0 || hand > 1) continue;
-			int key = (((tic % 500000) * 2 + hand) * 16 + kind) * 64 + (mount % 64);
-			if (seenKey.Find(key) != seenKey.Size()) continue;
-			seenKey.Push(key);
-			if (seenKey.Size() > 32) seenKey.Delete(0);
-
-			switch (kind)
-			{
-			case VRGear.EV_ENTER:
-				enteredAt[hand] = mount + 1;
-				break;
-			case VRGear.EV_LEAVE:
-				if (enteredAt[hand] == mount + 1) Missed(mount, now);
-				enteredAt[hand] = 0;
-				break;
-			case VRGear.EV_RAIL:
-			case VRGear.EV_CLEAR:
-			case VRGear.EV_CANCEL:
-			case VRGear.EV_SWAP:
-				enteredAt[hand] = 0;
-				break;
-			case VRGear.EV_SEAT:
-				enteredAt[hand] = 0;
-				// Bright green when this seat made the mount the gun's own, or was the first ever.
-				if (!seatedOnce || ownerWas[mount] != VRGear.MountItem(me, mount)) Flash(mount, LOOK_SEAT, now);
-				seatedOnce = true;
-				break;
-			case VRGear.EV_REFUSE:
-				enteredAt[hand] = 0;
-				Flash(mount, LOOK_RED, now);
-				break;
-			case VRGear.EV_FREE:
-				enteredAt[hand] = 0;
-				Flash(mount, LOOK_WHITE, now);
-				break;
-			}
+			ToMain(pawn, incoming);
+			VRGear.SetDraw(pnum, 0, incoming.GetClassName());           // C4 (rig.zs:1909-1910)
+			VRGear.Post(pnum, VRGear.EV_SWAPPED, 0, r, was, 0);
 		}
+		else
+		{
+			MainEmpty(pawn, w);
+			VRGear.Post(pnum, VRGear.EV_STORED, 0, r, cls, 0);
+		}
+		if (first) VRGear.Post(pnum, VRGear.EV_ASSIGNED, 0, r, cls, 0);   // D5 (rig.zs:843)
 	}
+
+	// J2 (rig.zs:1924-1958, Draw): gun holster r's one gun into the MAIN hand. "One gun, in the hand
+	// that drew it": the off-hand copy is never brought along. Not if it is already in the off hand.
+	private void DrawMain(int pnum, PlayerPawn pawn, int r)
+	{
+		PlayerInfo p = pawn.player;
+		Name c = Held(pnum, pawn, r);
+		Weapon w = Owned(pawn, c);
+		if (w == null || w == p.OffhandWeapon) { PostRefuse(pnum, pawn, 0, r, 6); return; }   // rig.zs:1945
+		if (IsMovedGun(w)) w.bOffhandWeapon = false;
+		if (p.ReadyWeapon != w) p.PendingWeapon = w;
+		VRGear.SetContent(pnum, r, 'None');                              // the holster is emptied (rig.zs:1951)
+		VRGear.SetDraw(pnum, 0, w.GetClassName());                       // C4 (rig.zs:1952-1953)
+		VRGear.Post(pnum, VRGear.EV_DRAWN, 0, r, c, 0);
+	}
+
+	// =====================================================================================
+	// Holster and draw, the off hand (H6, H7)
+	// =====================================================================================
+
+	// H6 (rig.zs:1558-1641, HolsterOff): the OFF hand's gun onto gun holster r.
+	private void HolsterOff(int pnum, PlayerPawn pawn, int r)
+	{
+		PlayerInfo p = pawn.player;
+		Weapon w = p.OffhandWeapon;
+		if (!IsMovedGun(w)) { PostRefuse(pnum, pawn, 1, r, 6); return; }
+		Name offCn = w.GetClassName();
+		Name cls = VRGear.FiledAs(offCn);            // the off-hand copy goes in under its gun's name (rig.zs:1565)
+		int home = LockedTo(pnum, cls);
+		if (home < 0 && !MayEnter(pnum, pawn, cls, r)) { RefuseGun(pnum, pawn, 1, r, cls); return; }   // rig.zs:1568
+		// BD22 VR DUAL WIELD (rig.zs:1570-1617): the off hand holds gun G's off-hand copy while the main
+		// hand holds G itself. Put away, the copy takes G with it: G goes home to its own holster, and
+		//   A. at G's own holster (or a free one): both hands go to their fists;
+		//   B. at a holster of another gun X with X in it: the off hand goes to its fist and the MAIN hand takes X.
+		// An unassigned G at a free holster (MayEnter passed above): that holster becomes G's, then as A.
+		bool dualCopy = cls != offCn && p.ReadyWeapon != null
+			&& VRGear.FiledAs(HeldAs(pawn, p.ReadyWeapon)) == cls;         // rig.zs:1579
+		bool first = false;
+		if (dualCopy && home < 0) { first = Assign(pnum, cls, r); home = r; }   // rig.zs:1581
+		if (home >= 0 && dualCopy)
+		{
+			Weapon outW = null;
+			if (home != r) outW = LockedHome(pnum, pawn, cls, r, home);
+			else
+			{
+				ClearContentOf(pnum, cls, r);
+				VRGear.SetContent(pnum, r, cls);
+			}
+			EmptyOff(pnum, pawn);
+			if (outW != null && outW != p.ReadyWeapon)
+			{
+				outW.bOffhandWeapon = false;                               // case B: the MAIN hand takes X
+				p.PendingWeapon = outW;
+				VRGear.SetDraw(pnum, 0, outW.GetClassName());             // rig.zs:1601-1602
+			}
+			else MainEmpty(pawn, p.ReadyWeapon);                           // case A: the main hand to its fist
+			if (home != r) VRGear.Post(pnum, VRGear.EV_WENT_HOME, 1, r, cls, home);
+			else VRGear.Post(pnum, VRGear.EV_STORED, 1, r, cls, 0);
+			if (first) VRGear.Post(pnum, VRGear.EV_ASSIGNED, 1, r, cls, 0);
+			return;
+		}
+		// A gun with a home elsewhere goes home and r's gun comes to the OFF hand (rig.zs:1618-1625).
+		if (home >= 0 && home != r)
+		{
+			Weapon outGun = LockedHome(pnum, pawn, cls, r, home);
+			if (outGun != null && outGun != p.ReadyWeapon)
+			{
+				outGun.bOffhandWeapon = true;
+				QueueOff(pnum, outGun.GetClassName());
+			}
+			else EmptyOff(pnum, pawn);
+			VRGear.Post(pnum, VRGear.EV_WENT_HOME, 1, r, cls, home);
+			return;
+		}
+		// Otherwise the gun goes in, is assigned, and what was there comes to the off hand (rig.zs:1626-1640).
+		Name was = Held(pnum, pawn, r);
+		ClearContentOf(pnum, cls, r);
+		VRGear.SetContent(pnum, r, cls);
+		bool firstHere = Assign(pnum, cls, r);
+		Weapon incoming = (was != 'None' && was != cls) ? Owned(pawn, was) : null;
+		if (incoming != null && incoming != p.ReadyWeapon)
+		{
+			incoming.bOffhandWeapon = true;
+			QueueOff(pnum, was);
+			VRGear.Post(pnum, VRGear.EV_SWAPPED, 1, r, was, 0);
+		}
+		else
+		{
+			EmptyOff(pnum, pawn);
+			VRGear.Post(pnum, VRGear.EV_STORED, 1, r, cls, 0);
+		}
+		if (firstHere) VRGear.Post(pnum, VRGear.EV_ASSIGNED, 1, r, cls, 0);
+	}
+
+	// H7 (rig.zs:1663-1678, DrawOff): gun holster r's gun into the OFF hand: flagged off-hand, the raise
+	// queued, the holster emptied. Not if the main hand already holds that weapon.
+	private void DrawOff(int pnum, PlayerPawn pawn, int r)
+	{
+		PlayerInfo p = pawn.player;
+		Name c = Held(pnum, pawn, r);
+		Weapon w = Owned(pawn, c);
+		if (w == null || w == p.ReadyWeapon) { PostRefuse(pnum, pawn, 1, r, 6); return; }   // rig.zs:1670
+		w.bOffhandWeapon = true;
+		VRGear.SetContent(pnum, r, 'None');
+		QueueOff(pnum, c);
+		VRGear.SetDraw(pnum, 1, w.GetClassName());                       // C4 (rig.zs:1674-1675)
+		VRGear.Post(pnum, VRGear.EV_DRAWN, 1, r, c, 0);
+	}
+
+	// =====================================================================================
+	// The grenade spot (F1, F3, L2)
+	// =====================================================================================
+
+	// F1 (rig.zs:1251-1276, Nade; L2 rig.zs:2745-2756): either hand grips it and the pack's hand grenade
+	// comes to the MAIN hand; gripped again with the grenade in the hand, the gun he had comes back
+	// (else the empty hand). F3: none is handed out with zero grenades.
+	private void NadePress(int pnum, PlayerPawn pawn, int hand, int r)
+	{
+		PlayerInfo p = pawn.player;
+		Name wn = NadeWeapon(r);
+		class<Weapon> wc = (class<Weapon>)(wn);
+		if (wc == null) { VRGear.Post(pnum, VRGear.EV_REFUSED, hand, r, 'None', 6); return; }
+		if (p.ReadyWeapon != null && p.ReadyWeapon is wc)
+		{
+			// back: the gun he had (rig.zs:1259-1267)
+			Weapon back = Owned(pawn, VRGear.PrevWeapon(pnum));
+			if (back == null) back = EmptyMain(pawn);
+			if (back != null) p.PendingWeapon = back;
+			VRGear.Post(pnum, VRGear.EV_STORED, 0, r, wn, 0);
+			return;
+		}
+		Weapon w = Weapon(pawn.FindInventory(wc));
+		if (w == null || Grenades(pawn, r) <= 0)                           // F3 (rig.zs:1269; L2 rig.zs:2750-2754)
+		{
+			VRGear.Post(pnum, VRGear.EV_REFUSED, hand, r, 'None', 4);
+			return;
+		}
+		Name prev = 'None';
+		if (p.ReadyWeapon != null) prev = p.ReadyWeapon.GetClassName();
+		VRGear.SetPrevWeapon(pnum, prev);                                 // rig.zs:1270-1271
+		p.PendingWeapon = w;
+		VRGear.SetDraw(pnum, 0, w.GetClassName());                        // F3: counts as a draw (rig.zs:1273-1274)
+		VRGear.Post(pnum, VRGear.EV_DRAWN, 0, r, wn, 0);
+	}
+
+	// =====================================================================================
+	// A press, and a free
+	// =====================================================================================
+
+	// What a press does (rig.zs:2732-2908, Press), in the code's order, for the spots of this build.
+	// L1 (cigarette), L3 (lit flare), L4 (ShieldSaw), the whip, the flare and the sabers (L5-L8, L12) are
+	// not in this build: their mods are not in the weapon set.
+	private void DoPress(int pnum, PlayerPawn pawn, int hand, int r)
+	{
+		int rule = VRGear.SpotRule(r);
+		// L2 (rig.zs:2745-2756): the grenade spot, either hand.
+		if (rule == VRGear.RULE_SUMMON) { NadePress(pnum, pawn, hand, r); return; }
+		// L5 (rig.zs:2773): the pouch is the reload's; a press there does nothing of the rig's own. No event.
+		if (rule == VRGear.RULE_ZONE) return;
+		if (!IsGunSpot(r)) return;
+
+		PlayerInfo p = pawn.player;
+		int kind = HandKind(pawn, hand);
+		Weapon inHandW = hand == 0 ? p.ReadyWeapon : p.OffhandWeapon;
+		// L10 (rig.zs:2857-2871) the off hand, L11 (rig.zs:2872-2891) the main hand: holds a gun -> it goes
+		// in (or is refused, swapped, sent home: HolsterMain / HolsterOff decide, refusing first, L9).
+		if (kind == VRGear.HK_GUN)
+		{
+			if (hand == 0) HolsterMain(pnum, pawn, r);
+			else HolsterOff(pnum, pawn, r);
+			return;
+		}
+		// B5 (rig.zs:823-829): a thing with a home of its own never enters a gun holster.
+		if (kind == VRGear.HK_OTHER && inHandW != null && VRGear.OwnHome(inHandW.GetClassName()))
+		{
+			PostRefuse(pnum, pawn, hand, r, 5);
+			return;
+		}
+		// else a full holster -> draw into the hand that pressed
+		if (Held(pnum, pawn, r) != 'None')
+		{
+			if (hand == 0) DrawMain(pnum, pawn, r);
+			else DrawOff(pnum, pawn, r);
+			return;
+		}
+		// else refuse: an empty holster and nothing to put in it (rig.zs:2870, 2886-2890)
+		PostRefuse(pnum, pawn, hand, r, 3);
+	}
+
+	// K10 (rig.zs:2324-2341, FreeTick; rig.zs:1157-1168, WebUnassign): the sim saw an empty hand pressed and
+	// held 35 tics in an empty, assigned gun holster. Checked again here; then no holster is assigned to
+	// that gun and it is in none.
+	private void DoFree(int pnum, PlayerPawn pawn, int hand, int r)
+	{
+		if (!IsGunSpot(r)) return;
+		Name owner = VRGear.Assigned(pnum, r);
+		if (owner == 'None' || Held(pnum, pawn, r) != 'None' || HandKind(pawn, hand) != VRGear.HK_EMPTY) return;
+		int n = VRGear.SpotCount();
+		for (int k = 0; k < n; k++)
+		{
+			if (VRGear.Assigned(pnum, k) == owner) VRGear.SetAssigned(pnum, k, 'None');
+			if (IsGunSpot(k) && VRGear.Content(pnum, k) == owner) VRGear.SetContent(pnum, k, 'None');
+		}
+		VRGear.Post(pnum, VRGear.EV_FREED, hand, r, owner, 0);
+	}
+
+	// =====================================================================================
+	// One tic (contract section 8, step 2)
+	// =====================================================================================
 
 	override void WorldTick()
 	{
-		int n = VRGear.MountCount();
-		if (n <= 0) return;
-		while (shells.Size() < n * MAXPLAYERS) shells.Push(null);
-		while (guns.Size() < n * MAXPLAYERS) guns.Push(null);
-		while (lights.Size() < n * MAXPLAYERS) lights.Push(null);
-		while (flashLook.Size() < n)
+		TickPairs();                                                       // rig.zs:2088
+
+		int spots = VRGear.SpotCount();
+		for (int i = 0; i < MAXPLAYERS; i++)
 		{
-			flashLook.Push(0); flashTic.Push(0); missCount.Push(0); missFirst.Push(0);
-			hintUntil.Push(0); hintLast.Push(0); ownerWas.Push('None');
+			if (!playeringame[i] || players[i].mo == null) continue;
+			PlayerPawn pawn = players[i].mo;
+			bool alive = pawn.health > 0;
+			bool ok; int act, hand, spot;
+			for (int guard = 0; guard < 64; guard++)
+			{
+				[ok, act, hand, spot] = VRGear.PopAction(i);
+				if (!ok) break;
+				// C3 (rig.zs:723): a dead player's actions are ignored.
+				if (!alive || spot < 0 || spot >= spots || hand < 0 || hand > 1) continue;
+				if (act == VRGear.ACT_PRESS) DoPress(i, pawn, hand, spot);
+				else if (act == VRGear.ACT_FREE) DoFree(i, pawn, hand, spot);
+			}
 		}
-		if (!fitLoaded) { fitLoaded = true; fit = RAG_Fit.Load(); }
 
-		int now = level.maptime;
-		int me = consoleplayer;
-		bool meOk = me >= 0 && me < MAXPLAYERS && playeringame[me] && players[me].mo != null;
-		if (meOk) ReadEvents(me, n, now);
-
-		for (int i = 0; i < MAXPLAYERS; ++i)
+		// THEN the bits the sim's hover reads next tic, for every player, every spot.
+		for (int i = 0; i < MAXPLAYERS; i++)
 		{
-			PlayerPawn pawn = playeringame[i] ? players[i].mo : null;
-			if (pawn == null)
-			{
-				// Nobody here: put away what was drawn for this seat.
-				for (int m = 0; m < n; ++m)
-				{
-					int kk = i * n + m;
-					if (shells[kk] != null) shells[kk].Hide();
-					if (guns[kk] != null) guns[kk].Hide();
-					if (lights[kk] != null) lights[kk].Hide();
-				}
-				continue;
-			}
-			bool mine = meOk && i == me;
-
-			// The body: which way it faces, and the eye height everything is sized from.
-			bool tok; double tyaw; Vector3 neck, chest, pelvis;
-			[tok, tyaw, neck, chest, pelvis] = VRTorso.Get(i);
-			double eyeH = pawn.ViewHeight;
-			if (tok) eyeH = max(8.0, (neck.Z - chest.Z) / NECK_TO_CHEST);
-			else { tyaw = pawn.Angle; chest = pawn.Pos; pelvis = pawn.Pos; }
-			Vector3 front = (cos(tyaw), sin(tyaw), 0);
-			Vector2 right = (sin(tyaw), -cos(tyaw));
-
-			// The hands.
-			int hv0 = 0, hv1 = 0; Vector3 hp0, hp1; double hyaw, hpitch, hroll;
-			[hv0, hp0, hyaw, hpitch, hroll] = players[i].GetVRHand(0);
-			[hv1, hp1, hyaw, hpitch, hroll] = players[i].GetVRHand(1);
-			int at0 = -1, at1 = -1, hd0 = -1, hd1 = -1, rail0 = -1, rail1 = -1; double cl0 = 0, cl1 = 0;
-			[at0, hd0, cl0, rail0] = VRGear.HandState(i, 0);
-			[at1, hd1, cl1, rail1] = VRGear.HandState(i, 1);
-			bool gun0 = false, gun1 = false;
-			int near0 = -1, near1 = -1, hintMount = -1;
-
-			if (mine)
-			{
-				gun0 = HoldsGun(pawn, 0);
-				gun1 = HoldsGun(pawn, 1);
-				// The nearest ring each hand can use; the hip the first-gun hint points at; has a
-				// gun ever been given a home.
-				bool anyOwned = false;
-				double nd0 = 1e30, nd1 = 1e30, hintD = 1e30;
-				bool hintHip = false;
-				for (int m = 0; m < n; ++m)
-				{
-					bool pok; Vector3 ppos, pmouth; double pradius;
-					[pok, ppos, pradius, pmouth] = VRGear.MountPose(i, m);
-					if (!pok) continue;
-					bool owned = VRGear.MountItem(i, m) != 'None';
-					if (owned) anyOwned = true;
-					double d0 = (hp0 - ppos).Length();
-					double d1 = (hp1 - ppos).Length();
-					if (hv0 != 0 && (gun0 || owned) && d0 < nd0) { nd0 = d0; near0 = m; }
-					if (hv1 != 0 && (gun1 || owned) && d1 < nd1) { nd1 = d1; near1 = m; }
-					String mname = VRGear.MountName(m);
-					mname = mname.MakeLower();
-					bool hip = mname.Left(3) == "hip";
-					double hd = (hv0 != 0) ? d0 : double(m);
-					if ((hip && !hintHip) || (hip == hintHip && hd < hintD)) { hintMount = m; hintD = hd; hintHip = hip; }
-				}
-				// The first-gun hint, until a gun has been seated.
-				if (seatedOnce || anyOwned) { gunHeldTics = 0; hintMount = -1; }
-				else
-				{
-					if (gun0 && hv0 != 0) gunHeldTics++; else gunHeldTics = 0;
-					if (gunHeldTics < HINT_HOLD) hintMount = -1;
-					else if (!firstHintSaid)
-					{
-						firstHintSaid = true;
-						Console.Printf("Push the gun into your hip, or grip there.");
-					}
-				}
-			}
-
-			for (int m = 0; m < n; ++m)
-			{
-				int k = i * n + m;
-				bool ok = false; Vector3 pos, mouth; double radius = 0;
-				[ok, pos, radius, mouth] = VRGear.MountPose(i, m);
-				Name item = VRGear.MountItem(i, m);
-				bool owned = item != 'None';
-
-				// The gun stored here: carried, and in neither hand.
-				Weapon w = null;
-				if (ok && owned)
-				{
-					w = Weapon(pawn.FindInventory((class<Inventory>)(item)));
-					if (w == pawn.player.ReadyWeapon || w == pawn.player.OffhandWeapon) w = null;
-				}
-
-				// ---- the ring: your own only ----
-				if (mine && ok)
-				{
-					bool use0 = hv0 != 0 && (gun0 || owned);
-					bool use1 = hv1 != 0 && (gun1 || owned);
-					double ring = RING_UNUSED;
-					int look = LOOK_IDLE;
-					double size = radius;
-					if (use0 || use1)
-					{
-						double part = 0;
-						if (use0)
-						{
-							double p0 = HandPart(hp0, pos, radius, hd0 == m, cl0);
-							if (m != near0) p0 *= RING_FAR;
-							part = max(part, p0);
-						}
-						if (use1)
-						{
-							double p1 = HandPart(hp1, pos, radius, hd1 == m, cl1);
-							if (m != near1) p1 *= RING_FAR;
-							part = max(part, p1);
-						}
-						ring = max(RING_FLOOR, part);
-					}
-					if (at0 == m || at1 == m)
-					{
-						ring = RING_AT;
-						look = LOOK_HOT;
-						size = radius * RING_AT_SIZE;
-					}
-					if (w != null) ring *= RING_STOWED;
-
-					// The rules' flashes: red refused, white freed, bright green a first seat.
-					int since = now - flashTic[m];
-					if (flashLook[m] != 0 && since >= 0 && since < FLASH_TICS)
-					{
-						look = flashLook[m];
-						double fl = (since < FLASH_FULL) ? 1.0 : 1.0 - double(since - FLASH_FULL) / double(FLASH_TICS - FLASH_FULL);
-						ring = max(ring, RING_AT * fl);
-					}
-					else flashLook[m] = 0;
-
-					// The teaching: this is the ring.
-					if (m == hintMount)
-					{
-						ring = RING_AT * Breath();
-						size = radius * (1.0 + 0.25 * Breath());
-					}
-					if (hintUntil[m] > now) ring = 1.0;
-
-					if (shells[k] == null) shells[k] = RAG_Shell(Actor.SpawnClientSide('RAG_Shell', pos, NO_REPLACE));
-					if (shells[k] != null) shells[k].ShowAt(pos, size, ring, look);
-				}
-				else if (shells[k] != null) shells[k].Hide();
-
-				// ---- the gun in it: every player's ----
-				bool isChest = tok && (pos - chest).Length() < (pos - pelvis).Length();
-				bool isLeft = ((pos.XY - pelvis.XY) dot right) < 0;
-				if (w != null && guns[k] == null) guns[k] = RAG_Gun(Actor.SpawnClientSide('RAG_Gun', pos, NO_REPLACE));
-				if (guns[k] != null) guns[k].ShowAt(w, pos, radius, mouth, fit, eyeH, tyaw, isChest, isLeft);
-
-				// ---- its ammo light: every player's ----
-				int ammo = AmmoLook(w);
-				if (w != null && ammo >= 0)
-				{
-					bool handNear = (hv0 != 0 && (hp0 - pos).Length() < 2.5 * radius)
-						|| (hv1 != 0 && (hp1 - pos).Length() < 2.5 * radius);
-					double la = handNear ? LIGHT_NEAR : LIGHT_ALPHA;
-					if (ammo == 2) la *= Breath();
-					double ls = radius * (ammo == 2 ? LIGHT_EMPTY : LIGHT_SIZE);
-					if (lights[k] == null) lights[k] = RAG_Light(Actor.SpawnClientSide('RAG_Light', pos, NO_REPLACE));
-					if (lights[k] != null) lights[k].ShowAt(pos + front * (radius * LIGHT_AHEAD), ls, la, ammo);
-				}
-				else if (lights[k] != null) lights[k].Hide();
-
-				if (mine) ownerWas[m] = item;
-			}
+			if (!playeringame[i] || players[i].mo == null) continue;
+			PlayerPawn pawn = players[i].mo;
+			for (int s = 0; s < spots; s++)
+				VRGear.SetSpotBits(i, s, SpotLiveNow(pawn, s), SpotHoldsNow(i, pawn, s));
 		}
 	}
 }
 
-// How big a stored gun is and which way it points (the RAGFIT lump). This is RSQ TacticalRig's
-// fit loader (rsq_ubqseries/TacticalRig/zscript/rsqtr/fit.zs: Load, Find, Compose, Basis), ported
-// with its lump format unchanged:
-//     <Class> <length in map units> <yaw> <pitch> <shown by> <centre x y z> <squat> <sprite> <frame>
-// Every lump named RAGFIT is read; a later row wins for the same class. Drawing only.
-class RAG_Fit
+// B11, P2 (TacticalRig hooks.zs:76-143, RSQTR_RigService). The BD22 VR pack's hand reloads ask a
+// service whose class name CONTAINS "RSQTR_RigService" (its src/zscript/rsr/vreload.zs:98-108;
+// ServiceIterator.Find matches part of a name) for "pouch.at": 1 that hand is in the pouch, 0 it is
+// not, -1 no pouch. TacticalRig's pk3 is not loaded, so this answers it, from the sim: per player, the
+// same on every machine (TacticalRig could answer for the local player only, hooks.zs:99).
+// It also answers the three other things a mod may ask about a hand: "rig.busy" (C5, hooks.zs:108-125:
+// the hand is INSIDE a spot), "rig.drawtic" and "rig.drawn" (C4, hooks.zs:102-107, 203-206).
+// Anything else: -1 or "", as TacticalRig answers a request it does not know.
+class RAG_RSQTR_RigService : Service
 {
-	Array<String> cls, holder, spr;
-	Array<int> frn;
-	Array<double> len, yaw, pitch, cx, cy, cz, squat;
-
-	static RAG_Fit Load()
+	override int GetInt(String request, String stringArg, int intArg, double doubleArg, Object objectArg, Name nameArg)
 	{
-		let f = new("RAG_Fit");
-		int l = -1;
-		while ((l = Wads.FindLump("RAGFIT", l + 1, Wads.AnyNamespace)) >= 0)
-		{
-			Array<String> lines;
-			Wads.ReadLump(l).Split(lines, "\n");
-			for (int i = 0; i < lines.Size(); i++)
-			{
-				String s = lines[i];
-				s.StripRight();
-				if (s.Length() == 0 || s.Left(2) == "//") continue;
-				Array<String> t;
-				s.Split(t, " ", TOK_SKIPEMPTY);
-				if (t.Size() < 4) continue;
-				String c = t[0];
-				c = c.MakeLower();
-				int at = f.cls.Find(c);
-				if (at == f.cls.Size()) { f.cls.Push(c); f.len.Push(0); f.yaw.Push(0); f.pitch.Push(0); f.holder.Push(t[0]); f.cx.Push(0); f.cy.Push(0); f.cz.Push(0); f.squat.Push(0); f.spr.Push(""); f.frn.Push(0); }
-				f.len[at] = t[1].ToDouble();
-				f.yaw[at] = t[2].ToDouble();
-				f.pitch[at] = t[3].ToDouble();
-				f.holder[at] = t.Size() > 4 ? t[4] : t[0];
-				if (t.Size() > 8) f.squat[at] = t[8].ToDouble();
-				if (t.Size() > 10) { f.spr[at] = t[9]; f.frn[at] = t[10].ToInt(); }
-				if (t.Size() > 7) { f.cx[at] = t[5].ToDouble(); f.cy[at] = t[6].ToDouble(); f.cz[at] = t[7].ToDouble(); }
-			}
-		}
-		return f;
+		PlayerPawn who = PlayerPawn(objectArg);
+		if (who == null || who.player == null) return -1;
+		int pnum = who.PlayerNumber();
+		if (pnum < 0 || pnum >= MAXPLAYERS) return -1;
+		int h = intArg & 1;
+		if (request == "pouch.at") return VRGear.HandInSpot(pnum, h, 'Pouch');
+		if (request == "rig.busy") return VRGear.HandBusy(pnum, h) ? 1 : 0;
+		if (request == "rig.drawtic") return VRGear.DrawTic(pnum, h);
+		return -1;
 	}
 
-	Vector3 Centre(int at) { return (cx[at], cy[at], cz[at]); }
-
-	int Find(String c)
+	override String GetString(String request, String stringArg, int intArg, double doubleArg, Object objectArg, Name nameArg)
 	{
-		c = c.MakeLower();
-		int at = cls.Find(c);
-		return at < cls.Size() && len[at] > 0 ? at : -1;
-	}
-
-	// The actor angles that hang a measured gun as (a, p, r) hangs one pointing forward:
-	// R = R(a, p, r) * Ry(pitch) * Rz(yaw), read back as angle, pitch, roll (the engine
-	// turns a model by roll about its forward axis, then pitch, then yaw).
-	static void Compose(double a, double p, double r, double cy, double cp,
-		out double oa, out double op, out double orl)
-	{
-		// columns of R(a,p,r): forward, left, up
-		Vector3 F, L, U;
-		[F, L, U] = Basis(a, p, r);
-		// the correction's columns in that frame: Ry(cp) * Rz(cy)
-		Vector3 f2 = (cos(cy) * cos(cp), sin(cy), -cos(cy) * sin(cp));
-		Vector3 l2 = (-sin(cy) * cos(cp), cos(cy), sin(cy) * sin(cp));
-		Vector3 nF = F * f2.x + L * f2.y + U * f2.z;
-		Vector3 nL = F * l2.x + L * l2.y + U * l2.z;
-		oa = atan2(nF.y, nF.x);
-		op = -asin(clamp(nF.z, -1.0, 1.0));
-		// roll: the new left measured against the left of (oa, op) with no roll
-		Vector3 F0, L0, U0;
-		[F0, L0, U0] = Basis(oa, op, 0);
-		orl = atan2(nL dot U0, nL dot L0);
-	}
-
-	// Forward, left and up of a body turned by yaw a (left +), pitch p (nose down +), roll r.
-	static Vector3, Vector3, Vector3 Basis(double a, double p, double r)
-	{
-		double ca = cos(a), sa = sin(a), cp = cos(p), sp = sin(p), cr = cos(r), sr = sin(r);
-		Vector3 F = (ca * cp, sa * cp, -sp);
-		Vector3 L0 = (-sa, ca, 0);
-		Vector3 U0 = (ca * sp, sa * sp, cp);
-		Vector3 L = L0 * cr + U0 * sr;
-		Vector3 U = U0 * cr - L0 * sr;
-		return F, L, U;
-	}
-}
-
-// The ring: a wire sphere, the size of the mount's reach (MODELDEF.gear). No angle, no pitch: a
-// sphere reads the same from every side.
-class RAG_Shell : Actor
-{
-	Default
-	{
-		+CLIENTSIDE
-		+NOBLOCKMAP
-		+NOGRAVITY
-		+NOINTERACTION
-		+DONTSPLASH
-		+NOTONAUTOMAP
-		+BRIGHT
-		RenderStyle "Add";
-		Radius 1;
-		Height 1;
-	}
-
-	void Hide()
-	{
-		bInvisible = true;
-	}
-
-	// size: the sphere's radius in map units. look: the frame (RAG_Look.LOOK_*).
-	void ShowAt(Vector3 pos, double size, double glow, int look)
-	{
-		bInvisible = false;
-		SetOrigin(pos, true);
-		Scale = (size, size);
-		Alpha = clamp(glow, 0.0, 1.0);
-		frame = look;
-	}
-
-	States
-	{
-	Spawn:
-		RAGS A -1;
-		Stop;
-	}
-}
-
-// The ammo light: a small bright ball (MODELDEF.gear). Frame 0 green, 1 yellow, 2 red.
-class RAG_Light : Actor
-{
-	Default
-	{
-		+CLIENTSIDE
-		+NOBLOCKMAP
-		+NOGRAVITY
-		+NOINTERACTION
-		+DONTSPLASH
-		+NOTONAUTOMAP
-		+BRIGHT
-		RenderStyle "Add";
-		Radius 1;
-		Height 1;
-	}
-
-	void Hide()
-	{
-		bInvisible = true;
-	}
-
-	void ShowAt(Vector3 pos, double size, double glow, int look)
-	{
-		bInvisible = false;
-		SetOrigin(pos, true);
-		Scale = (size, size);
-		Alpha = clamp(glow, 0.0, 1.0);
-		frame = look;
-	}
-
-	States
-	{
-	Spawn:
-		RAGS A -1;
-		Stop;
-	}
-}
-
-class RAG_Gun : Actor
-{
-	Default
-	{
-		+CLIENTSIDE
-		+NOBLOCKMAP
-		+NOGRAVITY
-		+NOINTERACTION
-		+DONTSPLASH
-		+NOTONAUTOMAP
-		Radius 1;
-		Height 1;
-	}
-
-	String wearing;        // the weapon class shown
-	int fitRow;            // its RAGFIT row, or -1
-	bool plainOk;          // no row: the old way found something to draw
-	double plainScale;
-
-	void Hide()
-	{
-		bInvisible = true;
-	}
-
-	// The weapon as you hold it, hung in the mount as worn.
-	//   with a RAGFIT row: the row's model and frame, GUN_SHARE of the eye height long, pitched and
-	//     rolled for a hip or a chest mount on that side, its middle on the mount;
-	//   without one: the weapon's own MODELDEF, sized to the mount, muzzle down into the mouth (as before).
-	void ShowAt(Weapon w, Vector3 pos, double radius, Vector3 mouth, RAG_Fit fit, double eyeH, double bodyYaw, bool isChest, bool isLeft)
-	{
-		if (w == null) { bInvisible = true; return; }
-		String cn = w.GetClassName();
-		if (cn != wearing)
-		{
-			wearing = cn;
-			fitRow = -1;
-			plainOk = false;
-			int row = (fit != null) ? fit.Find(cn) : -1;
-			if (row >= 0 && fit.spr[row] != "")
-			{
-				// The class whose MODELDEF draws it must be loaded, and the sprite must exist.
-				class<Actor> hc = fit.holder[row];
-				int si = GetSpriteIndex(Name(fit.spr[row]));
-				if (hc != null && si >= 0)
-				{
-					fitRow = row;
-					sprite = si;
-					frame = fit.frn[row];
-					A_ChangeModel(Name(fit.holder[row]));
-					SetModelFlag(MDL_USEACTORPITCH | MDL_USEACTORROLL);
-				}
-			}
-			if (fitRow < 0)
-			{
-				class<Actor> want = level.GetActorModelClass(w);
-				State rs = w.FindState("Ready");
-				if (want != null && rs != null)
-				{
-					plainOk = true;
-					sprite = rs.sprite;
-					frame = rs.Frame;
-					ClearModelFlag(MDL_USEACTORPITCH | MDL_USEACTORROLL);
-					A_ChangeModel(want.GetClassName());
-					bool found; double rad;
-					[found, rad] = level.GetModelBoundsHint(want, sprite, frame);
-					plainScale = (found && rad > 0) ? (radius * 2.2) / rad : 0.18;
-				}
-			}
-		}
-
-		if (fitRow >= 0)
-		{
-			bInvisible = false;
-			double s = GUN_SHARE * eyeH / fit.len[fitRow];
-			Scale = (s, s);
-			// Hips: muzzle down. Chest: cross-draw, butt toward the breastbone. Mirrored by side.
-			double pt = isChest ? 70.0 : 80.0;
-			double rl = isChest ? (isLeft ? 35.0 : -35.0) : (isLeft ? -10.0 : 10.0);
-			double oa, op, orl;
-			RAG_Fit.Compose(bodyYaw, pt, rl, fit.yaw[fitRow], fit.pitch[fitRow], oa, op, orl);
-			Angle = oa;
-			Pitch = op;
-			Roll = orl;
-			// Its middle, not its origin, on the mount.
-			Vector3 F, L, U;
-			[F, L, U] = RAG_Fit.Basis(oa, op, orl);
-			Vector3 c = fit.Centre(fitRow) * s;
-			SetOrigin(pos - (F * c.X + L * c.Y + U * c.Z), true);
-			return;
-		}
-
-		if (!plainOk) { bInvisible = true; return; }
-		bInvisible = false;
-		Scale = (plainScale, plainScale);
-		Roll = 0;
-		SetOrigin(pos, true);
-		// Muzzle INTO the mount: along minus the mouth. Pitch is down-positive.
-		Angle = atan2(-mouth.Y, -mouth.X);
-		Pitch = asin(clamp(mouth.Z, -1.0, 1.0));
-	}
-
-	const GUN_SHARE = 0.185;   // every stored gun is this share of the eye height long (TacticalRig: 0.25 m)
-
-	States
-	{
-	Spawn:
-		TNT1 A -1;
-		Stop;
+		PlayerPawn who = PlayerPawn(objectArg);
+		if (who == null || who.player == null || request != "rig.drawn") return "";
+		int pnum = who.PlayerNumber();
+		if (pnum < 0 || pnum >= MAXPLAYERS) return "";
+		Name cls = VRGear.DrawClass(pnum, intArg & 1);
+		if (cls == 'None') return "";
+		String s = cls;
+		return s;
 	}
 }
