@@ -71,35 +71,10 @@ tune
 }
 
 // ---- never (RSQ policy.zs Decide, the refusals before its table) ----
-rule flag nointeraction deny
-rule flag projectile    deny        // in flight, not on the floor
-rule flag player        deny
-rule flag nosize        deny
-rule flag invisible     deny        // includes Brutal Doom's TNT1 spawner placeholders
-rule prefix RSQ_KR      deny        // Kill Rewards bits (left to its own pull)
-rule flag dying         deny        // a barrel already going off
-rule flag monster       deny        // a living monster is never pulled
-rule flag corpse        deny        // RSQ: "Corpses", off by default. To turn on: allow weight 0.25 category Corpses
-rule flag owned         deny        // in someone's inventory
 
-// ---- the table (RSQ policy.zs Build, its order and weights) ----
-rule class HealthBonus           allow weight 0.3 category Bonuses
-rule class ArmorBonus            allow weight 0.3 category Bonuses
-rule class Soulsphere            allow weight 1.0 category Powerups
-rule class Megasphere            allow weight 1.0 category Powerups
-rule class InvulnerabilitySphere allow weight 1.0 category Powerups
-rule class Blursphere            allow weight 1.0 category Powerups
-rule class Infrared              allow weight 1.0 category Powerups
-rule class RadSuit               allow weight 1.0 category Powerups
-rule class Allmap                allow weight 1.0 category Powerups
-rule class Berserk               allow weight 1.0 category Powerups
-rule class RSQFF_Flare           allow weight 2.0 category Flares
-rule class ExplosiveBarrel       allow weight 4.0 category Barrels
-rule class BurningBarrel         allow weight 4.0 category Barrels
-rule class Ammo                  allow weight 0.6 category Ammo
-rule class Weapon                allow weight 2.0 category Weapons
-rule class BDWeaponSpawner       allow weight 2.0 category Weapons
-rule class Health                allow weight 0.6 category Health
-rule class Armor                 allow weight 0.6 category Armor
-rule class Key                   allow weight 2.0 category Keys
-rule class Inventory             allow weight 1.0                     // any other pickup in the world
+// 2026-11-12: THE ENGINE'S OWN GRAB CORE IS SWITCHED OFF HERE. The owner wants RSQ DistanceGrab itself, which runs as
+// its own pk3. One rule that matches nothing useful keeps the core from falling back to its built-in table, so no
+// hand ever finds a candidate, locks, or counts as busy to the holsters. (The ported rules are in this file's git
+// history, commit a459296.)
+clearrules
+rule flag nointeraction deny
