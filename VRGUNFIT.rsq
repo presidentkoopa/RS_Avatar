@@ -3,7 +3,7 @@
 // tables (its muzzle) is moved to where the gun is drawn.
 // size <factor>                    every held gun, about its grip socket
 // gun <weapon class> <F> <L> <U>   that gun's grip socket in the weapon controller's frame, cm (subclasses inherit)
-size 0.72
+size 0.90
 gun "AssaultShotgun" 0.80 5.85 -12.92   // fbx_sg_AssaultShotgun_R.md3 #0
 gun "BFG10k" 3.00 4.71 -6.10   // fbx_hv_BFG10k_R.md3 #0
 gun "BIG_FUCKING_GUN" 3.20 4.25 -6.37   // fbx_hv_BIG_FUCKING_GUN_R.md3 #0
