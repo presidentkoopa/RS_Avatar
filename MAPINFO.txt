@@ -1,6 +1,8 @@
+// The body holsters (RAG_*, zscript/gear) and the distance grab (RAB_*, zscript/grab) each register
+// three handlers, in this order: rules (every player, every machine), feel, look (this machine only).
 // The avatar caretaker. One handler, always on; it does nothing at all while
 // vr_avatar is empty.
 GameInfo
 {
-	AddEventHandlers = "RSAV_Handler", "RSA_FitMode", "RSA_MirrorHandler", "RAG_Rules", "RAG_Feel", "RAG_Look"
+	AddEventHandlers = "RSAV_Handler", "RSA_FitMode", "RSA_MirrorHandler", "RAG_Rules", "RAG_Feel", "RAG_Look", "RAB_Rules", "RAB_Feel", "RAB_Look"
 }

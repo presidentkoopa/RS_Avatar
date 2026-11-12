@@ -1,0 +1,16 @@
+// The distance grab's marker (zscript/grab/look.zs RAB_Mark). Draw only, this machine's player only.
+// A wire sphere of radius 1 at Scale 1; the actor's Scale is the marked thing's size.
+//   A amber: this hand could take it (AIM)   B green: this hand has it (LOCKED, PULL)
+// FLAGS BEFORE THE FrameIndex LINES: each FrameIndex snapshots the flags set so far.
+Model RAB_Mark
+{
+	Path "models"
+	Model 0 "rs_wiresphere.obj"
+	Skin 0 "rab_wire_could.png"
+	Model 1 "rs_wiresphere.obj"
+	Skin 1 "rab_wire_have.png"
+	Scale 1.0 1.0 1.0
+	DONTCULLBACKFACES
+	FrameIndex RABM A 0 0
+	FrameIndex RABM B 1 0
+}

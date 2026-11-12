@@ -22,7 +22,7 @@ The engine decides, the mod reacts. It needs the UZDXREMA engine.
 | The rig | `VRGEAR.txt` | The mounts, the kinds of item, the guns, and the haptic patterns. |
 | Rules | `zscript/gear/gear.zs`, `RAG_Rules` | What an action does to the inventory. Runs on every machine, in order. |
 | Feel | `gear.zs`, `RAG_Feel` | Haptic signatures and the hum, for this machine's own player only. |
-| Look | `gear.zs`, `RAG_Look`, `RAG_Shell`, `RAG_Gun`; `MODELDEF.gear` | The holster shells on the body and the guns in them. Client-side actors only. |
+| Look | `gear.zs`, `RAG_Look`, `RAG_Shell`, `RAG_Gun`, `RAG_Light`, `RAG_Fit`; `MODELDEF.gear`; `RAGFIT.txt` | The rings, the stored guns and their ammo lights. Client-side actors only. See "What you see". |
 
 The mounts sit on the sim's torso frame (UZDXREMA `p_vrtorso.h`), which is built from the tic
 command alone. Nothing is read back from the drawn body, so netplay stays in step.
@@ -37,6 +37,30 @@ command alone. Nothing is read back from the drawn body, so netplay stays in ste
 - A grip that no mount claims does nothing.
 - The torso holds still while a hand is heading for gear, so the holster is where your hand
   expects it.
+
+## What you see
+
+Added 2026-11-12. Not compiled and not seen in a headset yet. All of it is drawing on your own
+machine; the game's rules do not read any of it.
+
+- **Rings.** Each holster is a wire ball, the size of its reach, so it reads the same from any
+  side. Your own rings are always there, faintly, and brighten as a hand comes near. The ring
+  nearest a hand is the brightest. A ring turns green and grows a little when your hand is in it.
+- A ring is brighter when that hand can do something there: any ring with a gun in your hand, a
+  ring that has a gun of its own with an empty hand.
+- **Flashes.** Red: that press was refused. White: the holster was freed. Bright green: a gun was
+  just given that holster as its own.
+- **Stored guns.** A gun in a holster is drawn as the model you hold, all at one size, hung as
+  worn: muzzle down at the hips, across the chest under the collarbones. You see every player's.
+  The sizes and facings come from `RAGFIT.txt` (RSQ TacticalRig's table). A gun with no row there
+  is drawn the old way.
+- **Ammo light.** A small ball in front of each stored gun: green with half a magazine or more,
+  yellow when low or empty with rounds to reload, red and pulsing with nothing. You see every
+  player's.
+- **Hints.** Until you have holstered a gun once, holding one makes a hip ring pulse and prints one
+  line. If your hand enters and leaves a ring three times without a press, that ring lights up and
+  a line says to grip inside it.
+- Other players' rings are not drawn.
 
 ## What you feel
 

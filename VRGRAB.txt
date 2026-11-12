@@ -1,0 +1,105 @@
+// VRGRAB -- the distance grab's numbers and what it may take (engine: UZDXREMA
+// src/playsim/p_vrgrab.cpp; contract: docs/plans/VRGRAB_API.md). The gestures, the numbers and the
+// table are RSQ DistanceGrab's (its CVARINFO defaults and policy.zs).
+//
+// THIS IS SIM DATA: every machine in a netgame must load the same VRGRAB lumps.
+//
+// THE GRAMMAR. Every loaded VRGRAB lump is read, in load order.
+//
+//   tune { <key> <number>  <key> <number> ... }
+//       A later value for the same key replaces the earlier one. A key left out keeps the engine's
+//       default, which is the number written below.
+//
+//   rule class  <Class> allow|deny [weight <w>] [category <Name>]
+//       The thing is that class, a subclass of it, or REPLACES one (up to four replacements deep, so
+//       a mod's barrel that replaces Doom's without inheriting from it is still a barrel). A class
+//       that is not loaded makes a rule that never matches; that is not an error.
+//   rule flag   <word>  allow|deny [weight <w>] [category <Name>]
+//       What the thing is right now. The words:
+//         pickup         an Inventory item lying in the world
+//         owned          an Inventory item in someone's inventory
+//         corpse         a monster with no health left
+//         monster        a living monster
+//         barrel         barrel-like: shootable and solid, alive, not a monster, not a pickup
+//         projectile     a missile in flight
+//         invisible      flagged invisible, render style None, or drawing nothing (sprite TNT1)
+//         player         a player
+//         nointeraction  NOINTERACTION
+//         nosize         radius or height of zero
+//         dying          a shootable thing that is not a monster and has no health left
+//   rule prefix <text>  allow|deny [weight <w>] [category <Name>]
+//       The thing's class name starts with <text> (letter case ignored).
+//
+//   clearrules
+//       Forget every rule read so far (a later lump that wants its own table starts with this).
+//
+// THE RULES ARE ORDERED: for each thing the FIRST rule that matches decides, and a thing no rule
+// matches is not taken. Rules from a later lump come after the ones already read.
+//
+// weight (default 1, at most 16) is a preference in the cone pick, never a gate: the cone's cost
+// for a thing is divided by the square root of its weight, so weight 4 "counts as half as far off
+// the hand's line". category is a label for scripts and people; the engine does not act on it.
+
+tune
+{
+	// ---- the contract's fifteen ----
+	reach       512     // map units the hand reaches (measured in the room: height counts 1.2 times)
+	spread      12      // degrees either side of the hand's line
+	dwell       10      // tics the palm stays on a thing before it locks
+	flick       5       // degrees a tic of wrist tip-up that launches a lock
+	flickwindow 7       // tics before the palm turns back in which the flick counts
+	pathspeed   22      // the flight, metres a second (the rules)
+	tmin        6       // shortest flight, tics (the rules)
+	tmax        40      // longest flight, tics (the rules; the engine gives up at tmax + 10)
+	arc         0.25    // arc height as a share of the distance (the rules)
+	catch       24      // map units from the palm at which it has arrived
+	hold        4       // tics it waits at the palm: palm out for this long catches, away drops
+	throwmin    4       // map units a tic of hand speed above which a release is a throw
+	arm         30      // kg: a throw is hand speed x arm / (arm + kg) x boost (the rules)
+	boost       2.5
+	airgravity  0.27    // share of gravity on a thing that has left a hand (the rules)
+
+	// ---- the gesture's own constants (engine defaults; here so they can be read and tuned) ----
+	palmroll    90      // palm out: the wrist's roll is within palmtol degrees of this, either way,
+	palmtol     30
+	palmpitch   -30     //   and the hand is not pitched below this (a hand hanging at the side is)
+	lockrange   1.25    // a lock is let go when the thing is beyond reach x this
+	gripon      128     // analog grip (0-255) at which the grip takes over a carry
+	gripoff     96      // ...and below which the grip has let go
+	lost        35      // tics a lock or a carry outlives a hand that is not tracked
+	rethrow     35      // tics the thing a hand just let go of is not a candidate again
+}
+
+// ---- never (RSQ policy.zs Decide, the refusals before its table) ----
+rule flag nointeraction deny
+rule flag projectile    deny        // in flight, not on the floor
+rule flag player        deny
+rule flag nosize        deny
+rule flag invisible     deny        // includes Brutal Doom's TNT1 spawner placeholders
+rule prefix RSQ_KR      deny        // Kill Rewards bits (left to its own pull)
+rule flag dying         deny        // a barrel already going off
+rule flag monster       deny        // a living monster is never pulled
+rule flag corpse        deny        // RSQ: "Corpses", off by default. To turn on: allow weight 0.25 category Corpses
+rule flag owned         deny        // in someone's inventory
+
+// ---- the table (RSQ policy.zs Build, its order and weights) ----
+rule class HealthBonus           allow weight 0.3 category Bonuses
+rule class ArmorBonus            allow weight 0.3 category Bonuses
+rule class Soulsphere            allow weight 1.0 category Powerups
+rule class Megasphere            allow weight 1.0 category Powerups
+rule class InvulnerabilitySphere allow weight 1.0 category Powerups
+rule class Blursphere            allow weight 1.0 category Powerups
+rule class Infrared              allow weight 1.0 category Powerups
+rule class RadSuit               allow weight 1.0 category Powerups
+rule class Allmap                allow weight 1.0 category Powerups
+rule class Berserk               allow weight 1.0 category Powerups
+rule class RSQFF_Flare           allow weight 2.0 category Flares
+rule class ExplosiveBarrel       allow weight 4.0 category Barrels
+rule class BurningBarrel         allow weight 4.0 category Barrels
+rule class Ammo                  allow weight 0.6 category Ammo
+rule class Weapon                allow weight 2.0 category Weapons
+rule class BDWeaponSpawner       allow weight 2.0 category Weapons
+rule class Health                allow weight 0.6 category Health
+rule class Armor                 allow weight 0.6 category Armor
+rule class Key                   allow weight 2.0 category Keys
+rule class Inventory             allow weight 1.0                     // any other pickup in the world

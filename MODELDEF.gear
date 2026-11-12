@@ -1,16 +1,46 @@
-// The body holsters' shell (zscript/gear/gear.zs RAG_Shell): the bracket, radius 3 at Scale 1; the
-// actor's Scale sizes it to the mount's reach. Frame A idle, B a hand in it.
+// The body holsters' drawing (zscript/gear/gear.zs). Draw only.
+//
+// RAG_Shell: the ring, a wire sphere of radius 1 at Scale 1 (three rings, seen from any side); the
+// actor's Scale is the mount's reach in map units. One model slot per colour, one frame each:
+//   A blue (idle)   B green (a hand in it)   C red (refused)   D white (freed)   E bright green (a first seat)
 // FLAGS BEFORE THE FrameIndex LINES: each FrameIndex snapshots the flags set so far.
+// DONTCULLBACKFACES: an additive model is culled from one side without it.
 Model RAG_Shell
 {
 	Path "models"
-	Model 0 "rs_holster_bracket.obj"
+	Model 0 "rs_wiresphere.obj"
 	Skin 0 "rs_wire_idle.png"
-	Model 1 "rs_holster_bracket.obj"
+	Model 1 "rs_wiresphere.obj"
 	Skin 1 "rs_wire_hot.png"
-	Scale 3.0 3.0 3.0
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex RSHM A 0 0
-	FrameIndex RSHM B 1 0
+	Model 2 "rs_wiresphere.obj"
+	Skin 2 "rag_wire_red.png"
+	Model 3 "rs_wiresphere.obj"
+	Skin 3 "rag_wire_white.png"
+	Model 4 "rs_wiresphere.obj"
+	Skin 4 "rag_wire_seat.png"
+	Scale 1.0 1.0 1.0
+	DONTCULLBACKFACES
+	FrameIndex RAGS A 0 0
+	FrameIndex RAGS B 1 0
+	FrameIndex RAGS C 2 0
+	FrameIndex RAGS D 3 0
+	FrameIndex RAGS E 4 0
+}
+
+// RAG_Light: the ammo light of a stored gun, a solid ball of radius 1 at Scale 1.
+//   A green (half a magazine or more)   B yellow (low, or empty with reserve)   C red (nothing)
+Model RAG_Light
+{
+	Path "models"
+	Model 0 "rag_light.obj"
+	Skin 0 "rag_wire_seat.png"
+	Model 1 "rag_light.obj"
+	Skin 1 "rag_wire_yellow.png"
+	Model 2 "rag_light.obj"
+	Skin 2 "rag_wire_red.png"
+	Scale 1.0 1.0 1.0
+	DONTCULLBACKFACES
+	FrameIndex RAGS A 0 0
+	FrameIndex RAGS B 1 0
+	FrameIndex RAGS C 2 0
 }

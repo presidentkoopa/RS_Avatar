@@ -7,14 +7,35 @@
 //
 // PHASE 1 (owner, 2026-11-09): hips and chest, any gun, push-in on. Shoulders are Phase 2.
 // No pouch or grenade loop until the weapons step.
+//
+// SEATED (owner, 2026-11-12: he plays seated). `seated at <side> <fwd> <up>` in a mount is where it
+// is while that player is seated; a mount without it stays where `at` puts it. The SIM decides
+// seated, the same on every machine: the eye under 40 map units above the floor for 70 tics running
+// is seated, over 43 for 70 tics running is standing again.
+// `seated at` is NOT measured like `at`. The torso's pelvis is a standing body's, and the standing
+// eye height is the tallest eye seen, so both are wrong for someone who has only ever sat and wrong
+// the other way for someone who stood once. A seated mount hangs from the torso's NECK (it follows
+// the head either way), along the torso's right, forward and up, in fractions of the STANDING eye
+// height his seated eye stands for (seated eye / 0.753; the standing eye itself if that is taller).
+// The radius is sized by the same height while seated.
+// The hips' seated numbers are TacticalRig's seated table (rig.zs SDF/SDL/SDU: 0.27 m forward of the
+// eyes, 0.12 m out, 0.67 m under them: the front of the lap) converted: 34 map units a metre across,
+// 28.33 up, a 45.9-unit standing eye, the neck 0.05 behind and 0.075 under the eyes.
+// The chests' are where `at` puts them on a standing body, said from the neck.
+//
+// HIPS ON THE BODY'S SURFACE, BIGGER ZONES (rig report E.1, 2026-11-12): standing hips out from
+// 0.125 to 0.14 and forward from 0.02 to 0.05 (they sat inside the avatar's hip); hip radius 0.065
+// to 0.09, chest radius 0.055 to 0.075.
 
-emptyhand Fist
+// What an empty hand holds: Doom's Fist; Brutal Doom 22 VR's Melee_Attacks (main) and RSQ_Hands (off).
+// The first is the one a mod is handed when it asks for "the" empty hand.
+emptyhand Fist Melee_Attacks RSQ_Hands
 
 // ---- the mounts ----
-mount HipR   { pelvis at  0.125 0.02  0.00  radius 0.065 mouth 0 0 1          pushin on signature hipR }
-mount HipL   { pelvis at -0.125 0.02  0.00  radius 0.065 mouth 0 0 1          pushin on signature hipL }
-mount ChestR { chest  at  0.070 0.075 -0.01 radius 0.055 mouth -0.5 0.3 0.81  pushin on signature chestR }
-mount ChestL { chest  at -0.070 0.075 -0.01 radius 0.055 mouth  0.5 0.3 0.81  pushin on signature chestL }
+mount HipR   { pelvis at  0.140 0.05  0.00  seated at  0.089 0.250 -0.339 radius 0.090 mouth 0 0 1          pushin on signature hipR }
+mount HipL   { pelvis at -0.140 0.05  0.00  seated at -0.089 0.250 -0.339 radius 0.090 mouth 0 0 1          pushin on signature hipL }
+mount ChestR { chest  at  0.070 0.075 -0.01 seated at  0.070 0.075 -0.160 radius 0.075 mouth -0.5 0.3 0.81  pushin on signature chestR }
+mount ChestL { chest  at -0.070 0.075 -0.01 seated at -0.070 0.075 -0.160 radius 0.075 mouth  0.5 0.3 0.81  pushin on signature chestL }
 
 // ---- how far a gun travels out of its mouth before it is clear (fraction of eye height) ----
 kind gun  { clear 0.05 }
@@ -29,6 +50,51 @@ item Chaingun       { kind long print chaingun }
 item RocketLauncher { kind long print rocket }
 item PlasmaRifle    { kind long print plasma }
 item BFG9000        { kind long print bfg }
+
+// ---- Brutal Doom 22 VR's weapons (the classes of VRGUNFIT.rsq): pistols and revolvers are `gun`, the rest `long` ----
+item BrutalPistol           { kind gun  print pistol }
+item BrutalRevolver         { kind gun  print pistol }
+item Revolver               { kind gun  print pistol }
+item AssaultShotgun         { kind long print shotgun }
+item BFG10k                 { kind long print bfg }
+item BIG_FUCKING_GUN        { kind long print bfg }
+item BrutalAxe              { kind long print chainsaw }
+item BrutalSMG              { kind long print chaingun }
+item Chain_saw              { kind long print chainsaw }
+item DSweap                 { kind long }
+item Devastator             { kind long print rocket }
+item Flamethrower2          { kind long }
+item GrenadeLauncher        { kind long print rocket }
+item HellishMissileLauncher { kind long print rocket }
+item IncendiaryLauncher     { kind long print rocket }
+item MG42                   { kind long print chaingun }
+item MP40                   { kind long print chaingun }
+item Machinegun             { kind long print chaingun }
+item Minigun                { kind long print chaingun }
+item NukeLauncher           { kind long print rocket }
+item Plasma_Gun             { kind long print plasma }
+item RailGun                { kind long print plasma }
+item Rifle                  { kind long print chaingun }
+item Rocket_Launcher        { kind long print rocket }
+item SSG                    { kind long print supershotgun }
+item Shot_Gun               { kind long print shotgun }
+item Sniper                 { kind long }
+item Unmaker                { kind long print bfg }
+
+// ---- BD22 VR's off-hand copies: the off hand holds RSQ_Off_<gun>, a second class for the same gun.
+// `as` files it as its gun, so the gun has one home whichever hand's version is held.
+item RSQ_Off_BrutalPistol   { kind gun  print pistol       as BrutalPistol }
+item RSQ_Off_BrutalRevolver { kind gun  print pistol       as BrutalRevolver }
+item RSQ_Off_Revolver       { kind gun  print pistol       as Revolver }
+item RSQ_Off_AssaultShotgun { kind long print shotgun      as AssaultShotgun }
+item RSQ_Off_BrutalAxe      { kind long print chainsaw     as BrutalAxe }
+item RSQ_Off_BrutalSMG      { kind long print chaingun     as BrutalSMG }
+item RSQ_Off_MP40           { kind long print chaingun     as MP40 }
+item RSQ_Off_Plasma_Gun     { kind long print plasma       as Plasma_Gun }
+item RSQ_Off_RailGun        { kind long print plasma       as RailGun }
+item RSQ_Off_Rifle          { kind long print chaingun     as Rifle }
+item RSQ_Off_SSG            { kind long print supershotgun as SSG }
+item RSQ_Off_Shot_Gun       { kind long print shotgun      as Shot_Gun }
 
 // ---- haptic signatures: pulse <intensity 0-1> <ms> <hz, 0 = runtime default> [gap <ms>] ----
 // Each mount: its own RHYTHM first (frequency may be ignored on some controllers), so you can tell
