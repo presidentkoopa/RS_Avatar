@@ -4,8 +4,11 @@
 // vr_avatar is empty.
 GameInfo
 {
-	AddEventHandlers = "RSAV_Handler", "RSA_FitMode", "RSA_MirrorHandler", "RAG_Rules", "RAG_Feel", "RAG_Look"
+	AddEventHandlers = "RSAV_Handler", "RSA_FitMode", "RSA_MirrorHandler"
 }
 
 // 2026-11-12: RAB_Rules / RAB_Feel / RAB_Look (zscript/grab, an imitation of RSQ DistanceGrab) are NOT registered.
 // The owner wants RSQ DistanceGrab itself; it is loaded as its own pk3 (UZDXREMA tools/avatar/build_dg_rema.py).
+// 2026-11-12: RAG_Rules / RAG_Feel / RAG_Look (the engine holsters' scripts and the rings and stored guns built on
+// them) are NOT registered either, and VRGEAR.txt has no mounts: the owner wants RSQ TacticalRig itself, loaded as its
+// own pk3. Two holster systems on one body would fight over the grip.

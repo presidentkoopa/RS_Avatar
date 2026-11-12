@@ -32,10 +32,10 @@
 emptyhand Fist Melee_Attacks RSQ_Hands
 
 // ---- the mounts ----
-mount HipR   { pelvis at  0.140 0.05  0.00  seated at  0.089 0.250 -0.339 radius 0.090 mouth 0 0 1          pushin on signature hipR }
-mount HipL   { pelvis at -0.140 0.05  0.00  seated at -0.089 0.250 -0.339 radius 0.090 mouth 0 0 1          pushin on signature hipL }
-mount ChestR { chest  at  0.070 0.075 -0.01 seated at  0.070 0.075 -0.160 radius 0.075 mouth -0.5 0.3 0.81  pushin on signature chestR }
-mount ChestL { chest  at -0.070 0.075 -0.01 seated at -0.070 0.075 -0.160 radius 0.075 mouth  0.5 0.3 0.81  pushin on signature chestL }
+// OFF 2026-11-12 (RSQ TacticalRig itself is loaded instead; see MAPINFO.txt): mount HipR   { pelvis at  0.140 0.05  0.00  seated at  0.089 0.250 -0.339 radius 0.090 mouth 0 0 1          pushin on signature hipR }
+// OFF 2026-11-12 (RSQ TacticalRig itself is loaded instead; see MAPINFO.txt): mount HipL   { pelvis at -0.140 0.05  0.00  seated at -0.089 0.250 -0.339 radius 0.090 mouth 0 0 1          pushin on signature hipL }
+// OFF 2026-11-12 (RSQ TacticalRig itself is loaded instead; see MAPINFO.txt): mount ChestR { chest  at  0.070 0.075 -0.01 seated at  0.070 0.075 -0.160 radius 0.075 mouth -0.5 0.3 0.81  pushin on signature chestR }
+// OFF 2026-11-12 (RSQ TacticalRig itself is loaded instead; see MAPINFO.txt): mount ChestL { chest  at -0.070 0.075 -0.01 seated at -0.070 0.075 -0.160 radius 0.075 mouth  0.5 0.3 0.81  pushin on signature chestL }
 
 // ---- how far a gun travels out of its mouth before it is clear (fraction of eye height) ----
 kind gun  { clear 0.05 }
