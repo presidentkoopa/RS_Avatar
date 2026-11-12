@@ -26,7 +26,8 @@ class RAG_Look : EventHandler
 	// ---- the ring (rig.zs:3098-3105 HandAlpha, 3090 RING_FAR, 2981 STOWED_SPHERE, 3326-3332) ----
 	const RING_FAINT   = 0.25;     // always there: TacticalRig's "always" ring with no hand in it (rig.zs:3101)
 	const RING_INSIDE  = 0.70;     // a hand inside (rig.zs:3101, 3103)
-	const RING_EDGE    = 0.35;     // a hand at the sphere's edge, falling to nothing at 2.5 radii (rig.zs:3102-3103)
+	const RING_EDGE    = 0.70;     // [REVIEW W4] the owner's rule: "bright near a hand". TacticalRig's own value is 0.35 (rig.zs:3102-3103), which
+	                               // left a ring at 0.25 until a hand was 6 cm away. Was 0.35: a hand at the sphere's edge, falling to nothing at 2.5 radii (rig.zs:3102-3103)
 	const RING_REACH   = 2.5;
 	const RING_FAR     = 0.35;     // every usable ring but the nearest: this share of the hand's part (rig.zs:3090)
 	const STOWED       = 0.40;     // a ring round a drawn item, so the wire does not wash it out (rig.zs:2981, 3298-3303)
@@ -224,7 +225,9 @@ class RAG_Look : EventHandler
 			case VRGear.EV_REFUSED:                       // D1, D4 (rig.zs:850-859, 873-879): double pulse, use-fail, red
 				Feel('refuse', fh);
 				Play(pawn, 'refuse');
-				ShowRule(spot, RULE_REFUSE);
+				// [REVIEW W2] red only when a GUN may not enter (rig.zs:850-859). An empty hand at an empty holster and
+				// "no grenades" get the double pulse and the sound only (rig.zs:2752, 2870, 2886-2890).
+				if (arg == 1 || arg == 2 || arg == 5) ShowRule(spot, RULE_REFUSE);
 				break;
 			}
 		}
@@ -276,6 +279,9 @@ class RAG_Look : EventHandler
 		return ah;
 	}
 
+	private int recSeen;             // [REVIEW W3] the last VRTorso.RecenterCount seen
+	private bool recPrimed;          // false until the first tic, so a count carried in by a load does not click
+
 	override void WorldTick()
 	{
 		int n = VRGear.SpotCount();
@@ -305,6 +311,17 @@ class RAG_Look : EventHandler
 
 		// K1, O17 (rig.zs:2101-2106): dead, or no headset pose has ever arrived: nothing is shown.
 		if (pawn.health <= 0 || !VRTorso.Valid(me)) { HideAll(); return; }
+
+		// [REVIEW W3] K19 (rig.zs:2582-2593): the torso was recentred by both hands at the chest: a click and a
+		// short pulse in both hands, so he knows it fired.
+		int rc = VRTorso.RecenterCount(me);
+		if (recPrimed && rc != recSeen)
+		{
+			pawn.A_StartSound("switches/normbutn", CHAN_AUTO, CHANF_LOCAL, 0.3);
+			level.VRHapticEx(0, 0.3, 3 * 1000.0 / 35.0, 0, 1);
+			level.VRHapticEx(1, 0.3, 3 * 1000.0 / 35.0, 0, 1);
+		}
+		recSeen = rc; recPrimed = true;
 
 		double bodyYaw = VRTorso.Yaw(me);
 		bool mainLeft = VRGear.MainLeft(me);
