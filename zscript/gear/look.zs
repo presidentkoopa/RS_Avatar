@@ -69,6 +69,11 @@ class RAG_Look : EventHandler
 	transient RAG_Fit fit;
 	transient bool fitLoaded;
 
+	// [LAGD] the stick turn as last tic's WorldTick saw it, for the props' ride (Ride, below)
+	transient double rideLastTurn;
+	transient bool rideHave;
+	const RIDE_MAX_TURN = 15.0;    // degrees in one tic: more is a snap or a reset, which is not extrapolated
+
 	// events
 	transient int lastSeq;
 	transient bool seqInit;
@@ -282,6 +287,15 @@ class RAG_Look : EventHandler
 	private int recSeen;             // [REVIEW W3] the last VRTorso.RecenterCount seen
 	private bool recPrimed;          // false until the first tic, so a count carried in by a load does not click
 
+	// [LAGD] A spot's DRAWN place: turned about the pawn by `turn` degrees, then carried by `move`.
+	static Vector3 Ride(Vector3 at, Vector2 pivot, double turn, Vector2 move)
+	{
+		Vector2 r = Actor.RotateVector(at.xy - pivot, turn);
+		Vector2 p2 = pivot + r + move;
+		Vector3 o = (p2, at.z);
+		return o;
+	}
+
 	override void WorldTick()
 	{
 		int n = VRGear.SpotCount();
@@ -325,6 +339,28 @@ class RAG_Look : EventHandler
 
 		double bodyYaw = VRTorso.Yaw(me);
 		bool mainLeft = VRGear.MainLeft(me);
+
+		// [LAGD] THE PROPS RIDE WITH THE DRAWN BODY, NOT ONE TIC BEHIND IT. The spots are the sim's, built in
+		// P_PlayerThink from the pawn's place at the START of this tic (p_vrtorso.cpp t.Anchor), and the pawn
+		// only moves after this WorldTick (p_tick.cpp: player think, WorldTick, then the thinkers). The camera
+		// is drawn from the pawn's tic start to its tic end, so props placed on the spots trailed it by one tic
+		// of travel. The fix is the one the seated pose makes (vr_body.cpp, the seat point at this frame): carry
+		// them by the pawn's coming move, its velocity this tic. And the drawn body turns with the stick turn
+		// as the frame has it (vr_rig.cpp [LAGA]), one tic ahead of the sim torso's yaw, so the props are turned
+		// about the pawn by the stick turn of the last tic, the same amount again. LOOKS ONLY: the spots the
+		// hands are judged against (`at` below, the rings' brightness, the sim) are untouched.
+		double turnNow = pawn.VRTurnYaw;
+		double rideTurn = 0;
+		if (rideHave)
+		{
+			rideTurn = Actor.deltaangle(rideLastTurn, turnNow);
+			if (abs(rideTurn) > RIDE_MAX_TURN) rideTurn = 0;
+		}
+		rideLastTurn = turnNow;
+		rideHave = true;
+		Vector2 ridePivot = pawn.pos.xy;
+		Vector2 rideMove = pawn.vel.xy;
+		double drawYaw = bodyYaw + rideTurn;
 		double ps = level.pixelstretch > 0 ? level.pixelstretch : 1.2;
 
 		// the hands (the sim's own latch)
@@ -345,6 +381,7 @@ class RAG_Look : EventHandler
 			bool ok; Vector3 at; double rad;
 			[ok, at, rad] = VRGear.SpotPose(me, s);
 			if (!ok || !VRGear.SpotLive(me, s)) { HideSpot(s); continue; }
+			Vector3 dat = Ride(at, ridePivot, rideTurn, rideMove);   // [LAGD] where it is DRAWN
 
 			int rule = VRGear.SpotRule(s);
 			bool gunSpot = RAG_Rules.IsGunSpot(s);
@@ -368,8 +405,8 @@ class RAG_Look : EventHandler
 			// M1 (rig.zs:3311-3313): a gun holster is the wire sphere, an item spot the wire diamond
 			if (shells[s] == null)
 			{
-				if (gunSpot) shells[s] = RAG_Shell(Actor.SpawnClientSide('RAG_Shell', at, NO_REPLACE));
-				else shells[s] = RAG_Shell(Actor.SpawnClientSide('RAG_Diamond', at, NO_REPLACE));
+				if (gunSpot) shells[s] = RAG_Shell(Actor.SpawnClientSide('RAG_Shell', dat, NO_REPLACE));
+				else shells[s] = RAG_Shell(Actor.SpawnClientSide('RAG_Diamond', dat, NO_REPLACE));
 			}
 			if (shells[s] != null)
 			{
@@ -384,18 +421,18 @@ class RAG_Look : EventHandler
 					else if (ruleKind[s] == RULE_FREE) fr = FRAME_WHITE;
 					else fr = FRAME_IN;
 				}
-				shells[s].ShowAt(at, size, a, fr);
+				shells[s].ShowAt(dat, size, a, fr);
 			}
 
 			// ---- THE POUCH (M18, rig.zs:3526-3556): its model facing out, and on its flap a light for the
 			// main-hand gun's RESERVE.
 			if (rule == VRGear.RULE_ZONE)
 			{
-				if (pouches[s] == null) pouches[s] = RAG_Pouch(Actor.SpawnClientSide('RAG_Pouch', at, NO_REPLACE));
+				if (pouches[s] == null) pouches[s] = RAG_Pouch(Actor.SpawnClientSide('RAG_Pouch', dat, NO_REPLACE));
 				if (pouches[s] != null)
 				{
-					pouches[s].SetOrigin(at, true);
-					pouches[s].Angle = bodyYaw;
+					pouches[s].SetOrigin(dat, true);
+					pouches[s].Angle = drawYaw;
 					pouches[s].Pitch = 0;
 					pouches[s].Roll = 0;
 					pouches[s].bInvisible = false;
@@ -404,7 +441,7 @@ class RAG_Look : EventHandler
 				if (rst >= 0)
 				{
 					// on the flap, at its front top edge: 1.6 cm out, 5.8 cm up (rig.zs:3542-3544)
-					Vector3 lp = at + (cos(bodyYaw) * 0.016 * UPM, sin(bodyYaw) * 0.016 * UPM, 0.058 * UPM / ps);
+					Vector3 lp = dat + (cos(drawYaw) * 0.016 * UPM, sin(drawYaw) * 0.016 * UPM, 0.058 * UPM / ps);
 					if (lights[s] == null) lights[s] = RAG_Light(Actor.SpawnClientSide('RAG_Light', lp, NO_REPLACE));
 					if (lights[s] != null) lights[s].ShowAt(lp, POUCH_LIGHT_M * UPM, 0.95 * (rst == 2 ? EmptyPulse() : 1.0), rst);
 				}
@@ -428,8 +465,8 @@ class RAG_Look : EventHandler
 			{
 				double la = clamp(a + 0.2, 0.0, 1.0);
 				if (st == 2) la *= EmptyPulse();
-				if (lights[s] == null) lights[s] = RAG_Light(Actor.SpawnClientSide('RAG_Light', at, NO_REPLACE));
-				if (lights[s] != null) lights[s].ShowAt(at, rad * UPM * (st == 2 ? LIGHT_EMPTY : LIGHT_SIZE), la, st);
+				if (lights[s] == null) lights[s] = RAG_Light(Actor.SpawnClientSide('RAG_Light', dat, NO_REPLACE));
+				if (lights[s] != null) lights[s].ShowAt(dat, rad * UPM * (st == 2 ? LIGHT_EMPTY : LIGHT_SIZE), la, st);
 			}
 			else if (lights[s] != null) lights[s].Hide();
 
@@ -438,8 +475,8 @@ class RAG_Look : EventHandler
 			{
 				if (RAG_Rules.Grenades(pawn, s) > 0 && !RAG_Rules.NadeInHand(pawn, s))
 				{
-					if (nades[s] == null) nades[s] = RAG_Nade(Actor.SpawnClientSide('RAG_Nade', at, NO_REPLACE));
-					if (nades[s] != null) nades[s].Show(at, bodyYaw, NADE_M, RAG_Rules.NadeAmmo(s));
+					if (nades[s] == null) nades[s] = RAG_Nade(Actor.SpawnClientSide('RAG_Nade', dat, NO_REPLACE));
+					if (nades[s] != null) nades[s].Show(dat, drawYaw, NADE_M, RAG_Rules.NadeAmmo(s));
 				}
 				else if (nades[s] != null) nades[s].bInvisible = true;
 				continue;
@@ -466,9 +503,9 @@ class RAG_Look : EventHandler
 				// M14 (rig.zs:3625-3635, ShowAt): the spot's `show`: this far behind it and this share of
 				// the gun's length below it, so the butt, not the middle, is where the hand reaches.
 				Vector2 showBy = VRGear.SpotShow(s);
-				Vector3 gunAt = at - (cos(bodyYaw) * showBy.X * UPM, sin(bodyYaw) * showBy.X * UPM, showBy.Y * metres * UPM / ps);
+				Vector3 gunAt = dat - (cos(drawYaw) * showBy.X * UPM, sin(drawYaw) * showBy.X * UPM, showBy.Y * metres * UPM / ps);
 				if (guns[s] == null) guns[s] = RAG_Gun(Actor.SpawnClientSide('RAG_Gun', gunAt, NO_REPLACE));
-				if (guns[s] != null) guns[s].Show(shown, fit, row, gunAt, metres, bodyYaw + off, pt, rl);
+				if (guns[s] != null) guns[s].Show(shown, fit, row, gunAt, metres, drawYaw + off, pt, rl);
 			}
 			else if (guns[s] != null) guns[s].Hide();
 		}
