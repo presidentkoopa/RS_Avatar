@@ -5,15 +5,23 @@
 // (MAPINFO.txt), so in one tic it sees what the rules just did (GEAR_CONTRACT.md section 8, step 3).
 //
 // What is shown is RSQ TacticalRig's, rule for rule ("rig.zs:N" is rsq_ubqseries/TacticalRig/zscript/
-// rsqtr/rig.zs, "Fxx" the item in UZDXREMA docs/plans/holsters/TACTICALRIG_FLOOR.md), with ONE change
-// the owner asked for on 2026-11-12: the rings are "faintly always, bright near a hand". TacticalRig's
-// rings were off until a hand came near (its Holster Rings: Hand Nearby, rig.zs:3092-3105).
+// rsqtr/rig.zs, "Fxx" the item in UZDXREMA docs/plans/holsters/TACTICALRIG_FLOOR.md).
+// [GEARFIX 2026-11-13] The owner, in the headset: "get the layout like the tactical rig ... why are then neon and
+// brighter than the sun i can't look at them". So the rings are TacticalRig's again, exactly: NOTHING shows until a
+// hand comes within 2.5 radii of a spot it could use, the nearest such spot full and the rest at 0.35, 0.35 at the
+// edge rising to 0.70 inside (Holster Rings: Hand Nearby, rig.zs RingMode / HandAlpha / RingAlpha, 3370-3398). The
+// 11-12 "faintly always" ring (0.25 on every spot, all the time) and its 0.70 edge are gone. And they are drawn
+// TRANSLUCENT, not additive: TacticalRig's additive wire was soft on QuestZDoom, but this engine blooms anything
+// additive and fullbright (gl_bloom is on by default), so eight additive spheres of three crossing rings read as neon.
+// Translucent at the same alpha gives the same colour over a dark wall and never goes past the texture's own colour.
+// The wire is culled on its back faces as TacticalRig's was (its MODELDEF has no DONTCULLBACKFACES).
 //
 //   rings        gun holster = wire sphere, item spot = wire diamond (M1). Blue / magenta idle, green
 //                with a hand inside and x1.15 (M2, M3). Red flash refused, white freed, green flash the
-//                first time a holster becomes a gun's (D4, D5: the flash only, no picture).
+//                first time a holster becomes a gun's (D4, D5: the flash only, no picture). Only near a hand (M4-M6).
 //   stored guns  exactly what was put there, as the model you hold, by the RAGFIT lump (M12-M15).
-//   ammo light   in a full gun holster and at the grenade spot (M9).
+//   ammo light   in a full gun holster and at the grenade spot, while its ring shows (M9); round a gun's
+//                light, the ammo arc: a thin wire arc as long as the magazine is full (M10, rig.zs:3268-3331).
 //   the pouch    its model on the belt and the reserve light on its flap (M18).
 //   the grenade  at the buckle while you have one and none is in a hand (M19).
 //   pulses, sounds  from the rules' result events (D1, D2).
@@ -23,11 +31,10 @@ class RAG_Look : EventHandler
 {
 	const UPM = 34.0;              // map units a metre across the floor (contract section 1)
 
-	// ---- the ring (rig.zs:3098-3105 HandAlpha, 3090 RING_FAR, 2981 STOWED_SPHERE, 3326-3332) ----
-	const RING_FAINT   = 0.25;     // always there: TacticalRig's "always" ring with no hand in it (rig.zs:3101)
-	const RING_INSIDE  = 0.70;     // a hand inside (rig.zs:3101, 3103)
-	const RING_EDGE    = 0.70;     // [REVIEW W4] the owner's rule: "bright near a hand". TacticalRig's own value is 0.35 (rig.zs:3102-3103), which
-	                               // left a ring at 0.25 until a hand was 6 cm away. Was 0.35: a hand at the sphere's edge, falling to nothing at 2.5 radii (rig.zs:3102-3103)
+	// ---- the ring (rig.zs:3376-3398 HandAlpha / RingAlpha, 3358 RING_FAR, 3258 STOWED_SPHERE, 3600-3611) ----
+	// [GEARFIX 2026-11-13] TacticalRig's own numbers, Holster Rings: Hand Nearby (its default, CVARINFO.txt:10).
+	const RING_INSIDE  = 0.70;     // a hand inside (rig.zs:3381)
+	const RING_EDGE    = 0.35;     // a hand at the sphere's edge, falling to nothing at 2.5 radii (rig.zs:3381)
 	const RING_REACH   = 2.5;
 	const RING_FAR     = 0.35;     // every usable ring but the nearest: this share of the hand's part (rig.zs:3090)
 	const STOWED       = 0.40;     // a ring round a drawn item, so the wire does not wash it out (rig.zs:2981, 3298-3303)
@@ -48,6 +55,9 @@ class RAG_Look : EventHandler
 	const LIGHT_SIZE   = 0.26;     // of the spot's radius
 	const LIGHT_EMPTY  = 0.18;     // the red one is smaller
 	const PULSE_TICS   = 35;       // and swells and fades once a second
+	// ---- the ammo arc (rig.zs:3268-3331 DrawAmmoArc, AmmoFrac, ArcStep) ----
+	const ARC_R        = 0.40;     // the arc's radius, in holster radii (the light is 0.26, the ring 1.0)
+	const ARC_STEPS    = 12;
 	// ---- the pouch and the grenade (rig.zs:3516, 3572) ----
 	const POUCH_LIGHT_M = 0.011;   // the light on the pouch's flap, radius in metres
 	const NADE_M       = 0.13;     // the grenade's height on the belt, metres
@@ -57,6 +67,7 @@ class RAG_Look : EventHandler
 	transient Array<RAG_Shell> shells;
 	transient Array<RAG_Gun> guns;
 	transient Array<RAG_Light> lights;
+	transient Array<RAG_Arc> arcs;
 	transient Array<RAG_Pouch> pouches;
 	transient Array<RAG_Nade> nades;
 	transient Array<int> ruleTic;      // level.maptime + 1 when a flash started, 0 none (rig.zs:917)
@@ -245,6 +256,7 @@ class RAG_Look : EventHandler
 		if (shells[s] != null) shells[s].Hide();
 		if (guns[s] != null) guns[s].Hide();
 		if (lights[s] != null) lights[s].Hide();
+		if (arcs[s] != null) arcs[s].bInvisible = true;
 		if (pouches[s] != null) pouches[s].bInvisible = true;
 		if (nades[s] != null) nades[s].bInvisible = true;
 	}
@@ -287,6 +299,59 @@ class RAG_Look : EventHandler
 	private int recSeen;             // [REVIEW W3] the last VRTorso.RecenterCount seen
 	private bool recPrimed;          // false until the first tic, so a count carried in by a load does not click
 
+	// M10 (rig.zs:3268-3285, AmmoFrac / ArcStep): how full a gun's magazine is (its ammo for a gun without one), in
+	// twelfths: 0 only when empty, 12 only when full.
+	static double AmmoFrac(Weapon w)
+	{
+		if (w == null || w.Ammo1 == null) return -1;
+		bool mag = w.Ammo2 != null && w.Ammo2 != w.Ammo1;
+		Inventory lo = mag ? w.Ammo2 : w.Ammo1;
+		return clamp(double(lo.Amount) / max(1, lo.MaxAmount), 0.0, 1.0);
+	}
+	static int ArcStep(double f)
+	{
+		if (f <= 0) return 0;
+		if (f >= 1) return ARC_STEPS;
+		return clamp(int(round(f * ARC_STEPS)), 1, ARC_STEPS - 1);
+	}
+
+	// M10 (rig.zs:3286-3331, DrawAmmoArc): the arc shows exactly when a gun holster's light shows green or yellow,
+	// at the light's alpha, turned to the eyes and upright as you see it.
+	private void DrawArc(PlayerInfo p, PlayerPawn pawn, int s, Vector3 at, double rad, Weapon pw, double ps)
+	{
+		let q = lights[s];
+		double f = (pw != null && q != null && !q.bInvisible) ? AmmoFrac(pw) : -1;
+		int step = f >= 0 ? ArcStep(f) : 0;
+		bool show = f >= 0 && step > 0 && (q.frame == 0 || q.frame == 1);
+		if (!show) { if (arcs[s] != null) arcs[s].bInvisible = true; return; }
+		bool fresh = arcs[s] == null;
+		if (fresh) arcs[s] = RAG_Arc(Actor.SpawnClientSide('RAG_Arc', at, NO_REPLACE));
+		let c = arcs[s];
+		if (c == null) return;
+		// the eyes: the sim's head (the latched headset), else the view
+		int hv; Vector3 eye;
+		[hv, eye] = p.GetVRHead();
+		if (hv == 0) eye = (pawn.pos.xy, p.viewz);
+		double ha = pawn.angle, hpi = pawn.pitch;
+		Vector3 hu = (sin(hpi) * cos(ha), sin(hpi) * sin(ha), cos(hpi));
+		Vector3 d = eye - at;
+		double yaw = atan2(d.y, d.x);
+		double pit = -atan2(d.z * ps, max(0.001, d.xy.Length()));
+		Vector3 nrm = (cos(pit) * cos(yaw), cos(pit) * sin(yaw), -sin(pit));
+		Vector3 u0 = (sin(pit) * cos(yaw), sin(pit) * sin(yaw), cos(pit));
+		Vector3 up = hu - nrm * (hu dot nrm);
+		double rl = 0;
+		if (up.Length() > 0.01) { up = up.Unit(); rl = atan2((u0 cross up) dot nrm, u0 dot up); }   // RULE_ROLL_SIGN 1 (rig.zs:1123)
+		c.SetOrigin(at, true);
+		c.Angle = yaw; c.Pitch = pit; c.Roll = rl;
+		if (fresh) c.ClearInterpolation();
+		c.frame = (q.frame == 1 ? ARC_STEPS : 0) + step - 1;     // MODELDEF.gear: A-L green, M-X yellow
+		double sc = ARC_R * rad * UPM;
+		c.Scale = (sc, sc);
+		c.Alpha = q.Alpha;
+		c.bInvisible = false;
+	}
+
 	// [LAGD] A spot's DRAWN place: turned about the pawn by `turn` degrees, then carried by `move`.
 	static Vector3 Ride(Vector3 at, Vector2 pivot, double turn, Vector2 move)
 	{
@@ -305,6 +370,7 @@ class RAG_Look : EventHandler
 			shells.Push(null);
 			guns.Push(null);
 			lights.Push(null);
+			arcs.Push(null);
 			pouches.Push(null);
 			nades.Push(null);
 			ruleTic.Push(0);
@@ -360,6 +426,13 @@ class RAG_Look : EventHandler
 		rideHave = true;
 		Vector2 ridePivot = pawn.pos.xy;
 		Vector2 rideMove = pawn.vel.xy;
+		// [GEARFIX 2026-11-13] THE VIEW'S LEAN. With the body anchor on, the pawn stands on the room feet and the eyes and
+		// the drawn hands are carried off it by the head's lean (up to 0.14 m; the owner's seated log: 0.07 m), while the
+		// sim's hands and spots are both measured from the pawn without it. So the hit is right (head-relative, as in
+		// TacticalRig) but a ring drawn at the sim's spot sat one lean away from where the drawn hand must go to hit it.
+		// Everything drawn at a spot is carried by the same lean (VRTorso.ViewLean: what the renderer adds, else 0).
+		Vector2 viewLean = VRTorso.ViewLean();
+		rideMove += viewLean;
 		double drawYaw = bodyYaw + rideTurn;
 		double ps = level.pixelstretch > 0 ? level.pixelstretch : 1.2;
 
@@ -388,9 +461,10 @@ class RAG_Look : EventHandler
 			bool in0 = at0 == s, in1 = at1 == s;
 			bool inside = in0 || in1;
 
-			// ---- THE RING. The owner's rule: faintly always, bright near a hand. M6's "only what the
-			// hand can use" and "the nearest only" decide how BRIGHT a hand makes it, not whether it shows.
-			double a = RING_FAINT;
+			// ---- THE RING (M4-M6, rig.zs:3556-3611): TacticalRig's Hand Nearby. Nothing until a hand that could
+			// USE this spot comes within 2.5 radii; the nearest such spot to that hand full, the others x0.35;
+			// the stronger of the two hands.
+			double a = 0;
 			a = max(a, RingPart(n, s, 0, ok0, hp0, at, rad, in0, nearSpot0));
 			a = max(a, RingPart(n, s, 1, ok1, hp1, at, rad, in1, nearSpot1));
 			// M7 (rig.zs:3298-3303): a spot showing its item (last tic's) draws its ring at 0.4, so the item
@@ -403,12 +477,14 @@ class RAG_Look : EventHandler
 			if (rf > 0) a = max(a, rf);
 
 			// M1 (rig.zs:3311-3313): a gun holster is the wire sphere, an item spot the wire diamond
-			if (shells[s] == null)
+			if (shells[s] == null && a > 0.01)
 			{
 				if (gunSpot) shells[s] = RAG_Shell(Actor.SpawnClientSide('RAG_Shell', dat, NO_REPLACE));
 				else shells[s] = RAG_Shell(Actor.SpawnClientSide('RAG_Diamond', dat, NO_REPLACE));
 			}
-			if (shells[s] != null)
+			// rig.zs:3593-3614: the marker is drawn only while its alpha is above 0.01
+			if (shells[s] != null && a <= 0.01) shells[s].Hide();
+			else if (shells[s] != null)
 			{
 				// M3 (rig.zs:3326-3332): the marker's radius is the spot's; x1.15 with a hand inside;
 				// x(1 + 0.25 x fade) during a flash. M2 (rig.zs:3327, 3331): the colours.
@@ -469,6 +545,8 @@ class RAG_Look : EventHandler
 				if (lights[s] != null) lights[s].ShowAt(dat, rad * UPM * (st == 2 ? LIGHT_EMPTY : LIGHT_SIZE), la, st);
 			}
 			else if (lights[s] != null) lights[s].Hide();
+			// M10 (rig.zs:3268-3331, DrawAmmoArc): round a GUN's light, green or yellow, as long as the magazine is full
+			DrawArc(p, pawn, s, dat, rad, pw, ps);
 
 			// ---- THE GRENADE AT THE BUCKLE (M19, rig.zs:3582-3595): while there is one and none is in a hand.
 			if (rule == VRGear.RULE_SUMMON)
@@ -600,8 +678,9 @@ class RAG_Fit
 }
 
 // A GUN HOLSTER'S MARKER: a wire sphere of radius 1 (MODELDEF.gear); the actor's Scale is the spot's
-// radius in map units (TacticalRig's RSQTR_Marker, rig.zs:3938-3947). Additive, bright. No angle: a
-// sphere reads the same from every side.
+// radius in map units (TacticalRig's RSQTR_Marker, rig.zs:4215-4223). Fullbright as TacticalRig's; TRANSLUCENT,
+// not TacticalRig's additive ([GEARFIX 2026-11-13]: additive blooms to neon in this engine, see the top). No angle:
+// a sphere reads the same from every side.
 class RAG_Shell : Actor
 {
 	Default
@@ -613,7 +692,7 @@ class RAG_Shell : Actor
 		+DONTSPLASH
 		+NOTONAUTOMAP
 		+BRIGHT
-		RenderStyle "Add";
+		RenderStyle "Translucent";
 		Radius 1;
 		Height 1;
 	}
@@ -647,7 +726,8 @@ class RAG_Diamond : RAG_Shell
 {
 }
 
-// THE AMMO LIGHT (TacticalRig's RSQTR_AmmoPip, rig.zs:3907-3915). Frame 0 green, 1 yellow, 2 red.
+// THE AMMO LIGHT (TacticalRig's RSQTR_AmmoPip, rig.zs:4185-4192). Frame 0 green, 1 yellow, 2 red. Translucent,
+// as the rings ([GEARFIX 2026-11-13]).
 class RAG_Light : Actor
 {
 	Default
@@ -659,7 +739,7 @@ class RAG_Light : Actor
 		+DONTSPLASH
 		+NOTONAUTOMAP
 		+BRIGHT
-		RenderStyle "Add";
+		RenderStyle "Translucent";
 		Radius 1;
 		Height 1;
 	}
@@ -682,6 +762,32 @@ class RAG_Light : Actor
 	{
 	Spawn:
 		RAGS A -1;
+		Stop;
+	}
+}
+
+// THE AMMO ARC (TacticalRig's RSQTR_AmmoArc, rig.zs:4194-4197; MODELDEF.gear RAG_Arc): frames A-L green, M-X yellow,
+// fill steps 1-12. Turned to the eyes by its angle, pitch and roll. Translucent, as the rings.
+class RAG_Arc : Actor
+{
+	Default
+	{
+		+CLIENTSIDE
+		+NOBLOCKMAP
+		+NOGRAVITY
+		+NOINTERACTION
+		+DONTSPLASH
+		+NOTONAUTOMAP
+		+BRIGHT
+		RenderStyle "Translucent";
+		Radius 1;
+		Height 1;
+	}
+
+	States
+	{
+	Spawn:
+		RAGA A -1;
 		Stop;
 	}
 }

@@ -803,6 +803,31 @@ class RAG_Rules : EventHandler
 		VRGear.Post(pnum, VRGear.EV_FREED, hand, r, owner, 0);
 	}
 
+	// [GEARFIX 2026-11-13] A GUN IN A HOLSTER IS NOT AN OFF-HAND WEAPON. An off-hand draw or swap flags the gun off-hand
+	// (DrawOff, HolsterOff, TickPairs: the engine raises a weapon into the hand its flag names), and nothing put the flag
+	// back once the gun was holstered again. The engine's weapnext / weapprev take only weapons flagged for the hand that
+	// asks (player.zs PickNextWeapon / PickPrevWeapon), so such a gun was skipped by the main hand's weapnext for good,
+	// and a slot key sent it to the off hand. The BD22 VR pack's off-hand rule puts its own pairs right (its dual.zs);
+	// a gun without an off-hand copy kept the flag. Here, every tic, every player: a gun that is in a gun holster and in
+	// neither hand, not on its way into one, takes its class's own flag back. TacticalRig did not do this (it never
+	// cleared the flag either, rig.zs:1663-1678); it is a fix, not a port. Same on every machine (inventory only).
+	private void NormaliseStored(int pnum, PlayerPawn pawn)
+	{
+		PlayerInfo p = pawn.player;
+		int n = VRGear.SpotCount();
+		for (int s = 0; s < n; s++)
+		{
+			if (!IsGunSpot(s)) continue;
+			Name c = VRGear.Content(pnum, s);
+			if (c == 'None' || c == offNext[pnum]) continue;
+			Weapon w = Owned(pawn, c);
+			if (w == null || w == p.ReadyWeapon || w == p.OffhandWeapon) continue;
+			if (p.PendingWeapon != WP_NOCHANGE && p.PendingWeapon == w) continue;
+			let d = GetDefaultByType(w.GetClass());
+			if (d != null && w.bOffhandWeapon != d.bOffhandWeapon) w.bOffhandWeapon = d.bOffhandWeapon;
+		}
+	}
+
 	// =====================================================================================
 	// One tic (contract section 8, step 2)
 	// =====================================================================================
@@ -827,6 +852,13 @@ class RAG_Rules : EventHandler
 				if (act == VRGear.ACT_PRESS) DoPress(i, pawn, hand, spot);
 				else if (act == VRGear.ACT_FREE) DoFree(i, pawn, hand, spot);
 			}
+		}
+
+		// [GEARFIX 2026-11-13] A stored gun goes back to its own hand's flag (below).
+		for (int i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].mo == null) continue;
+			NormaliseStored(i, players[i].mo);
 		}
 
 		// THEN the bits the sim's hover reads next tic, for every player, every spot.

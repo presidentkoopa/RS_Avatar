@@ -7,7 +7,9 @@
 //   C red (that press was refused)    D white (the holster was freed)
 //   E magenta (an item spot, idle)
 // FLAGS BEFORE THE FrameIndex LINES: each FrameIndex snapshots the flags set so far.
-// DONTCULLBACKFACES: an additive model is culled from one side without it.
+// [GEARFIX 2026-11-13] NO DONTCULLBACKFACES, as TacticalRig's markers (its MODELDEF.txt:5-16, 47-62, 140-155): with it the
+// far half of every wire showed through the near half and doubled it, which with the additive style read as neon. The
+// actors are translucent now (look.zs), at TacticalRig's alphas.
 
 // RAG_Shell: a gun holster's marker. A wire sphere of radius 1 at Scale 1 (three rings); the
 // actor's Scale is the spot's radius in map units. rs_wiresphere.obj is the same file as
@@ -26,7 +28,6 @@ Model RAG_Shell
 	Model 4 "rs_wiresphere.obj"
 	Skin 4 "rag_wire_util.png"
 	Scale 1.0 1.0 1.0
-	DONTCULLBACKFACES
 	FrameIndex RAGS A 0 0
 	FrameIndex RAGS B 1 0
 	FrameIndex RAGS C 2 0
@@ -50,7 +51,6 @@ Model RAG_Diamond
 	Model 4 "rag_wirediamond.obj"
 	Skin 4 "rag_wire_util.png"
 	Scale 1.0 1.0 1.0
-	DONTCULLBACKFACES
 	FrameIndex RAGS A 0 0
 	FrameIndex RAGS B 1 0
 	FrameIndex RAGS C 2 0
@@ -70,7 +70,6 @@ Model RAG_Light
 	Model 2 "rs_wiresphere.obj"
 	Skin 2 "rag_wire_red.png"
 	Scale 1.0 1.0 1.0
-	DONTCULLBACKFACES
 	FrameIndex RAGS A 0 0
 	FrameIndex RAGS B 1 0
 	FrameIndex RAGS C 2 0
@@ -105,3 +104,31 @@ Model RAG_Nade
 	NoInterpolation
 	FrameIndex RAGN A 0 2
 }
+
+// RAG_Arc: the ammo arc round a full gun holster's light (TacticalRig's RSQTR_AmmoArc, its MODELDEF.txt:18-45;
+// rag_arcNN.obj = its models/rsqtr/rtarcNN.obj, k/12 of a circle of radius 1). A-L green steps 1-12, M-X yellow
+// steps 1-12. One block per frame: a block's model is fixed. Turned to the eyes by the actor's angle, pitch and roll.
+Model RAG_Arc { Path "models" Model 0 "rag_arc01.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA A 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc02.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA B 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc03.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA C 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc04.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA D 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc05.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA E 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc06.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA F 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc07.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA G 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc08.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA H 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc09.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA I 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc10.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA J 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc11.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA K 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc12.obj" Skin 0 "rs_wire_hot.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA L 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc01.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA M 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc02.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA N 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc03.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA O 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc04.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA P 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc05.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA Q 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc06.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA R 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc07.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA S 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc08.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA T 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc09.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA U 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc10.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA V 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc11.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA W 0 0 }
+Model RAG_Arc { Path "models" Model 0 "rag_arc12.obj" Skin 0 "rag_wire_yellow.png" Scale 1.0 1.0 1.0 USEACTORPITCH USEACTORROLL FrameIndex RAGA X 0 0 }
